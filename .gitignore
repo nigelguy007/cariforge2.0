@@ -44,3 +44,4 @@ lerna-debug.log*
 
 # Polsia upgrade reconcile sidecars (never commit)
 *.polsia-app-old
+.claude/settings.local.json
