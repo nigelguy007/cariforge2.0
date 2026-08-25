@@ -5,6 +5,7 @@
 
 'use client';
 
+import { AlertCircle } from 'lucide-react';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { GlassCard } from '@/components/custom/glass';
@@ -77,8 +78,19 @@ export function FaqAccordion() {
 
   if (loadError) {
     return (
-      <GlassCard tone="surface" padding="md">
-        <p className="text-small text-destructive">{loadError}</p>
+      <GlassCard
+        role="alert"
+        tone="surface"
+        padding="md"
+        className="border border-destructive/40 bg-destructive/5 text-sm text-destructive"
+      >
+        <div className="flex items-start gap-3">
+          <AlertCircle aria-hidden className="mt-0.5 size-4 shrink-0" />
+          <div className="flex flex-col gap-2">
+            <p className="font-semibold">Could not load the FAQ.</p>
+            <p className="text-xs text-destructive/90">{loadError}</p>
+          </div>
+        </div>
       </GlassCard>
     );
   }

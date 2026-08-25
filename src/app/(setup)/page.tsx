@@ -132,7 +132,7 @@ function StanceBadge({ tone }: { tone: 'objection' | 'support' | 'qualify' }) {
 
 export default function Home() {
   return (
-    <main className="flex flex-col">
+    <main id="main-content" className="flex flex-col">
       <JsonLd script={organization} />
       <JsonLd script={website} />
       {/* HERO — editorial split: pronouncement + brief intake form */}

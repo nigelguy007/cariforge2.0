@@ -69,7 +69,7 @@ const product = {
 
 export default function PricingPage() {
   return (
-    <main className="flex flex-col">
+    <main id="main-content" className="flex flex-col">
       <JsonLd script={organization} />
       <JsonLd script={product} />
       <section className="section-lg relative overflow-hidden hero-aurora">
