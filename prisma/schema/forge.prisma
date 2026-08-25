@@ -1,0 +1,193 @@
+// @polsia:user-owned — CARI Forge control plane schema. Tracks typed
+// structured handoffs across 5 lifecycle stages (Discovery → Readiness →
+// Workflow → Governance → SoftwareBuild) with attribution, gates, evidence
+// trail, objections, bounded external tool actions, and an append-only audit
+// log. FKs are scalars (no @relation to User, which lives in the framework-
+// owned auth.prisma); cascade semantics live in app code under /api/forge/*.
+
+enum MissionStatus {
+  Draft
+  InDiscovery
+  InReadiness
+  InWorkflow
+  InGovernance
+  InBuild
+  AwaitingApproval
+  Paused
+  Blocked
+  Rejected
+  Completed
+  WalkedAway
+  RolledBack
+}
+
+enum StageName {
+  Discovery
+  Readiness
+  Workflow
+  Governance
+  SoftwareBuild
+}
+
+enum ApprovalDecision {
+  Approve
+  Return
+  Refuse
+}
+
+enum ObjectionResolution {
+  Overruled
+  CarriedForward
+  OwnerResolved
+  Closed
+}
+
+enum EvidenceKind {
+  Text
+  File
+  Url
+  TestRun
+  Attestation
+  ExternalRef
+}
+
+enum ToolScope {
+  Internal
+  External
+}
+
+enum ToolDecision {
+  Approved
+  Denied
+}
+
+model Mission {
+  id                  String        @id @default(cuid())
+  slug                String        @unique
+  name                String
+  intake              String
+  normalizedNeed      String
+  status              MissionStatus @default(Draft)
+  currentStageIndex   Int           @default(0)
+  currentDraftVersion Int?
+  confidence          Float         @default(0)
+  pausedAt            DateTime?
+  completedAt         DateTime?
+  rolledBackAt        DateTime?
+  previousStatus      MissionStatus?
+  intakeStructured    Json?
+  releaseReadoutAt    DateTime?
+  createdById         String
+  createdAt           DateTime      @default(now())
+  updatedAt           DateTime      @updatedAt
+  domainTags          String[]
+
+  @@index([createdById])
+  @@index([status])
+}
+
+model StageHandoff {
+  id                        String     @id @default(cuid())
+  missionId                 String
+  stage                     StageName
+  version                   Int
+  parentVersionId           String?
+  correctionOfId            String?
+  supersededById            String?
+  replayOfMissionId         String?
+  payload                   Json
+  confidence                Float
+  missingEvidence           Json
+  toolRefs                  String[]
+  producedByToolActionId    String?
+  gateIndexThatApproves     Int
+  invalidationReasonCode    String?
+  createdById               String
+  createdAt                 DateTime   @default(now())
+
+  @@index([missionId, stage, version])
+  @@index([missionId, stage])
+  @@index([missionId, createdAt])
+}
+
+model Approval {
+  id                  String           @id @default(cuid())
+  missionId           String
+  gateIndex           Int
+  stageHandoffId      String
+  approverUserId      String?
+  decision            ApprovalDecision
+  reasonCode          String
+  reasonText          String
+  supersedesApprovalId String?
+  replayOfApprovalId  String?
+  at                  DateTime         @default(now())
+
+  @@unique([missionId, gateIndex, stageHandoffId])
+  @@index([missionId, gateIndex])
+  @@index([missionId, at])
+}
+
+model Objection {
+  id              String              @id @default(cuid())
+  missionId       String
+  stageHandoffId  String
+  raisedByRole    String
+  text            String
+  evidenceRefId   String?
+  raisedAt        DateTime            @default(now())
+  resolution      ObjectionResolution?
+  resolutionText  String?
+
+  @@index([missionId, raisedAt])
+}
+
+model EvidenceItem {
+  id                       String        @id @default(cuid())
+  missionId                String
+  attachedToStageHandoffId String?
+  kind                     EvidenceKind
+  ref                      String
+  label                    String
+  capturedAt               DateTime      @default(now())
+  capturedById             String
+
+  @@index([missionId, capturedAt])
+  @@index([missionId])
+}
+
+model ToolAction {
+  id                       String        @id @default(cuid())
+  missionId                String
+  tool                     String
+  scope                    ToolScope
+  payload                  Json
+  requestedById            String
+  decidedById              String?
+  decision                 ToolDecision?
+  decisionReasonCode       String?
+  requiresGateApproval     Boolean       @default(false)
+  approvedGateIndex        Int?
+  decidedAt                DateTime?
+  rejectedAt               DateTime?
+  executedAt               DateTime?
+  resultRef                String?
+  rollbackOfToolActionId   String?
+  producedStageHandoffId   String?
+  createdAt                DateTime      @default(now())
+
+  @@index([missionId, createdAt])
+  @@index([missionId])
+}
+
+model MissionAudit {
+  id                 String   @id @default(cuid())
+  missionId          String
+  event              String
+  payload            Json
+  at                 DateTime @default(now())
+  actorId            String?
+  missionVersionAtEvent Int
+
+  @@index([missionId, at])
+}

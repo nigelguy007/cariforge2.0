@@ -1,0 +1,54 @@
+// @polsia:user-owned — TAG Caribbean pilot Oracle Council schema. Tracks the
+// named human Oracles and Elder Oracle appointments per mission, plus the
+// specialist attesters that must sign each handoff before a gate decision
+// lands. FKs are scalars (no @relation to User, which lives in the framework-
+// owned auth.prisma); casacde semantics + joins live in app code under
+// /api/forge/*.
+
+enum OracleRole {
+  NeedOracle          // gate 0 — Need Discovery
+  ReadinessOracle     // gate 1 — Readiness Review
+  WorkflowOracle      // gate 2 — Workflow Design
+  GovernanceOracle    // gate 3 — Governance Check
+  BuildOracle         // gate 4 — Software Build
+  ElderOracle         // requires explicit named-human appointment; gates 0 + 4
+}
+
+enum SpecialistRole {
+  Risk
+  Demand
+  Growth
+  Competition
+  Money
+}
+
+// MissionOracleAssignment — one row per (missionId, role). An Elder Oracle
+// appointment is a normal MissionOracleAssignment with role=ElderOracle; the
+// uniqueness on (missionId, role) means a mission can have only ONE Elder
+// Oracle at a time, which is the whole point of the governance rule.
+model MissionOracleAssignment {
+  id            String      @id @default(cuid())
+  missionId     String
+  role          OracleRole
+  userId        String      // scalar FK to better-auth User (no @relation)
+  appointedById String      // admin user who assigned this oracle
+  appointedAt   DateTime    @default(now())
+
+  @@unique([missionId, role])
+  @@index([missionId])
+  @@index([userId])
+}
+
+// StageHandoffSpecialistAttester — typed sign-off records attached to a
+// handoff. A gate decision cannot land unless at least one attester row
+// references the same handoffId, per the Elder-attestation pre-conditions.
+model StageHandoffSpecialistAttester {
+  id        String         @id @default(cuid())
+  handoffId String         // scalar FK to StageHandoff (no @relation)
+  userId    String         // scalar FK to User
+  role      SpecialistRole
+  signedAt  DateTime       @default(now())
+
+  @@unique([handoffId, userId])
+  @@index([handoffId])
+}

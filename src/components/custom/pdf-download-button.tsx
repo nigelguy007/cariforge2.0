@@ -1,0 +1,61 @@
+// @polsia:user-owned
+'use client';
+
+import { Download, Loader2 } from 'lucide-react';
+import type * as React from 'react';
+import { useState } from 'react';
+import { Button, type ButtonProps } from '@/components/ui/button';
+import type { DocumentSpec } from '@/lib/pdf/schema';
+
+export interface PdfDownloadButtonProps extends Omit<ButtonProps, 'onClick' | 'children'> {
+  documentSpec: DocumentSpec;
+  fileName?: string;
+  children?: React.ReactNode;
+}
+
+export function PdfDownloadButton({
+  documentSpec,
+  fileName = 'document.pdf',
+  children = 'Download PDF',
+  disabled,
+  ...props
+}: PdfDownloadButtonProps) {
+  const [loading, setLoading] = useState(false);
+
+  async function handleDownload() {
+    if (loading) return;
+    setLoading(true);
+    try {
+      const res = await fetch('/api/pdf/document', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify(documentSpec),
+      });
+      if (!res.ok) {
+        throw new Error(`PDF generation failed: ${res.status}`);
+      }
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = fileName;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <Button onClick={handleDownload} disabled={disabled || loading} {...props}>
+      {loading ? (
+        <Loader2 aria-hidden="true" className="size-4 animate-spin" />
+      ) : (
+        <Download aria-hidden="true" className="size-4" />
+      )}
+      <span>{children}</span>
+    </Button>
+  );
+}

@@ -1,0 +1,32 @@
+// @polsia:user-owned — bounded work items derived from an approved Workflow
+// gate (stage 2). Lives beneath the SoftwareBuild lifecycle. Created when
+// gate 2 Approves; bounded by parent StageHandoffId; run through the same
+// Oracles challenge + test/rework loop. FKs are scalars.
+
+enum WorkItemStatus {
+  Open
+  InProgress
+  InTest
+  Rework
+  Passed
+  Failed
+  Deferred
+}
+
+model WorkItem {
+  id                  String        @id @default(cuid())
+  missionId           String
+  parentStageHandoffId String
+  title               String
+  scope               String
+  acceptanceCriteria  String
+  ownerUserId         String?
+  status              WorkItemStatus @default(Open)
+  openedAt            DateTime      @default(now())
+  closedAt            DateTime?
+  testEvidenceRefIds  String[]
+  supersededById      String?
+
+  @@index([missionId, status])
+  @@index([missionId, parentStageHandoffId])
+}

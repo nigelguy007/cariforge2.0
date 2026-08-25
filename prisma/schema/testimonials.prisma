@@ -1,0 +1,30 @@
+// @polsia:user-owned — Testimonial table for the /testimonials trust-signal
+// page. One row per buyer-submitted project narrative: a sector tag, the quote
+// text, the attributed role + organisation, an optional contact back-channel,
+// the date the buyer submitted the quote, and a published flag so every quote
+// is gated by a human moderator before it appears in public. No relation to
+// User — testimonials are owned by the business (the operator curates the
+// table out-of-band and flips the published flag from the admin surface;
+// the public /testimonials page renders ONLY rows where published = true).
+
+model Testimonial {
+  id              String           @id @default(cuid())
+  sector          TestimonialSector
+  quote           String
+  attributedRole  String
+  organisation    String
+  contact         String?
+  quoteDate       DateTime
+  published       Boolean          @default(false)
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  @@index([published, sector])
+}
+
+enum TestimonialSector {
+  FinancialServices
+  Insurance
+  PublicSector
+  Healthcare
+}

@@ -1,0 +1,33 @@
+// @polsia:user-owned — CouncilRun table backs the "council run status" column on
+// the admin leads dashboard. Each Lead may have many CouncilRuns (a kick, a
+// retry after returning with reason). FK is a SCALAR leadId (no @relation to
+// Lead) per the nextjs-prisma skill — Lead lives in the user-owned leads.prisma
+// and we cannot add a back-relation on a model declared in another file.
+// Cascading delete is handled in app code, not at the DB level.
+
+model CouncilRun {
+  id         String     @id @default(cuid())
+  leadId     String
+  status     RunStatus  @default(Pending)
+  verdict    Verdict?
+  startedAt  DateTime   @default(now())
+  finishedAt DateTime?
+  error      String?
+
+  @@index([leadId])
+  @@index([status])
+}
+
+enum RunStatus {
+  Pending
+  Running
+  Succeeded
+  Failed
+  WalkedAway
+}
+
+enum Verdict {
+  Build
+  TestFirst
+  WalkAway
+}

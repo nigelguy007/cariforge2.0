@@ -1,0 +1,16 @@
+// @polsia:user-owned — Lead model for the cariforge.com front-door funnel.
+// One brief per row from a regulated buyer landing on /. Captures a one-line
+// brief, an optional reply-to email, when it arrived, and whether the
+// best-effort owner-email notification fired.
+
+model Lead {
+  id         String    @id @default(cuid())
+  brief      String                       // required, the one-line brief (20-500 chars post-trim)
+  email      String?                      // optional — contact email back-channel
+  createdAt  DateTime  @default(now())    // capture timestamp
+  notifiedAt DateTime?                    // when we successfully fired the owner email
+  source     String?                      // funnel discriminator: 'home' for the front-door brief, 'walkthrough' for the procurement-grade form
+  payload    String?                      // JSON-encoded structured fields for non-brief flows (e.g. walkthrough); 'brief' row keeps this null
+  notes      String?                      // free-text operator note (admin-owned); null = no note yet
+  @@index([createdAt])
+}

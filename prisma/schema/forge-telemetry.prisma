@@ -1,0 +1,93 @@
+// @polsia:user-owned — Telemetry surface for the CARI Forge autonomy ladder
+// + cost attribution slice. Append-only. FKs are scalars (no @relation to
+// User, which lives in framework-owned auth.prisma); the join lives in app
+// code under /api/forge/admin/telemetry. Datasource + generator live in
+// prisma/schema/_base.prisma — do NOT redeclare them here. db push is
+// additive only; no migrations generated for this slice.
+
+enum ReleaseActor {
+  AIOnly    // every Approval at every gate originated from an AI actor marker
+  Human     // explicit human release / operator override / human-reviewed approvals
+  Hybrid    // mix of AI and Human across the gate chain
+}
+
+enum CreditSource {
+  StripeCharge  // future: link a stripe-billing payment when that ships
+  ManualTopUp   // admin seeds credit
+  ModelUsage    // debits from ModelUsageRecord rollup
+  ChatUsage     // debits from ChatUsageRecord rollup
+  Refund        // negative entry
+}
+
+model ReleaseSource {
+  id              String       @id @default(cuid())
+  missionId       String       @unique
+  actor           ReleaseActor
+  decidedById     String?      // user id of human releaser (when actor=Human|Hybrid)
+  draftCapturedAt DateTime     // referenced handoff.createdAt used for age
+  releasedAt      DateTime     @default(now())
+  reasonText      String?
+
+  @@index([actor])
+  @@index([releasedAt])
+}
+
+model ModelUsageRecord {
+  id               String   @id @default(cuid())
+  missionId        String?
+  taskId           String?  // scalar FK to WorkItem.id; join lives in app code
+  provider         String   // 'anthropic' | 'openai-proxy' | other
+  model            String   // lookup key into COST_TABLE; unknown -> unknownCost=true
+  promptTokens     Int
+  completionTokens Int
+  costCents        Int      // integer cents from lookup; 0 when unknownCost=true
+  unknownCost      Boolean  @default(false) // HONEST: surface != guess
+  attributedActor  String   // 'AIOnly' | 'Human' | 'Hybrid' for autonomy attribution
+  occurredAt       DateTime @default(now())
+
+  @@index([missionId, occurredAt])
+  @@index([model])
+  @@index([occurredAt])
+}
+
+model ChatUsageRecord {
+  id           String   @id @default(cuid())
+  scope        String   // 'platform' | 'mission' | 'company'
+  companyId    String?
+  missionId    String?
+  messageCount Int
+  model        String   // lookup key into COST_TABLE.chatMsgsPerCent
+  costCents    Int      // from COST_TABLE.chatMsgsPerCent; 0 when unknownCost=true
+  unknownCost  Boolean  @default(false)
+  windowStart  DateTime // daily aggregation window start
+  windowEnd    DateTime
+
+  @@index([scope, windowStart])
+  @@index([companyId, windowStart])
+}
+
+model CreditLedgerEntry {
+  id          String       @id @default(cuid())
+  companyId   String
+  amountCents Int          // signed (debits negative, credits positive)
+  source      CreditSource
+  attribution Json?        // { missionId?, modelUsageId?, chatUsageId?, notes? }
+  at          DateTime     @default(now())
+
+  @@index([companyId, at])
+  @@index([source])
+}
+
+// Append-only, mission-scoped. Reuses many of MissionAudit's roles:
+// a mission whose approvals carry an AI actor marker still flows into the
+// autonomy ladder.
+model ApprovalActorTag {
+  id         String   @id @default(cuid())
+  approvalId String   // scalar FK to Approval.id (no @relation)
+  actorKind  String   // 'AI' | 'Human'
+  actorLabel String?  // 'tool:forge-council' | 'user:<email>' for attribution
+  taggedAt   DateTime @default(now())
+
+  @@index([approvalId])
+  @@index([actorKind])
+}
