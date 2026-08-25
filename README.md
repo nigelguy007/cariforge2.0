@@ -260,3 +260,8 @@ versions that direct framework pins cannot reach on their own.
 ## License
 
 MIT. See [LICENSE](./LICENSE).
+
+## Deployment
+
+Hosted on Vercel (project `cariforge2-0`); database on Supabase (project `cariforge2.0`).
+Database schema bootstrap lives in `db/`.
