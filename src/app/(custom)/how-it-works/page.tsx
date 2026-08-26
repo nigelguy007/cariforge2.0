@@ -166,8 +166,7 @@ export default function HowItWorksPage() {
             </header>
             <BriefIntakeForm />
             <p className="mt-3 text-caption text-muted-foreground">
-              The pilot is closed and run by hand. A real human will reply — within 48 hours during
-              working weeks.
+              A real human will reply — within 48 hours during working weeks.
             </p>
           </GlassCard>
         </div>

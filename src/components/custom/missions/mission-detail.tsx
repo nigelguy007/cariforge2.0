@@ -13,6 +13,7 @@ import {
   MissionDetail as MissionDetailSchema,
   type MissionDetailT,
 } from '@/lib/contracts/forge';
+import { AssurancePackCard } from './assurance-pack-card';
 import { GapListCard } from './gap-list-card';
 import { MissionAuditTimeline } from './mission-audit-timeline';
 import { MissionBlockersPanel } from './mission-blockers-panel';
@@ -274,6 +275,7 @@ export function MissionDetail({ missionSlug }: { missionSlug: string }) {
                 Download CSV
               </a>
             </div>
+            <AssurancePackCard missionId={detail.mission.id} />
             <GapListCard />
           </section>
         </TabsContent>

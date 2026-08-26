@@ -2,6 +2,7 @@
 // Server-only metadata + admin guard + island composition. No `await prisma`
 // in the render layer — the islands fetch via apiFetch.
 import type { Metadata } from 'next';
+import { AdminAdoptionOverview } from '@/components/custom/forge-telemetry/admin-adoption-overview';
 import { AdminTelemetryOverview } from '@/components/custom/forge-telemetry/admin-telemetry-overview';
 import { OperatorControlPlane } from '@/components/custom/forge-telemetry/operator-control-plane';
 import { requireAdminOnPage } from '@/lib/admin-page-guard';
@@ -25,6 +26,7 @@ export default async function AdminTelemetryPage() {
         </p>
       </header>
       <div className="mt-8 space-y-6">
+        <AdminAdoptionOverview />
         <AdminTelemetryOverview />
         <OperatorControlPlane />
       </div>

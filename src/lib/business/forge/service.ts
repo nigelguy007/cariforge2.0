@@ -1954,3 +1954,27 @@ export async function getAdminTelemetryOverview(): Promise<{
     chatCostByDay: scan.chatCostByDay,
   };
 }
+
+// === Adoption & realised-value dashboard ====================================
+// Real aggregates over every Mission/Objection row — no sample data, no
+// seeded numbers. See adoption-metrics.ts for the pure computation.
+
+export async function getAdoptionDashboard(): Promise<{
+  adoption: ReturnType<typeof import('./adoption-metrics').computeAdoptionMetrics>;
+  quality: ReturnType<typeof import('./adoption-metrics').computeQualityMetrics>;
+}> {
+  const { computeAdoptionMetrics, computeQualityMetrics } = await import('./adoption-metrics');
+  const [missions, objections] = await Promise.all([
+    prisma.mission.findMany({ select: { status: true, createdAt: true, completedAt: true } }),
+    prisma.objection.findMany({ select: { resolution: true } }),
+  ]);
+  const adoption = computeAdoptionMetrics(
+    missions.map((m) => ({
+      status: m.status,
+      createdAt: m.createdAt.toISOString(),
+      completedAt: toIso(m.completedAt),
+    })),
+  );
+  const quality = computeQualityMetrics(objections.map((o) => ({ resolution: o.resolution })));
+  return { adoption, quality };
+}

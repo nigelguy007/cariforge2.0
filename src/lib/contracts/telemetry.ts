@@ -182,3 +182,59 @@ export const UsageRecordRead = z.object({
   costCents: z.number().int(),
 });
 export type UsageRecordReadT = z.infer<typeof UsageRecordRead>;
+
+// === Adoption & realised-value dashboard ====================================
+// Section 9 of the Aug 2026 enterprise-platform handoff doc. Sibling to
+// AdminTelemetryOverview above — covers dimensions that overview doesn't
+// (mission-level adoption/completion/cycle-time, objection quality), not a
+// replacement for it.
+
+export const MISSION_STATUS_VALUES = [
+  'Draft',
+  'InDiscovery',
+  'InReadiness',
+  'InWorkflow',
+  'InGovernance',
+  'InBuild',
+  'AwaitingApproval',
+  'Paused',
+  'Blocked',
+  'Rejected',
+  'Completed',
+  'WalkedAway',
+  'RolledBack',
+] as const;
+
+export const StatusBreakdown = z.object({
+  status: z.enum(MISSION_STATUS_VALUES),
+  count: z.number().int().nonnegative(),
+});
+
+export const WeeklyMissionCount = z.object({
+  weekStartIso: z.string(),
+  count: z.number().int().nonnegative(),
+});
+
+export const AdoptionMetrics = z.object({
+  totalMissions: z.number().int().nonnegative(),
+  statusBreakdown: z.array(StatusBreakdown),
+  completionRate: z.number().min(0).max(1).nullable(),
+  terminalMissionCount: z.number().int().nonnegative(),
+  averageCycleTimeDays: z.number().nonnegative().nullable(),
+  missionsByWeek: z.array(WeeklyMissionCount),
+});
+export type AdoptionMetricsT = z.infer<typeof AdoptionMetrics>;
+
+export const QualityMetrics = z.object({
+  totalObjections: z.number().int().nonnegative(),
+  resolvedCount: z.number().int().nonnegative(),
+  unresolvedCount: z.number().int().nonnegative(),
+  resolutionRate: z.number().min(0).max(1).nullable(),
+});
+export type QualityMetricsT = z.infer<typeof QualityMetrics>;
+
+export const AdoptionDashboard = z.object({
+  adoption: AdoptionMetrics,
+  quality: QualityMetrics,
+});
+export type AdoptionDashboardT = z.infer<typeof AdoptionDashboard>;

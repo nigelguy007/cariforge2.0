@@ -103,8 +103,8 @@ export default function PricingPage() {
           <GlassPanel tone="surface" padding="lg" backdrop="soft">
             <p className="text-small">
               Every tier above begins as an inquiry, not a transaction. There is no payment flow on
-              this page yet — the pilot is closed and run by hand, and a real human from CARI Forge
-              will reply within 48 hours during working weeks.{' '}
+              this page yet, and a real human from CARI Forge will reply within 48 hours during
+              working weeks.{' '}
               <Link href="/how-it-works#front-door" className="link-brand">
                 Tell us what you want to build
               </Link>{' '}
