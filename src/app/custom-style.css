@@ -268,6 +268,26 @@
       0 10px 22px -8px var(--glass-tint-strong);
     backdrop-filter: blur(var(--glass-blur)) saturate(160%);
     -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(160%);
+
+    /* REAL BUG FOUND + FIXED: this card is meant to stay a pale "outcome"
+       surface in BOTH light and dark mode (that's the whole point — see
+       above), but every caller's content inside it (GlassHero's sideTitle/
+       sideLede, BriefIntakeForm's labels, the "how The Oracles work" lede)
+       uses the ordinary text-foreground / text-card-foreground /
+       text-muted-foreground utilities — which correctly flip to near-white
+       for the rest of the page in dark mode, and WRONGLY flip here too,
+       since this card's own background never flips. Result in dark mode:
+       near-white text ("Leave a one-line brief.", its labels, its helper
+       copy) on this still-pale card -> invisible. Rescoping the tokens
+       locally means every text-foreground/text-card-foreground/
+       text-muted-foreground utility already in use anywhere inside this
+       card — now or added later — just resolves correctly in both themes,
+       instead of hunting down each call site (which is how this bug
+       happened in the first place: color(--outcome-foreground) below
+       just wasn't outputting any color choices for its child DOM). */
+    --foreground: var(--outcome-foreground);
+    --card-foreground: var(--outcome-foreground);
+    --muted-foreground: oklch(0.4 0.03 var(--brand-h));
   }
 
   /* .glass-chip — translucent pill for stance badges and eyebrows.
