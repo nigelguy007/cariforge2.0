@@ -276,7 +276,12 @@ export function SiteNav() {
                 <SheetContent
                   side="right"
                   aria-describedby={undefined}
-                  className="flex flex-col border-l border-white/20 text-white"
+                  // The mobile drawer is the nav's own mobile fallback, so it
+                  // deliberately stays the same dark surface as the desktop
+                  // nav bar (bg-background would otherwise resolve to the
+                  // light page background — this overrides shadcn's default
+                  // Sheet background, not a text-color fix).
+                  className="flex flex-col border-l border-white/20 bg-[oklch(0.2_0.045_var(--brand-h))] text-white"
                 >
                   <SheetHeader>
                     <SheetTitle className="text-left text-white">{siteName}</SheetTitle>
@@ -366,7 +371,10 @@ export function SiteFooter() {
   if (footer.length === 0) return null;
 
   return (
-    <footer className="border-t border-white/20">
+    // Unlike the nav bar, the footer sits directly on the (now light) page
+    // background rather than its own dark surface, so it uses the ordinary
+    // theme tokens instead of the nav's hardcoded white.
+    <footer className="border-t border-border">
       <nav
         aria-label="Footer"
         className="mx-auto flex max-w-screen-xl flex-wrap items-center gap-1 px-4 py-6 text-sm"
@@ -377,7 +385,7 @@ export function SiteFooter() {
             asChild
             variant="link"
             size="sm"
-            className="text-white/80 hover:text-white"
+            className="text-muted-foreground hover:text-foreground"
           >
             <Link href={item.href}>{item.label}</Link>
           </Button>

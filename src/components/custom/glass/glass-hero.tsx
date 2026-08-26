@@ -56,16 +56,16 @@ export function GlassHero({
               {eyebrow}
             </GlassChip>
           ) : null}
-          <h1 className="text-h1 font-display tracking-tight text-white glow-text">
+          <h1 className="text-h1 font-display tracking-tight text-foreground">
             {title}
             {accent ? (
               <>
                 <br />
-                <span className="text-brand-200">{accent}</span>
+                <span className="text-brand-600">{accent}</span>
               </>
             ) : null}
           </h1>
-          {lede ? <p className="max-w-xl text-body-lg text-white/85">{lede}</p> : null}
+          {lede ? <p className="max-w-xl text-body-lg text-foreground/85">{lede}</p> : null}
           {ctas ? <div className="flex flex-wrap items-center gap-3">{ctas}</div> : null}
           {meta ? meta : null}
         </div>

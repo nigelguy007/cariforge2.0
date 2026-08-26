@@ -3,26 +3,41 @@
  * tw-animate-css for motion (animate-in, fade-in, slide-in-from-bottom-N,
  * duration-*). globals.css is framework-owned — edit HERE.
  *
- * CARI Forge — deep emerald/rainforest green, not the prior ocean-teal
- * register (Blue Mountains, El Yunque — a Caribbean highland register
- * rather than a beach-postcard one). The brand_tokens seed in globals.css
- * sets --brand-h=152 (emerald green), --brand-c=0.13, --brand-l=0.42, which
- * derive the full --brand-NN ramp + every framework role. The overrides
- * below paint a CONTINUOUS EMERALD field with a lighter outcome/value layer
- * on top — not the prior dark navy gap, not a blanket teal glow, not a
- * white-first wash.
+ * CARI Forge — light-first professional register, deep emerald/rainforest
+ * green (Blue Mountains, El Yunque) as a RESTRAINED ACCENT, not a full-page
+ * saturated wash. This replaced two earlier passes (ocean-teal, then a
+ * full-bleed dark emerald field) that both read as "marketing site" rather
+ * than "professional governance software" — the same complaint survived a
+ * hue change alone, which is what confirmed the actual problem was the
+ * saturated full-page background model itself, not the specific color.
+ * Matches the pattern real professional SaaS products use (and the actual
+ * CARI Forge platform's own "Daylight" register: warm light background,
+ * dark ink, one accent color — chosen after benchmarking Lindy, Linear,
+ * Relevance AI, Gumloop and finding all of them light-first).
  *
- * Surface model (light mode = CARI Forge's intended register):
- *   --background   : mid-luminance emerald field (the brand-aligned backplane)
- *   --card         : slightly lifted emerald panel, reads above the field
- *   --outcome      : clearly LIGHTER near-white emerald-tinted panel  (the
- *                    deliverable / value surface; used by highlight cards,
- *                    hero form shells, pricing CTAs)
- *   --primary      : mid-luminance engine emerald (CTA surface)
+ * The brand_tokens seed in globals.css sets --brand-h=152 (emerald green),
+ * --brand-c=0.13, --brand-l=0.42, which derive the full --brand-NN ramp.
+ * That ramp is background-agnostic by formula (brand-50 near-white through
+ * brand-900 near-black) and needed no change — only the ROLE tokens below
+ * (background/card/secondary/etc.) flipped from "dark field" to "light
+ * neutral, green as accent."
  *
- * Restrained Liquid Glass depth: a single backdrop-blur step (~14px),
- * hairline borders, soft brand-tinted shadows. No sat >150%, no full-bleed
- * auroras. */
+ * Surface model:
+ *   --background   : near-white, barely brand-tinted page field
+ *   --card         : crisp white card, defined by a hairline border + soft
+ *                    shadow rather than a color difference from the page
+ *   --outcome      : a step LIGHTER-TINTED-GREEN "value" surface with a
+ *                    visible brand-colored border (the deliverable /
+ *                    highlight surface; hero form shell, pricing CTAs) —
+ *                    still distinguishable on an already-light page via
+ *                    tint + border, not via being dramatically lighter
+ *   --primary      : the one place full-saturation emerald shows up —
+ *                    solid CTA fills, the nav bar, links
+ *
+ * Restrained Liquid Glass: white cards with a soft shadow + thin hairline,
+ * a light backdrop-blur for texture, NOT a translucent color-tinted panel
+ * revealing a colored field behind it (there's no colored field to reveal
+ * anymore — see the body background below). */
 
 /* Sora (display) + Manrope (body) — single source of truth: src/lib/fonts.ts.
  * The import runs first to satisfy CSS @import ordering rules; the fallback
@@ -31,88 +46,72 @@
  * round-trip. */
 
 /* === ROLE TOKEN OVERRIDES ====================================================
-   CARI Forge visual system: DEEP CARIBBEAN RAINFOREST EMERALD FIELD with a
-   LIGHTER outcome surface on top. Tuned inside :root so every primitive
-   utility in the codebase (bg-background, text-foreground, border-border,
-   bg-card, text-brand-600/700, ...) already composes against the right
-   tones.
+   Light-first: near-white field, white cards, emerald as accent only.
+   Tuned inside :root so every primitive utility in the codebase
+   (bg-background, text-foreground, border-border, bg-card,
+   text-brand-600/700, ...) already composes against the right tones.
 
-   BUG FOUND + FIXED while restyling the brand hue: this file is @import'd
-   near the TOP of globals.css (right after the tailwindcss/tw-animate-css
-   imports), but globals.css's own later "FRAMEWORK-DERIVED" :root block
-   redeclares these SAME custom properties (--background, --foreground,
-   --card, --primary, --brand-50..900, etc.) further down in the same
-   stylesheet. Two unlayered :root rules of equal specificity resolve by
-   source order — so that later, framework block was silently winning,
-   and the whole page was rendering on the framework's pale near-white
-   --background instead of this file's intended deep field. Only classes
-   that compute their own oklch() directly from --brand-h (like .glass-nav)
-   escaped it — which is exactly why the nav bar read correctly while the
-   page body and every text-white/85 hero paragraph sitting on it did not:
-   white text on an accidentally-pale background, nowhere near the
-   documented 12:1 contrast. Selector below is `:root:root` (repeated
-   pseudo-class -> specificity (0,2,0) instead of :root's (0,1,0)) purely to
-   win that fight regardless of import position — no framework file edited,
-   no !important. */
+   Selector is `:root:root` (repeated pseudo-class -> specificity (0,2,0)
+   instead of :root's (0,1,0)), not because this file's values happen to
+   need it now, but because it's a real, previously-hit bug: this file is
+   @import'd near the TOP of globals.css, and globals.css's own later
+   "FRAMEWORK-DERIVED" :root block redeclares the same custom properties
+   further down the same stylesheet — two unlayered :root rules of equal
+   specificity resolve by source order, so the later framework block was
+   silently winning every time this file used a plain `:root {}` selector.
+   Keeping the specificity bump here permanently avoids re-hitting that. */
 :root:root {
-  /* Brand-aligned backplane. Deep Caribbean rainforest emerald — a GENUINE
-     deep forest-green field (genuinely deep, NOT pale, NOT dark navy). High
-     chroma keeps the hue locked to CARI Forge's emerald register so the
-     field reads as forest green, not grey. White text on this register sits
-     at well above 12:1 contrast, while DARK ink (--foreground) stays kept
-     back for the lighter outcome surfaces only — so flipping the
-     universal --foreground token would break dark ink on cards. Hero /
-     lede / meta on the field use explicit text-white utilities. */
-  --background: oklch(0.3 0.07 var(--brand-h));
-  --foreground: oklch(0.22 0.022 var(--brand-h));
+  /* Near-white page field, the faintest brand tint (not a real color —
+     this is what "light background" actually means: not pure #fff, a
+     whisper of hue so the page doesn't feel clinical). */
+  --background: oklch(0.99 0.004 var(--brand-h));
+  --foreground: oklch(0.2 0.02 var(--brand-h));
 
-  /* Engine surface (cards, panels). Lifted off the deeper backplane in
-     lightness, slightly lower chroma so cards read as panels above the
-     field without competing for attention. Dark ink on the lighter card
-     contract holds. */
-  --card: oklch(0.74 0.045 var(--brand-h));
+  /* Cards are crisp near-white, distinguished from the page by a hairline
+     border + soft shadow (standard modern SaaS card pattern), not by being
+     a different color from the field. */
+  --card: oklch(1 0.002 var(--brand-h));
   --card-foreground: var(--foreground);
-  --popover: oklch(0.94 0.022 var(--brand-h));
+  --popover: var(--card);
   --popover-foreground: var(--foreground);
 
-  /* Emerald engine — the brand color in its vivid mid-luminance register
-     (CTA fill). Higher chroma than the deeper field so the button "pops". */
-  --primary: oklch(0.52 calc(var(--brand-c) * 1.25) var(--brand-h));
-  --primary-foreground: oklch(0.99 0.008 var(--brand-h));
+  /* Primary — the one place full-saturation emerald shows up: solid CTA
+     fills, links, the nav bar. Tuned dark enough that white text on it
+     clears 4.5:1. */
+  --primary: oklch(0.42 calc(var(--brand-c) * 1.3) var(--brand-h));
+  --primary-foreground: oklch(0.99 0.006 var(--brand-h));
 
-  /* Secondary / muted — sub-panels and inactive UI. Tuned LIGHTER than
-     the deep field so a `bg-muted` or `bg-secondary` element lifts off
-     the emerald canvas. Dark ink on these lighter sub-surfaces. */
-  --secondary: oklch(0.78 0.04 var(--brand-h));
-  --secondary-foreground: var(--foreground);
-  --muted: oklch(0.76 0.038 var(--brand-h));
-  --muted-foreground: oklch(0.36 0.04 var(--brand-h));
+  /* Secondary / muted — standard light-neutral sub-panels, a hint of brand
+     hue so they don't read as flat grey. */
+  --secondary: oklch(0.96 0.008 var(--brand-h));
+  --secondary-foreground: oklch(0.28 0.02 var(--brand-h));
+  --muted: oklch(0.96 0.006 var(--brand-h));
+  --muted-foreground: oklch(0.45 0.025 var(--brand-h));
 
-  --accent: oklch(0.76 0.06 var(--brand-h));
-  --accent-foreground: var(--foreground);
+  --accent: oklch(0.95 0.022 var(--brand-h));
+  --accent-foreground: oklch(0.28 0.02 var(--brand-h));
 
-  --destructive: oklch(0.704 0.191 22.216);
+  --destructive: oklch(0.577 0.245 27.325);
 
-  /* Brand-tinted hairlines that read on the deep emerald field. Tightened
-     alpha for crisp reads on the deeper field; an explicit ring offset (vivid
-     emerald) keeps focus-visible bright on the dark register. */
-  --border: oklch(0.62 0.045 var(--brand-h) / 28%);
-  --input: oklch(0.6 0.045 var(--brand-h) / 32%);
-  --ring: oklch(0.62 calc(var(--brand-c) * 1.3) var(--brand-h));
+  --border: oklch(0.9 0.012 var(--brand-h));
+  --input: oklch(0.9 0.012 var(--brand-h));
+  --ring: oklch(0.58 calc(var(--brand-c) * 1.2) var(--brand-h));
 
-  /* OUTCOME / "lighter value" surface — used by .glass-card tone="highlight"
-     (the hero form shell, pricing CTAs, etc.). A clearly LIGHTER
-     near-white emerald-tinted surface that reads as the destination register
-     stacked above the deep emerald field. White-on-deep is reserved for
-     hero/body sections; dark ink reads on this lighter surface. */
-  --outcome: oklch(0.94 0.018 var(--brand-h));
-  --outcome-foreground: oklch(0.18 0.022 var(--brand-h));
+  /* OUTCOME / "value" surface — used by .glass-card tone="highlight" (the
+     hero form shell, pricing CTAs, etc.). A light green-tinted panel with a
+     visible brand-colored border, so it still reads as "the destination
+     panel" against an already-light page — the distinction is now tint +
+     border, not a dramatic lightness jump like the old dark-field design
+     needed. */
+  --outcome: oklch(0.97 0.02 var(--brand-h));
+  --outcome-foreground: oklch(0.2 0.02 var(--brand-h));
 
-  /* Re-tuned brand steps so existing classNames (text-brand-700 catalogue
-     labels, border-brand-300, bg-brand-500 ranked surfaces) read brightly
-     on the deep emerald canvas. brand-700 is the readable emerald label
-     (eyebrows, ordinals); brand-600 is lifted to read as a vivid CTA fill
-     at the same hue. */
+  /* Brand ramp — background-agnostic by formula (50 near-white through 900
+     near-black), unchanged from the seed derivation. text-brand-600/700 are
+     the readable accent-label steps on a light canvas (eyebrows, links,
+     ordinals); DO NOT use brand-50/100/200/300 for text anymore — those
+     are light tints that only read against a dark field, which no longer
+     exists. They're still fine as border/background tints. */
   --brand-50: oklch(0.97 calc(var(--brand-c) * 0.25) var(--brand-h));
   --brand-100: oklch(0.93 calc(var(--brand-c) * 0.4) var(--brand-h));
   --brand-200: oklch(0.87 calc(var(--brand-c) * 0.6) var(--brand-h));
@@ -120,70 +119,48 @@
   --brand-400: oklch(0.65 var(--brand-c) var(--brand-h));
   --brand-500: oklch(var(--brand-l) var(--brand-c) var(--brand-h));
   --brand-600: oklch(0.5 var(--brand-c) var(--brand-h));
-  /* brand-700 — high-contrast emerald label color on the lighter canvas
-     ("№ 01", Stage chips, eyebrows). Step LIFTED to keep text-brand-700
-     vivid against either the field OR the destination register. */
   --brand-700: oklch(0.4 var(--brand-c) var(--brand-h));
   --brand-800: oklch(0.32 calc(var(--brand-c) * 0.7) var(--brand-h));
   --brand-900: oklch(0.24 calc(var(--brand-c) * 0.55) var(--brand-h));
 
-  --elevation-1: oklch(0.08 0.03 var(--brand-h) / 0.45);
-  --elevation-2: oklch(0.06 0.03 var(--brand-h) / 0.6);
-  --elevation-3: oklch(0.04 0.03 var(--brand-h) / 0.7);
-  --shadow-brand-color: oklch(var(--brand-l) var(--brand-c) var(--brand-h) / 0.45);
+  --elevation-1: oklch(0.2 0.03 var(--brand-h) / 0.06);
+  --elevation-2: oklch(0.2 0.04 var(--brand-h) / 0.1);
+  --elevation-3: oklch(0.2 0.05 var(--brand-h) / 0.14);
+  --shadow-brand-color: oklch(var(--brand-l) var(--brand-c) var(--brand-h) / 0.22);
 
-  /* Liquid-glass tint tokens — translucent emerald reveals over the DEEPER
-     emerald field. Border gets the strongest contrast alpha so the
-     hairline reads on the dark field; shadow stays brand-tinted for depth
-     without graying out. Blur and saturation are tuned for visible Liquid
-     Glass (apple.com-level). */
-  --glass-tint: oklch(var(--brand-l) calc(var(--brand-c) * 0.55) var(--brand-h) / 0.18);
-  --glass-tint-strong: oklch(var(--brand-l) calc(var(--brand-c) * 0.75) var(--brand-h) / 0.28);
-  --glass-bg: oklch(0.94 0.02 var(--brand-h) / 0.78);
-  --glass-border: oklch(0.78 0.05 var(--brand-h) / 0.6);
-  --glass-shadow: oklch(0.16 0.04 var(--brand-h) / 0.32);
-  --glass-blur: 18px;
+  /* Liquid-glass tint tokens — now a SUBTLE texture on white cards, not a
+     translucent reveal over a colored field (there's no colored field to
+     reveal anymore). Alpha values dropped by roughly 3x from the
+     dark-field version. */
+  --glass-tint: oklch(var(--brand-l) calc(var(--brand-c) * 0.4) var(--brand-h) / 0.06);
+  --glass-tint-strong: oklch(var(--brand-l) calc(var(--brand-c) * 0.5) var(--brand-h) / 0.12);
+  --glass-bg: oklch(1 0.002 var(--brand-h) / 0.92);
+  --glass-border: oklch(0.88 0.014 var(--brand-h) / 0.9);
+  --glass-shadow: oklch(0.2 0.02 var(--brand-h) / 0.14);
+  --glass-blur: 10px;
 
-  /* Outcome-shell tokens — the LIGHTER near-white emerald-tinted surface that
-     .glass-card tone="highlight" composes with. Reads clearly brighter than
-     --background so it stands as the destination register above the field.
-     Opacity raised so dark ink on it always reads at >= 7:1. */
+  /* Outcome-shell tokens — the light green-tinted "value" surface that
+     .glass-card tone="highlight" composes with. */
   --outcome-bg: linear-gradient(
     180deg,
-    oklch(0.97 0.018 var(--brand-h) / 0.96) 0%,
-    oklch(0.92 0.026 var(--brand-h) / 0.94) 100%
+    oklch(0.985 0.014 var(--brand-h) / 0.98) 0%,
+    oklch(0.96 0.026 var(--brand-h) / 0.97) 100%
   );
-  --outcome-border: oklch(0.62 var(--brand-c) var(--brand-h) / 0.55);
+  --outcome-border: oklch(0.62 var(--brand-c) var(--brand-h) / 0.4);
 }
 
 @layer base {
-  /* Layered EMERALD field backdrop with tone-on-tone emerald pushes. The
-     deeper field (--background: oklch 0.30) gets two deliberate tone
-     pulls toward a slightly lighter emerald in the upper register so the
-     page reads as a Caribbean rainforest canopy wash rather than a flat
-     color. The third bottom radial carries a soft outcome tint that
-     anchors the lighter glass surfaces (cards, highlight panels) to the
-     page. background-attachment:fixed keeps the depth field stable as
-     sections scroll. */
+  /* Flat near-white page field, one restrained radial glow top-left for
+     texture — the standard "colored glow behind a light page" pattern
+     (Stripe/Linear-style), not a full-bleed saturated wash. Low alpha,
+     fades out well before mid-page. */
   body {
     background-color: var(--background);
-    background-image:
-      radial-gradient(
-        1200px 760px at 14% -12%,
-        oklch(0.42 var(--brand-c) var(--brand-h) / 0.55) 0%,
-        oklch(0.36 var(--brand-c) var(--brand-h) / 0.22) 42%,
-        transparent 74%
-      ),
-      radial-gradient(
-        900px 580px at 92% 8%,
-        oklch(0.46 var(--brand-c) var(--brand-h) / 0.4) 0%,
-        transparent 72%
-      ),
-      radial-gradient(
-        1400px 820px at 50% 112%,
-        oklch(0.72 0.04 var(--brand-h) / 0.3) 0%,
-        transparent 80%
-      );
+    background-image: radial-gradient(
+      1400px 900px at 12% -14%,
+      oklch(0.9 calc(var(--brand-c) * 0.55) var(--brand-h) / 0.32) 0%,
+      transparent 62%
+    );
     background-attachment: fixed;
     background-repeat: no-repeat;
     background-size: cover;
@@ -192,138 +169,99 @@
 
 @layer components {
   /* === LIQUID GLASS UTILITIES ================================================
-   * The system is restrained-but-VISIBLE: translucent emerald reveal over the
-     deep emerald field with a clearly bright top-edge highlight seam
-     (the "Liquid Glass" hallmark), a 1px brand-tinted hairline, a
-     18px+ backdrop blur + 170% saturation step, and a soft two-layer
-     brand-tinted shadow that ties every surface back to CARI Forge's
-     emerald engine. Surface opacities kept in the 0.74-0.88 band so the
-     field shows through — the panel "reveals" the field color, the apple
-     cue. */
+   * White cards, a hairline border, a soft two-layer shadow for elevation,
+     and a light backdrop-blur for a touch of texture. Restrained: no full
+     saturation, no colored field to "reveal" — the cards are simply clean
+     white surfaces on a near-white page, distinguished by shadow + border,
+     the way most professional SaaS products build cards. */
 
-  /* .glass-surface — translucent emerald-tinted panel, the default card
-     shell. Reads as a brighter layer above the deep field with a visible
-     top-edge highlight seam. */
+  /* .glass-surface — translucent white panel, the default card shell. */
   .glass-surface {
     background-color: var(--glass-bg);
     border: 1px solid var(--glass-border);
     box-shadow:
-      0 1px 0 oklch(1 0 0 / 0.6) inset,
-      0 24px 56px -22px var(--glass-shadow),
-      0 8px 18px -8px var(--glass-shadow);
-    backdrop-filter: blur(var(--glass-blur)) saturate(170%);
-    -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(170%);
+      0 1px 2px oklch(0.2 0.02 var(--brand-h) / 0.04),
+      0 8px 24px -12px var(--glass-shadow);
+    backdrop-filter: blur(var(--glass-blur)) saturate(120%);
+    -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(120%);
   }
 
-  /* .glass-card — the default glass card with rounded corners. LIFTED
-     above the deeper Caribbean rainforest field: gradient stops are
-     lighter and opacity sits around 0.82 so the card surface is clearly
-     brighter than the page background, the field shows through (visible
-     Liquid Glass reveal), and dark ink (--card-foreground) reads at
-     >= 7:1. */
+  /* .glass-card — the default card with rounded corners. Crisp white,
+     defined by border + shadow. */
   .glass-card {
-    background: linear-gradient(
-      180deg,
-      oklch(0.93 0.026 var(--brand-h) / 0.84) 0%,
-      oklch(0.85 0.036 var(--brand-h) / 0.78) 100%
-    );
-    border: 1px solid var(--glass-border);
+    background: var(--card);
+    border: 1px solid var(--border);
     box-shadow:
-      0 1px 0 oklch(1 0 0 / 0.65) inset,
-      0 24px 56px -22px var(--glass-shadow),
-      0 8px 18px -8px var(--glass-shadow);
-    backdrop-filter: blur(var(--glass-blur)) saturate(170%);
-    -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(170%);
+      0 1px 2px oklch(0.2 0.02 var(--brand-h) / 0.04),
+      0 8px 24px -12px var(--glass-shadow);
   }
 
-  /* .glass-panel — broader section-level wrapper; lighter emerald-tinted
-     wash, slightly bigger blur step. Same lift as .glass-card so a panel
-     and a card compose together above the deeper field. */
+  /* .glass-panel — broader section-level wrapper; same white surface,
+     slightly larger shadow spread for a section-level container. */
   .glass-panel {
-    background: linear-gradient(
-      180deg,
-      oklch(0.94 0.026 var(--brand-h) / 0.82) 0%,
-      oklch(0.86 0.032 var(--brand-h) / 0.76) 100%
-    );
-    border: 1px solid var(--glass-border);
+    background: var(--card);
+    border: 1px solid var(--border);
     box-shadow:
-      0 1px 0 oklch(1 0 0 / 0.7) inset,
-      0 32px 72px -24px var(--glass-shadow);
-    backdrop-filter: blur(calc(var(--glass-blur) + 4px)) saturate(170%);
-    -webkit-backdrop-filter: blur(calc(var(--glass-blur) + 4px)) saturate(170%);
+      0 1px 2px oklch(0.2 0.02 var(--brand-h) / 0.04),
+      0 16px 40px -20px var(--glass-shadow);
   }
 
-  /* .glass-card.tone-highlight / .glass-highlight — the OUTCOME surface.
-     Reads clearly LIGHTER than the emerald field. Used by the hero
-     "leave a brief" form shell, pricing CTA shells, and "front-door
-     reminder" panel. Near-white, near-opaque; dark ink + brand labels
-     always read at high contrast. */
+  /* .glass-card.tone-highlight / .glass-highlight — the OUTCOME surface: a
+     light green-tinted panel with a visible brand-colored border. Used by
+     the hero "leave a brief" form shell, pricing CTA shells, and
+     "front-door reminder" panel — reads as the destination panel via tint
+     + border against the already-light page. */
   .glass-highlight {
     background: var(--outcome-bg);
     border: 1px solid var(--outcome-border);
     color: var(--outcome-foreground);
     box-shadow:
-      0 1px 0 oklch(1 0 0 / 0.8) inset,
-      0 28px 64px -22px var(--glass-shadow),
-      0 10px 22px -8px var(--glass-tint-strong);
-    backdrop-filter: blur(var(--glass-blur)) saturate(160%);
-    -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(160%);
+      0 1px 2px oklch(0.2 0.02 var(--brand-h) / 0.04),
+      0 16px 40px -20px var(--glass-tint-strong);
 
-    /* REAL BUG FOUND + FIXED: this card is meant to stay a pale "outcome"
-       surface in BOTH light and dark mode (that's the whole point — see
-       above), but every caller's content inside it (GlassHero's sideTitle/
-       sideLede, BriefIntakeForm's labels, the "how The Oracles work" lede)
-       uses the ordinary text-foreground / text-card-foreground /
-       text-muted-foreground utilities — which correctly flip to near-white
-       for the rest of the page in dark mode, and WRONGLY flip here too,
-       since this card's own background never flips. Result in dark mode:
-       near-white text ("Leave a one-line brief.", its labels, its helper
-       copy) on this still-pale card -> invisible. Rescoping the tokens
-       locally means every text-foreground/text-card-foreground/
-       text-muted-foreground utility already in use anywhere inside this
-       card — now or added later — just resolves correctly in both themes,
-       instead of hunting down each call site (which is how this bug
-       happened in the first place: color(--outcome-foreground) below
-       just wasn't outputting any color choices for its child DOM). */
+    /* This card is meant to keep the SAME light green-tinted look in both
+       light and dark mode (that's the whole point — a consistent
+       "destination panel" regardless of theme), but its content
+       (GlassHero's sideTitle/sideLede, BriefIntakeForm's labels, the "how
+       The Oracles work" lede) uses the ordinary text-foreground /
+       text-card-foreground / text-muted-foreground utilities, which
+       correctly flip between themes for the REST of the page. Rescoping
+       those three tokens locally means every such utility already used
+       inside this card — now or added later — resolves correctly in both
+       themes without hunting down each call site. (This is the same fix
+       applied to the dark-field design; kept because the underlying reason
+       — this card intentionally not flipping with the rest of the page —
+       is still true here.) */
     --foreground: var(--outcome-foreground);
     --card-foreground: var(--outcome-foreground);
-    --muted-foreground: oklch(0.4 0.03 var(--brand-h));
+    --muted-foreground: oklch(0.42 0.03 var(--brand-h));
   }
 
-  /* .glass-chip — translucent pill for stance badges and eyebrows.
-     Brand-tinted ink reads on the lighter emerald canvas. LIGHTER than the
-     field so chips read as destination labels. */
+  /* .glass-chip — pill for stance badges and eyebrows. Light tint, brand
+     hairline. */
   .glass-chip {
-    background: linear-gradient(
-      180deg,
-      oklch(0.94 0.026 var(--brand-h) / 0.82) 0%,
-      oklch(0.86 0.036 var(--brand-h) / 0.74) 100%
-    );
-    border: 1px solid oklch(0.62 0.05 var(--brand-h) / 0.5);
-    box-shadow:
-      0 1px 0 oklch(1 0 0 / 0.55) inset,
-      0 4px 12px -4px var(--glass-shadow);
-    backdrop-filter: blur(12px) saturate(160%);
-    -webkit-backdrop-filter: blur(12px) saturate(160%);
+    background: var(--secondary);
+    border: 1px solid oklch(0.7 calc(var(--brand-c) * 0.6) var(--brand-h) / 0.35);
     color: var(--foreground);
   }
 
-  /* .glass-nav — translucent sticky top bar, layered DEEPER than the field
-     so it reads as a true glass overlay (glass-on-glass), NOT as a flat
-     navy strip. Slight lighten so the brand-300 hairline + the
-     white-on-deep nav text still read. */
+  /* .glass-nav — the ONE deliberately-dark surface: a solid deep-emerald
+     bar floating over the light page, brand color concentrated where it
+     reads as identity (top of every screen) rather than spread across the
+     whole background. White nav text stays valid because this bar's
+     background is intentionally NOT part of the light-page flip below. */
   .glass-nav {
     background: linear-gradient(
       180deg,
-      oklch(0.26 0.06 var(--brand-h) / 0.7) 0%,
-      oklch(0.22 0.05 var(--brand-h) / 0.72) 100%
+      oklch(0.26 0.06 var(--brand-h) / 0.96) 0%,
+      oklch(0.22 0.05 var(--brand-h) / 0.97) 100%
     );
     border-bottom: 1px solid oklch(0.78 0.05 var(--brand-h) / 0.32);
     box-shadow:
-      0 1px 0 oklch(1 0 0 / 0.12) inset,
-      0 10px 28px -10px var(--glass-shadow);
-    backdrop-filter: blur(calc(var(--glass-blur) + 8px)) saturate(170%);
-    -webkit-backdrop-filter: blur(calc(var(--glass-blur) + 8px)) saturate(170%);
+      0 1px 0 oklch(1 0 0 / 0.1) inset,
+      0 8px 20px -12px oklch(0.2 0.04 var(--brand-h) / 0.35);
+    backdrop-filter: blur(calc(var(--glass-blur) + 6px)) saturate(140%);
+    -webkit-backdrop-filter: blur(calc(var(--glass-blur) + 6px)) saturate(140%);
   }
 
   /* .glass-divider — brand-tinted soft line, center bright, edges transparent. */
@@ -333,56 +271,50 @@
     background: linear-gradient(
       90deg,
       transparent 0%,
-      oklch(var(--brand-l) var(--brand-c) var(--brand-h) / 0.55) 50%,
+      oklch(var(--brand-l) var(--brand-c) var(--brand-h) / 0.4) 50%,
       transparent 100%
     );
   }
 
-  /* .glow-text — emerald text glow for hero display headlines. Alpha toned
-     down so the headline doesn't bleed on the lighter backplane. */
+  /* .glow-text — kept as a utility (some callers may still opt in) but no
+     longer applied by default anywhere; a colored text-shadow glow behind
+     dark ink on a light page reads muddy rather than luminous, unlike its
+     original job (a light glow behind light text on a dark hero field). */
   .glow-text {
     text-shadow:
-      0 0 40px oklch(var(--brand-l) var(--brand-c) var(--brand-h) / 0.3),
-      0 0 10px oklch(var(--brand-l) calc(var(--brand-c) * 0.7) var(--brand-h) / 0.4);
+      0 0 40px oklch(var(--brand-l) var(--brand-c) var(--brand-h) / 0.16),
+      0 0 10px oklch(var(--brand-l) calc(var(--brand-c) * 0.7) var(--brand-h) / 0.22);
   }
 
-  /* .glass-cta — solid vivid emerald primary CTA. Foreground reads as
-     near-white for the highest-contrast element on the page. */
+  /* .glass-cta — solid vivid emerald primary CTA, the main accent moment.
+     White foreground for the highest-contrast element on the page. */
   .glass-cta {
     background: linear-gradient(
       180deg,
-      oklch(0.56 var(--brand-c) var(--brand-h)) 0%,
-      oklch(0.4 var(--brand-c) var(--brand-h)) 100%
+      oklch(0.46 var(--brand-c) var(--brand-h)) 0%,
+      oklch(0.36 var(--brand-c) var(--brand-h)) 100%
     );
-    border: 1px solid oklch(0.3 var(--brand-c) var(--brand-h) / 0.65);
+    border: 1px solid oklch(0.3 var(--brand-c) var(--brand-h) / 0.5);
     color: oklch(0.99 0.008 var(--brand-h));
     box-shadow:
-      0 1px 0 oklch(1 0 0 / 0.35) inset,
-      0 14px 36px -12px oklch(var(--brand-l) var(--brand-c) var(--brand-h) / 0.4),
-      0 4px 12px -4px var(--glass-shadow);
+      0 1px 0 oklch(1 0 0 / 0.18) inset,
+      0 10px 26px -12px oklch(var(--brand-l) var(--brand-c) var(--brand-h) / 0.35);
   }
 
-  /* .glass-outline-cta — translucent emerald glass with brand hairline. */
+  /* .glass-outline-cta — light green-tinted outline button with brand
+     hairline; the secondary-emphasis CTA next to .glass-cta. */
   .glass-outline-cta {
-    background: linear-gradient(
-      180deg,
-      oklch(0.88 0.034 var(--brand-h) / 0.62) 0%,
-      oklch(0.78 0.038 var(--brand-h) / 0.5) 100%
-    );
-    border: 1px solid oklch(0.46 var(--brand-c) var(--brand-h) / 0.6);
+    background: var(--secondary);
+    border: 1px solid oklch(0.55 calc(var(--brand-c) * 0.8) var(--brand-h) / 0.5);
     color: var(--brand-700);
-    box-shadow:
-      0 1px 0 oklch(1 0 0 / 0.55) inset,
-      0 10px 28px -12px var(--glass-shadow);
-    backdrop-filter: blur(14px) saturate(180%);
-    -webkit-backdrop-filter: blur(14px) saturate(180%);
   }
 
   /* === BACKGROUNDS / DEPTH =================================================== */
 
-  /* .hero-aurora — restrained EMERALD engine push (top-left). A single
-     radial on the lighter field; chroma re-tuned so it pushes lighter
-     emerald, not a heavy dark emerald aurora. */
+  /* .hero-aurora — a single soft emerald glow, top-left. Deliberately
+     restrained: this plus the body's own top-left radial are the only two
+     places a colored glow shows up on a hero section — not a full-bleed
+     wash. */
   .hero-aurora {
     position: relative;
     isolation: isolate;
@@ -397,18 +329,15 @@
     height: 560px;
     top: -140px;
     left: -160px;
-    filter: blur(80px);
+    filter: blur(90px);
     background: radial-gradient(
       closest-side,
-      oklch(0.86 calc(var(--brand-c) * 1.4) var(--brand-h) / 0.55) 0%,
-      oklch(0.72 calc(var(--brand-c) * 0.8) var(--brand-h) / 0.18) 50%,
-      transparent 75%
+      oklch(0.86 calc(var(--brand-c) * 0.9) var(--brand-h) / 0.3) 0%,
+      transparent 72%
     );
   }
 
-  /* .section-aurora — softer per-section variant. A single emerald radial
-     pinned top-right of the section; not full-bleed. Chroma re-tuned for
-     the lighter register. */
+  /* .section-aurora — softer per-section variant, top-right. */
   .section-aurora {
     position: relative;
     isolation: isolate;
@@ -425,11 +354,10 @@
     right: -100px;
     background: radial-gradient(
       closest-side,
-      oklch(0.88 var(--brand-c) var(--brand-h) / 0.4) 0%,
-      oklch(0.78 calc(var(--brand-c) * 0.5) var(--brand-h) / 0.12) 60%,
-      transparent 80%
+      oklch(0.88 calc(var(--brand-c) * 0.7) var(--brand-h) / 0.22) 0%,
+      transparent 75%
     );
-    filter: blur(72px);
+    filter: blur(80px);
   }
 
   /* === MOTION =================================================================
@@ -451,21 +379,20 @@
     .lift-soft:hover {
       transform: translateY(-2px);
       box-shadow:
-        0 1px 0 oklch(1 0 0 / 0.5) inset,
-        0 32px 64px -22px var(--glass-shadow),
-        0 8px 18px -8px var(--glass-tint-strong);
+        0 2px 4px oklch(0.2 0.02 var(--brand-h) / 0.05),
+        0 20px 44px -20px var(--glass-shadow);
     }
   }
 
   /* === ANCHOR + LINK TREATMENT =============================================== */
 
-  /* Brand link — vivid emerald on the emerald canvas, drawn from
-     brand-700. */
+  /* Brand link — vivid emerald, drawn from brand-700 for solid contrast on
+     a light canvas. */
   .link-brand {
     color: var(--brand-700);
     font-weight: 600;
     text-underline-offset: 4px;
-    text-decoration-color: oklch(var(--brand-l) var(--brand-c) var(--brand-h) / 0.55);
+    text-decoration-color: oklch(var(--brand-l) var(--brand-c) var(--brand-h) / 0.5);
     transition: text-decoration-color 200ms;
   }
   .link-brand:hover {
@@ -474,29 +401,48 @@
 }
 
 /* === DARK-MODE OVERRIDES =====================================================
-   Light mode is the brand-aligned EMERALD field. The .dark class deepens
-   the register so a theme-toggle still has audible difference, while
-   preserving the same emerald brand accent and a lighter outcome surface
-   (still clearly brighter than --background). Selector is `.dark.dark`
+   Standard dark-neutral theme (near-black, brand-tinted undertone) — the
+   same convention most professional dark modes use (GitHub, Linear,
+   Vercel), NOT a return to the old full-saturation dark-emerald field.
+   Emerald stays the accent in dark mode too. Selector is `.dark.dark`
    (repeated class -> specificity (0,2,0)) for the same reason the :root
    block above became `:root:root` — globals.css's later framework-derived
    .dark{} block redeclares the same properties and would otherwise win by
    source order alone. */
 .dark.dark {
-  --background: oklch(0.2 0.04 var(--brand-h));
-  --foreground: oklch(0.94 0.012 var(--brand-h));
-  --card: oklch(0.27 0.044 var(--brand-h));
-  --border: oklch(1 0 0 / 16%);
-  --outcome: oklch(0.45 0.06 var(--brand-h));
+  --background: oklch(0.16 0.01 var(--brand-h));
+  --foreground: oklch(0.94 0.01 var(--brand-h));
+  --card: oklch(0.21 0.014 var(--brand-h));
+  --card-foreground: var(--foreground);
+  --popover: var(--card);
+  --popover-foreground: var(--foreground);
+  --primary: oklch(0.62 calc(var(--brand-c) * 1.1) var(--brand-h));
+  --primary-foreground: oklch(0.14 0.02 var(--brand-h));
+  --secondary: oklch(0.26 0.016 var(--brand-h));
+  --secondary-foreground: var(--foreground);
+  --muted: oklch(0.26 0.016 var(--brand-h));
+  --muted-foreground: oklch(0.68 0.02 var(--brand-h));
+  --accent: oklch(0.28 0.024 var(--brand-h));
+  --accent-foreground: var(--foreground);
+  --border: oklch(1 0 0 / 12%);
+  --input: oklch(1 0 0 / 14%);
+  /* Outcome stays a light green-tinted card even in dark mode — the
+     .glass-highlight rule above rescopes text tokens inside it
+     specifically because this surface does NOT follow the page's dark
+     flip. --outcome itself isn't consumed directly by .glass-highlight
+     (it uses --outcome-bg/--outcome-border/--outcome-foreground, all set
+     once above and left alone here on purpose) — kept for any other
+     caller that reads --outcome directly. */
+  --outcome: oklch(0.3 0.05 var(--brand-h));
 }
 
 .dark .glass-surface,
 .dark .glass-card,
 .dark .glass-panel {
-  background-color: oklch(0.3 0.04 var(--brand-h) / 0.62);
-  border-color: oklch(1 0 0 / 16%);
+  background-color: var(--card);
+  border-color: var(--border);
   box-shadow:
-    0 1px 0 oklch(1 0 0 / 0.08) inset,
+    0 1px 0 oklch(1 0 0 / 0.05) inset,
     0 18px 40px -16px oklch(0 0 0 / 0.55);
 }
 

@@ -172,10 +172,10 @@ export default function PilotIntroPage() {
               <GlassChip tone="brand" className="self-start">
                 § 01 · What this pilot is, in plain language
               </GlassChip>
-              <h2 className="text-h2 font-display tracking-tight text-white">
+              <h2 className="text-h2 font-display tracking-tight text-foreground">
                 What this pilot is, in plain language.
               </h2>
-              <p className="max-w-3xl text-body text-white/85">
+              <p className="max-w-3xl text-body text-foreground/85">
                 Four lines cover the shape of the engagement. The named buyer, the region, the scope
                 envelope, and the timebox each get a row — so a procurement reviewer reads the pilot
                 as four bounded claims, not four marketing adjectives. The specifics are recorded in
@@ -203,10 +203,10 @@ export default function PilotIntroPage() {
               <GlassChip tone="brand" className="self-start">
                 § 02 · Why Caribbean, why now
               </GlassChip>
-              <h2 className="text-h2 font-display tracking-tight text-white">
+              <h2 className="text-h2 font-display tracking-tight text-foreground">
                 Why Caribbean, why now.
               </h2>
-              <p className="max-w-3xl text-body text-white/85">
+              <p className="max-w-3xl text-body text-foreground/85">
                 Three arguments the council can defend in writing. The market context, the
                 regulatory posture, and the sequencing reason — each named, each sourced to the case
                 file rather than to a marketing slide. A partner or sponsor reading this section
@@ -234,10 +234,10 @@ export default function PilotIntroPage() {
               <GlassChip tone="brand" className="self-start">
                 § 03 · What this pilot proves (and what it does not)
               </GlassChip>
-              <h2 className="text-h2 font-display tracking-tight text-white">
+              <h2 className="text-h2 font-display tracking-tight text-foreground">
                 What this pilot proves, and what it does not.
               </h2>
-              <p className="max-w-3xl text-body text-white/85">
+              <p className="max-w-3xl text-body text-foreground/85">
                 Two columns. The GO list — claims a procurement reviewer can verify against the case
                 file at hand-off. The NO-GO list — claims this page explicitly disclaims so that a
                 reader does not have to infer the boundary from prose. Each row is written to be
@@ -291,10 +291,10 @@ export default function PilotIntroPage() {
               <GlassChip tone="brand" className="self-start">
                 § 04 · How a TAG pilot moves through the five gates
               </GlassChip>
-              <h2 className="text-h2 font-display tracking-tight text-white">
+              <h2 className="text-h2 font-display tracking-tight text-foreground">
                 How a TAG pilot moves through the five gates.
               </h2>
-              <p className="max-w-3xl text-body text-white/85">
+              <p className="max-w-3xl text-body text-foreground/85">
                 Five named human gates — The Oracles. Each gate has a named specialist approver, and
                 the two bookends (Need Discovery and Software Build) can only be signed by the
                 single named Elder Oracle. Every gate also requires at least one specialist attester
@@ -319,7 +319,7 @@ export default function PilotIntroPage() {
             </ol>
           </div>
 
-          <p className="text-small text-white/70">
+          <p className="text-small text-muted-foreground">
             Want to brief a real council on an actual pilot engagement?{' '}
             <Link href="/request-walkthrough" className="link-brand">
               Request a walkthrough

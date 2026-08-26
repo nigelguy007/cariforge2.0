@@ -152,16 +152,16 @@ export default function Home() {
         meta={
           <dl className="mt-2 grid max-w-xl grid-cols-3 gap-4 border-t border-white/20 pt-6 text-small">
             <div className="flex flex-col gap-1">
-              <dt className="text-white/70">Five-step pipeline</dt>
-              <dd className="font-semibold text-white">Need &rarr; Build</dd>
+              <dt className="text-muted-foreground">Five-step pipeline</dt>
+              <dd className="font-semibold text-foreground">Need &rarr; Build</dd>
             </div>
             <div className="flex flex-col gap-1">
-              <dt className="text-white/70">Per-stage gate</dt>
-              <dd className="font-semibold text-white">Named human</dd>
+              <dt className="text-muted-foreground">Per-stage gate</dt>
+              <dd className="font-semibold text-foreground">Named human</dd>
             </div>
             <div className="flex flex-col gap-1">
-              <dt className="text-white/70">Output</dt>
-              <dd className="font-semibold text-white">Runnable repo</dd>
+              <dt className="text-muted-foreground">Output</dt>
+              <dd className="font-semibold text-foreground">Runnable repo</dd>
             </div>
           </dl>
         }

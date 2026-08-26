@@ -36,11 +36,13 @@ export function GlassSectionHeader({
         className,
       )}
     >
-      {eyebrow ? <p className="text-eyebrow text-brand-200">{eyebrow}</p> : null}
-      <TitleTag className={cn('font-display tracking-tight text-white text-h2', titleClassName)}>
+      {eyebrow ? <p className="text-eyebrow text-brand-700">{eyebrow}</p> : null}
+      <TitleTag
+        className={cn('font-display tracking-tight text-foreground text-h2', titleClassName)}
+      >
         {title}
       </TitleTag>
-      {lede ? <p className={cn('text-body-lg text-white/85', ledeClassName)}>{lede}</p> : null}
+      {lede ? <p className={cn('text-body-lg text-foreground/85', ledeClassName)}>{lede}</p> : null}
     </div>
   );
 }
