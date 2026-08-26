@@ -8,7 +8,17 @@ export const metadata: Metadata = {
     'Capture a plain-English organisational need as a new mission in the CARI Forge control plane.',
 };
 
-export default function NewMissionPage() {
+export default async function NewMissionPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ intake?: string }>;
+}) {
+  // R1 (mission pipeline rebuild): the dashboard's quick-capture textarea
+  // hands its text off here via ?intake= rather than creating a mission
+  // directly — /api/forge/missions' MissionCreate schema requires nine
+  // structured attribution fields a single textarea can't satisfy, so this
+  // stays a real page composition change, not a loosening of that schema.
+  const { intake } = await searchParams;
   return (
     <section className="container-page py-section">
       <header className="glass-panel rounded-2xl p-6">
@@ -21,7 +31,7 @@ export default function NewMissionPage() {
         </p>
       </header>
       <div className="mt-8">
-        <MissionIntakeForm />
+        <MissionIntakeForm initialIntake={intake ?? ''} />
       </div>
     </section>
   );

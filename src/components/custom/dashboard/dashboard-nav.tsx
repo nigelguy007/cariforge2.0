@@ -1,16 +1,24 @@
 // @polsia:user-owned
 'use client';
 
-import { LayoutDashboard } from 'lucide-react';
+import { LayoutDashboard, ListChecks } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
 
+// R2 (mission pipeline rebuild): Missions now lives in this same nav as
+// Overview — the dashboard shell used to have exactly one item and never
+// linked to /missions at all. Both routes share this one DashboardShell.
 const navItems = [
   {
     href: '/dashboard',
     label: 'Overview',
     icon: LayoutDashboard,
+  },
+  {
+    href: '/missions',
+    label: 'Missions',
+    icon: ListChecks,
   },
 ];
 
@@ -24,7 +32,8 @@ export function DashboardNav() {
     >
       {navItems.map((item) => {
         const Icon = item.icon;
-        const active = pathname === item.href;
+        const active =
+          pathname === item.href || (item.href === '/missions' && pathname.startsWith('/missions'));
 
         return (
           <Link

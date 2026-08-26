@@ -54,12 +54,12 @@ const INTAKE_FIELDS = [
   { name: 'nonGoals', label: 'Explicit non-goals', hint: 'What we are NOT doing.' },
 ] as const;
 
-export function MissionIntakeForm() {
+export function MissionIntakeForm({ initialIntake = '' }: { initialIntake?: string }) {
   const router = useRouter();
   const form = useForm({
     resolver: zodResolver(MissionCreate),
     defaultValues: {
-      intake: '',
+      intake: initialIntake,
       name: '',
       normalizedNeed: '',
       domainTags: [] as string[],
