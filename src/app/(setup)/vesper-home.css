@@ -17,20 +17,28 @@
    per the user's explicit request to modify this background using the
    combined colours of the two design references (Caribbean emerald,
    --brand-h=152, plus the cooler cyan-blue reference) rather than leave it
-   flat black. Chroma stays very low (0.02) so it reads as a considered
-   near-black, not a colour wash. */
+   flat black.
+
+   oklch(0.2 0.035 160) — NOT the first value tried here. An earlier pass
+   used oklch(0.09 0.02 165), which is technically non-pure-black but
+   renders to sRGB(0,4,2): visually indistinguishable from #000 on a real
+   screen, which is why it read as "still black" after deploy. This value
+   renders to roughly sRGB(6,27,16) — a deep, clearly-visible pine/forest
+   charcoal — so don't drop the lightness/chroma back down without
+   re-checking the actual rendered RGB (computed-style / oklch() labels
+   alone don't tell you whether a tint is perceptible; sample the pixel). */
 
 html,
 body {
   /* biome-ignore lint/complexity/noImportantStyles: deliberate defensive rule, not an accident — guarantees no white flash regardless of load order, before any other rule (including the var()-based one right below) has a chance to apply. oklch() needs no custom-property fallback: every engine that parses oklch() also supports custom properties, so this literal is just belt-and-braces against cascade-order races, not a compatibility fallback. */
-  background: oklch(0.09 0.02 165) !important;
+  background: oklch(0.2 0.035 160) !important;
   color: #ffffff;
 }
 html,
 body {
-  background: oklch(0.09 0.02 165);
+  background: oklch(0.2 0.035 160);
   /* biome-ignore lint/suspicious/noDuplicateProperties: intentional fallback — the plain value above holds if custom properties aren't supported, var(--vhome-bg) wins where they are. */
-  background: var(--vhome-bg, oklch(0.09 0.02 165));
+  background: var(--vhome-bg, oklch(0.2 0.035 160));
   color: #ffffff;
   color: var(--vhome-text, #ffffff);
 }
@@ -40,7 +48,7 @@ body {
      vhome-font-serif CSS variables the page sets on this element's own
      className — see (setup)/page.tsx for why (self-hosted at build time,
      CSP-clean, no @font-face needed here). */
-  --vhome-bg: oklch(0.09 0.02 165);
+  --vhome-bg: oklch(0.2 0.035 160);
   --vhome-text: oklch(0.96 0.005 165);
   --vhome-muted: #9a9a9a;
   --vhome-stat: #d8d8d8;
