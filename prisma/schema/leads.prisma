@@ -1,11 +1,14 @@
 // @polsia:user-owned — Lead model for the cariforge.com front-door funnel.
-// One brief per row from a regulated buyer landing on /. Captures a one-line
-// brief, an optional reply-to email, when it arrived, and whether the
-// best-effort owner-email notification fired.
+// One requirements submission per row from a regulated buyer landing on /.
+// Captures what they want to build, an optional reply-to email, when it
+// arrived, and whether the best-effort owner-email notification fired.
 
 model Lead {
   id         String    @id @default(cuid())
-  brief      String                       // required, the one-line brief (20-500 chars post-trim)
+  brief      String                       // required requirements text (20-4000 chars post-trim, per contracts/leads.ts) — no @db.VarChar cap, Prisma's plain String is Postgres text
+  // attachments: pending real file storage (Vercel Blob or similar) —
+  // not modelled here yet. See brief-intake-form.tsx's TODO before adding
+  // an `attachments` relation/JSON column.
   email      String?                      // optional — contact email back-channel
   createdAt  DateTime  @default(now())    // capture timestamp
   notifiedAt DateTime?                    // when we successfully fired the owner email

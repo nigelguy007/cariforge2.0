@@ -73,7 +73,7 @@ function SparkleIcon() {
       width="18"
       height="20"
       viewBox="0 0 24 24"
-      fill="white"
+      fill="currentColor"
       className="vhome-badge-star"
       aria-hidden="true"
     >
@@ -211,8 +211,8 @@ export default function Home() {
                 animationDuration: '1.25s',
               }}
             >
-              {siteName} turns a one-line business brief into a runnable software build &mdash; and
-              never releases it without a named human approving every stage.
+              {siteName} turns your requirements into a runnable software build &mdash; and never
+              releases it without a named human approving every stage.
             </p>
 
             <div className="vhome-hero-actions">

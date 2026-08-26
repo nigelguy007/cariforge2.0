@@ -72,14 +72,18 @@
    silently winning every time this file used a plain `:root {}` selector.
    Keeping the specificity bump here permanently avoids re-hitting that. */
 :root:root {
-  /* Light mode's aquamarine identity: chroma pushed further again (0.014
-     -> 0.045) per explicit "more aqua marine, brighter, much brighter" —
-     the previous 0.014 was itself a correction to an earlier near-
-     imperceptible 0.004, so this keeps moving the same direction rather
-     than reversing it. Still light enough (L=0.94) to stay a readable
-     field, but now unmistakably a bright aqua tint, not a hint of one. */
-  --background: oklch(0.94 0.045 var(--brand-h));
-  --foreground: oklch(0.2 0.02 var(--brand-h));
+  /* Apple-style restraint (current direction, supersedes the "brighter,
+     much brighter" full-wash pass): the field itself pulls back to a
+     near-white Apple grey — #fbfbfd is Apple's own actual page background
+     on apple.com, not an improvisation — with colour reserved for
+     deliberate accent moments (buttons, links, badges) rather than the
+     page field. This is a real reversal of direction from the immediately
+     preceding several passes, on a NEW instruction ("the texture and
+     contrast of apple.com... keeping a caribbean sea colour"), not a
+     retraction of the brightness feedback that drove those passes — see
+     .impeccable.md's Aesthetic Direction section for the full history. */
+  --background: oklch(0.99 0.002 var(--brand-h));
+  --foreground: #1d1d1f;
 
   /* Cards are crisp near-white, distinguished from the page by a hairline
      border + soft shadow (standard modern SaaS card pattern), not by being
@@ -89,11 +93,13 @@
   --popover: var(--card);
   --popover-foreground: var(--foreground);
 
-  /* Primary — the one place full-saturation emerald shows up: solid CTA
-     fills, links, the nav bar. Tuned dark enough that white text on it
-     clears 4.5:1. */
-  --primary: oklch(0.42 calc(var(--brand-c) * 1.3) var(--brand-h));
-  --primary-foreground: oklch(0.99 0.006 var(--brand-h));
+  /* Primary CTA fills are now near-black, not the accent colour — matches
+     Apple's actual pattern (solid black/dark-grey buttons; colour shows up
+     in links, badges, and borders instead) and matches the homepage hero's
+     own button treatment (vesper-home.css's .vhome-btn-solid), so the
+     whole site is consistent rather than the homepage being an outlier. */
+  --primary: #1d1d1f;
+  --primary-foreground: #f5f5f7;
 
   /* Secondary / muted — standard light-neutral sub-panels, a hint of brand
      hue so they don't read as flat grey. */
@@ -261,23 +267,26 @@
     color: var(--foreground);
   }
 
-  /* .glass-nav — the ONE deliberately-dark surface: a solid deep-emerald
-     bar floating over the light page, brand color concentrated where it
-     reads as identity (top of every screen) rather than spread across the
-     whole background. White nav text stays valid because this bar's
-     background is intentionally NOT part of the light-page flip below. */
+  /* .glass-nav — was the ONE deliberately-dark surface (a solid
+     deep-emerald bar, brand colour concentrated at the top of every
+     screen); flipped to a translucent frosted bar per the Apple
+     direction — Apple's own nav is a light (or, in dark mode, dark)
+     blurred material sitting over the page content, not an opaque
+     colour-branded band. Uses --border (theme-aware) for the hairline
+     and a translucent near-page-colour fill rather than a hardcoded
+     tint, so it now participates in the light/dark flip instead of
+     opting out of it — site-nav.tsx's text-white assumptions changed
+     alongside this to ordinary theme tokens (text-foreground etc). */
   .glass-nav {
-    background: linear-gradient(
-      180deg,
-      oklch(0.26 0.06 var(--brand-h) / 0.96) 0%,
-      oklch(0.22 0.05 var(--brand-h) / 0.97) 100%
-    );
-    border-bottom: 1px solid oklch(0.78 0.05 var(--brand-h) / 0.32);
-    box-shadow:
-      0 1px 0 oklch(1 0 0 / 0.1) inset,
-      0 8px 20px -12px oklch(0.2 0.04 var(--brand-h) / 0.35);
+    background: oklch(1 0.003 var(--brand-h) / 0.72);
+    border-bottom: 1px solid var(--border);
+    box-shadow: 0 8px 20px -12px oklch(0.2 0.02 var(--brand-h) / 0.12);
     backdrop-filter: blur(calc(var(--glass-blur) + 6px)) saturate(140%);
     -webkit-backdrop-filter: blur(calc(var(--glass-blur) + 6px)) saturate(140%);
+  }
+  .dark .glass-nav {
+    background: oklch(0.17 0.012 var(--brand-h) / 0.75);
+    box-shadow: 0 8px 20px -12px oklch(0 0 0 / 0.4);
   }
 
   /* .glass-divider — brand-tinted soft line, center bright, edges transparent. */
@@ -417,32 +426,34 @@
 }
 
 /* === DARK-MODE OVERRIDES =====================================================
-   Bright aquamarine dark theme — pushed considerably lighter than a
-   typical "dark mode" (background L=0.4, not the 0.15 this held right
-   after the deep-ocean pass) per an explicit, repeated "too dark ...
-   brighter, much brighter" request. At this point "dark mode" here means
-   "the more saturated of the two variants," not "a dark, low-light
-   surface" in the traditional sense — --foreground stays a light,
-   readable near-white since that contrast still needs to hold against a
-   background this much brighter than a conventional dark theme.
+   Apple-style dark surface (current direction, supersedes the "bright
+   aquamarine" dark theme this held one pass ago): a genuinely dark,
+   neutral-grey field — close to macOS's own dark-mode chrome — with the
+   Caribbean-sea accent reserved for links/badges/borders, the same
+   restraint principle as the light mode above, not a dark-mode-shaped
+   version of the earlier colour wash. --primary INVERTS to a light pill
+   here (near-white fill, near-black text) rather than staying near-black
+   like light mode's — a near-black button would have no contrast against
+   this now-near-black background; Apple's own dark-mode buttons follow
+   the same inversion.
    Selector is `.dark.dark` (repeated class -> specificity (0,2,0)) for the
    same reason the :root block above became `:root:root` — globals.css's
    later framework-derived .dark{} block redeclares the same properties
    and would otherwise win by source order alone. */
 .dark.dark {
-  --background: oklch(0.4 0.11 var(--brand-h));
-  --foreground: oklch(0.97 0.012 var(--brand-h));
-  --card: oklch(0.46 0.1 var(--brand-h));
+  --background: oklch(0.17 0.012 var(--brand-h));
+  --foreground: oklch(0.96 0.006 var(--brand-h));
+  --card: oklch(0.22 0.014 var(--brand-h));
   --card-foreground: var(--foreground);
   --popover: var(--card);
   --popover-foreground: var(--foreground);
-  --primary: oklch(0.72 calc(var(--brand-c) * 1.1) var(--brand-h));
-  --primary-foreground: oklch(0.14 0.02 var(--brand-h));
-  --secondary: oklch(0.5 0.09 var(--brand-h));
+  --primary: #f5f5f7;
+  --primary-foreground: #1d1d1f;
+  --secondary: oklch(0.27 0.02 var(--brand-h));
   --secondary-foreground: var(--foreground);
-  --muted: oklch(0.5 0.09 var(--brand-h));
-  --muted-foreground: oklch(0.86 0.02 var(--brand-h));
-  --accent: oklch(0.52 0.1 var(--brand-h));
+  --muted: oklch(0.27 0.02 var(--brand-h));
+  --muted-foreground: oklch(0.68 0.02 var(--brand-h));
+  --accent: oklch(0.29 0.03 var(--brand-h));
   --accent-foreground: var(--foreground);
   --border: oklch(1 0 0 / 12%);
   --input: oklch(1 0 0 / 14%);

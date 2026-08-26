@@ -6,11 +6,22 @@
 import { z } from 'zod';
 
 export const LeadCreate = z.object({
+  // Was capped at 500 chars when this field was framed as a literal
+  // "one-line brief" — it's the actual requirements-capture area (what do
+  // you want to build using AI?), so it needs room for a real paragraph or
+  // two, not a single sentence. 20 chars stays the floor (still rules out
+  // empty/junk submissions); 4000 is generous enough for a genuine
+  // requirements writeup without inviting a full document dump — see
+  // brief-intake-form.tsx for the (pending) file-attachment path for
+  // anything longer than that.
   brief: z
     .string()
     .trim()
-    .min(20, 'Brief is too short — give us at least one sentence.')
-    .max(500, 'Brief is too long — please cap at 500 characters.'),
+    .min(20, 'Tell us a bit more — at least one full sentence.')
+    .max(
+      4000,
+      'That’s a lot of detail — please cap it at 4000 characters, or attach it as a document instead.',
+    ),
   email: z
     .union([z.string().email('That email looks off.'), z.literal('')])
     .optional()

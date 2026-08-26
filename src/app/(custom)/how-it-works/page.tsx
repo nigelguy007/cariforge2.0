@@ -87,7 +87,7 @@ const STAGES: Array<{
   {
     ordinal: 'I',
     name: 'Need Discovery',
-    goal: 'Translate the one-line brief into a testable problem statement.',
+    goal: 'Translate the submitted requirements into a testable problem statement.',
     gate: 'Approve, return, or refuse — with a typed reason recorded.',
   },
   {
@@ -139,9 +139,9 @@ export default function HowItWorksPage() {
               The Oracles argue it. Five named humans gate it.
             </h1>
             <p className="max-w-xl text-body-lg text-muted-foreground">
-              {siteName} turns a one-line business brief into a runnable software build — and never
-              releases it without a named human approving every stage. Read how below, or leave a
-              brief on the right and see it start.
+              {siteName} turns your requirements into a runnable software build — and never releases
+              it without a named human approving every stage. Read how below, or tell us what you
+              want to build on the right and see it start.
             </p>
             <GlassCta asChild tone="outline" size="md" className="self-start">
               <Link href="#council">
@@ -155,11 +155,12 @@ export default function HowItWorksPage() {
             <header className="mb-4 flex flex-col gap-2">
               <GlassChip tone="brand">Front door</GlassChip>
               <h2 className="font-display text-h3 tracking-tight text-foreground">
-                Leave a one-line brief.
+                What do you want to build using AI?
               </h2>
               <p className="text-small text-card-foreground/80">
-                A regulated buyer&rsquo;s question is enough to start. The Oracles read it verbatim
-                before any code is written; the Elder Oracle rules on what they disagree about.
+                A regulated buyer&rsquo;s question is enough to start — write as much as the problem
+                needs. The Oracles read it verbatim before any code is written; the Elder Oracle
+                rules on what they disagree about.
               </p>
             </header>
             <BriefIntakeForm />

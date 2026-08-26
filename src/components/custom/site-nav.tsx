@@ -136,7 +136,7 @@ export function SiteNav() {
         >
           <Link
             href="/"
-            className="mr-2 shrink-0 truncate font-display text-base font-semibold tracking-tight text-white"
+            className="mr-2 shrink-0 truncate font-display text-base font-semibold tracking-tight text-foreground"
           >
             <span className="font-display tracking-tight">{siteName}</span>
           </Link>
@@ -151,8 +151,8 @@ export function SiteNav() {
                   variant="ghost"
                   size="sm"
                   className={cn(
-                    'text-white/90 hover:text-white hover:bg-white/10',
-                    isActive(slot.item.href) && 'bg-white/15 text-white',
+                    'text-foreground/80 hover:bg-accent hover:text-foreground',
+                    isActive(slot.item.href) && 'bg-accent text-foreground',
                   )}
                 >
                   <Link
@@ -169,8 +169,8 @@ export function SiteNav() {
                       variant="ghost"
                       size="sm"
                       className={cn(
-                        'text-white/90 hover:text-white hover:bg-white/10',
-                        isSlotActive(slot) && 'bg-white/15 text-white',
+                        'text-foreground/80 hover:bg-accent hover:text-foreground',
+                        isSlotActive(slot) && 'bg-accent text-foreground',
                       )}
                     >
                       {slot.label}
@@ -201,8 +201,8 @@ export function SiteNav() {
                     variant="ghost"
                     size="sm"
                     className={cn(
-                      'text-white/90 hover:text-white hover:bg-white/10',
-                      overflow.some(isSlotActive) && 'bg-white/15 text-white',
+                      'text-foreground/80 hover:bg-accent hover:text-foreground',
+                      overflow.some(isSlotActive) && 'bg-accent text-foreground',
                     )}
                   >
                     More
@@ -265,7 +265,7 @@ export function SiteNav() {
             </div>
 
             {/* Always visible */}
-            <ThemeToggle className="text-white hover:bg-white/10 hover:text-white" />
+            <ThemeToggle className="text-foreground hover:bg-accent hover:text-foreground" />
 
             {/* Mobile (below md): burger + drawer — only when there's something to collapse */}
             {collapsedCount > 0 && (
@@ -274,7 +274,7 @@ export function SiteNav() {
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="text-white hover:bg-white/10 hover:text-white md:hidden"
+                    className="text-foreground hover:bg-accent hover:text-foreground md:hidden"
                   >
                     <Menu />
                     <span className="sr-only">Open menu</span>
@@ -283,15 +283,17 @@ export function SiteNav() {
                 <SheetContent
                   side="right"
                   aria-describedby={undefined}
-                  // The mobile drawer is the nav's own mobile fallback, so it
-                  // deliberately stays the same dark surface as the desktop
-                  // nav bar (bg-background would otherwise resolve to the
-                  // light page background — this overrides shadcn's default
-                  // Sheet background, not a text-color fix).
-                  className="flex flex-col border-l border-white/20 bg-[oklch(0.2_0.045_var(--brand-h))] text-white"
+                  // The mobile drawer used to force a hardcoded dark surface
+                  // here regardless of theme, back when the desktop nav bar
+                  // was also a deliberately-dark, theme-independent band —
+                  // now that .glass-nav itself flips with light/dark (see
+                  // custom-style.css), the drawer can use shadcn's ordinary
+                  // Sheet background/border/text tokens instead of an
+                  // override, and gets the correct look in both themes.
+                  className="flex flex-col"
                 >
                   <SheetHeader>
-                    <SheetTitle className="text-left text-white">{siteName}</SheetTitle>
+                    <SheetTitle className="text-left">{siteName}</SheetTitle>
                   </SheetHeader>
                   <nav aria-label="Mobile" className="mt-6 flex flex-col gap-1 overflow-y-auto">
                     {/* All slots, no overflow; a `menu` slot becomes a labeled section. */}
@@ -302,8 +304,8 @@ export function SiteNav() {
                           asChild
                           variant="ghost"
                           className={cn(
-                            'w-full justify-start text-white hover:bg-white/10 hover:text-white',
-                            isActive(slot.item.href) && 'bg-white/15 text-white',
+                            'w-full justify-start hover:bg-accent',
+                            isActive(slot.item.href) && 'bg-accent',
                           )}
                         >
                           <Link
@@ -316,7 +318,7 @@ export function SiteNav() {
                         </Button>
                       ) : (
                         <div key={`menu:${slot.label}`} className="flex flex-col gap-1">
-                          <p className="px-3 pt-2 text-xs font-medium text-white/70">
+                          <p className="px-3 pt-2 text-xs font-medium text-muted-foreground">
                             {slot.label}
                           </p>
                           {slot.items.map((item) => (
@@ -325,8 +327,8 @@ export function SiteNav() {
                               asChild
                               variant="ghost"
                               className={cn(
-                                'w-full justify-start pl-6 text-white hover:bg-white/10 hover:text-white',
-                                isActive(item.href) && 'bg-white/15 text-white',
+                                'w-full justify-start pl-6 hover:bg-accent',
+                                isActive(item.href) && 'bg-accent',
                               )}
                             >
                               <Link
@@ -342,7 +344,7 @@ export function SiteNav() {
                       ),
                     )}
                     {secondary.length > 0 && (
-                      <div className="mt-2 flex flex-col gap-1 border-t border-white/20 pt-4">
+                      <div className="mt-2 flex flex-col gap-1 border-t border-border pt-4">
                         {secondary.map((item) => (
                           <Button
                             key={item.href}
@@ -381,9 +383,10 @@ export function SiteFooter() {
   if (footer.length === 0 || pathname === '/') return null;
 
   return (
-    // Unlike the nav bar, the footer sits directly on the (now light) page
-    // background rather than its own dark surface, so it uses the ordinary
-    // theme tokens instead of the nav's hardcoded white.
+    // The footer sits directly on the page background (no translucent
+    // .glass-nav-style surface of its own), so it always used ordinary
+    // theme tokens — nothing changed here when the nav bar above stopped
+    // hardcoding white text for its own separate surface.
     <footer className="border-t border-border">
       <nav
         aria-label="Footer"

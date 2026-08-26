@@ -1,10 +1,27 @@
-// @polsia:user-owned — brief intake form (client island for the home page).
-// POSTs to /api/leads, renders an inline success card on 201, and surfaces
-// server-side field validation via applyServerErrors. No server-only imports.
+// @polsia:user-owned — requirements-intake form (client island for the home
+// page). POSTs to /api/leads, renders an inline success card on 201, and
+// surfaces server-side field validation via applyServerErrors. No
+// server-only imports.
+//
+// Renamed from "one-line brief" to "what do you want to build using AI?"
+// per explicit correction: this is the actual requirements-capture area,
+// not a literal one-liner — the textarea grew accordingly (3 rows -> 6,
+// 500-char cap -> 4000, see contracts/leads.ts) and the copy throughout
+// stopped describing it as one line.
+//
+// Document attachment: NOT implemented yet, on purpose. This app has no
+// file-storage integration (checked package.json — no Vercel Blob/S3/
+// equivalent dependency), and per this project's marketplace-integration
+// requirement, provisioning one needs the user to run /marketplace
+// themselves — that command can't be invoked from inside a session. The
+// attach control below is a real, honestly-disabled affordance (not a
+// button that silently no-ops when clicked) so the intent is visible in
+// the UI while storage is pending, not a mock pretending to work.
 
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
+import { Paperclip } from 'lucide-react';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
@@ -75,21 +92,39 @@ export function BriefIntakeForm() {
           name="brief"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Your one-line brief</FormLabel>
+              <FormLabel>What do you want to build using AI?</FormLabel>
               <FormControl>
                 <Textarea
-                  placeholder="e.g. We need to triage claims documents against EU AI Act Article 14 before 2 August 2026…"
-                  rows={3}
+                  placeholder="e.g. We need to triage claims documents against EU AI Act Article 14 before 2 August 2026. Today a team of six does this by hand in a shared inbox — we need something that reads each claim, flags the ones missing required disclosures, and routes them to the right reviewer…"
+                  rows={6}
                   {...field}
                 />
               </FormControl>
               <FormDescription>
-                20–500 characters. The council reads this verbatim before ruling.
+                Write as much as the problem needs — 20–4000 characters. The Oracles read this
+                verbatim before ruling.
               </FormDescription>
               <FormMessage />
             </FormItem>
           )}
         />
+        <div className="flex flex-col gap-1.5">
+          <span className="text-small font-medium text-foreground">
+            Attach a document <span className="font-normal text-muted-foreground">(optional)</span>
+          </span>
+          {/* Honestly disabled, not a silent no-op: file storage isn't
+              provisioned yet (see the file header). Runs /marketplace to
+              set up Vercel Blob or equivalent before this can go live. */}
+          <button
+            type="button"
+            disabled
+            title="Document attachment is being set up — for now, paste the key details above."
+            className="flex cursor-not-allowed items-center justify-center gap-2 rounded-md border border-dashed border-border bg-muted/40 px-4 py-3 text-small text-muted-foreground opacity-70"
+          >
+            <Paperclip className="size-4" aria-hidden="true" />
+            Coming soon — for now, paste the key details above
+          </button>
+        </div>
         <FormField
           control={form.control}
           name="email"
