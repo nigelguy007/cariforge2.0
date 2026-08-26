@@ -20,7 +20,7 @@
 // entirely, per the spec's own "force black immediately" requirement).
 
 import type { Metadata } from 'next';
-import { Instrument_Serif, Inter } from 'next/font/google';
+import { Inter } from 'next/font/google';
 import Link from 'next/link';
 import { JsonLd } from '@/components/custom/json-ld';
 import { VesperAppearFallback } from '@/components/custom/vesper-home/vesper-appear-fallback';
@@ -48,13 +48,11 @@ const vhomeInter = Inter({
   variable: '--vhome-font-inter',
   display: 'swap',
 });
-const vhomeInstrumentSerif = Instrument_Serif({
-  subsets: ['latin'],
-  weight: '400',
-  style: ['italic'],
-  variable: '--vhome-font-serif',
-  display: 'swap',
-});
+// Instrument_Serif previously loaded here for the italic "AI" emphasis word
+// (vesper-home.css's .vhome-h1 em) — removed along with that treatment per
+// explicit "I don't like the AI font" feedback; "AI" is now bold Inter
+// inside a glass pill, so this second font family is no longer used
+// anywhere on the page. Not worth shipping an unused font file.
 
 export const metadata: Metadata = {
   title: { absolute: siteName },
@@ -169,7 +167,7 @@ function AgentsIcon() {
 
 export default function Home() {
   return (
-    <div className={`vhome-root ${vhomeInter.variable} ${vhomeInstrumentSerif.variable}`}>
+    <div className={`vhome-root ${vhomeInter.variable}`}>
       <JsonLd script={organization} />
       <JsonLd script={website} />
 

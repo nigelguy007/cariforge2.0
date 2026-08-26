@@ -45,10 +45,12 @@ body {
 }
 
 .vhome-root {
-  /* Fonts come from next/font/google, applied via the vhome-font-inter /
-     vhome-font-serif CSS variables the page sets on this element's own
-     className — see (setup)/page.tsx for why (self-hosted at build time,
-     CSP-clean, no @font-face needed here). */
+  /* Font comes from next/font/google, applied via the vhome-font-inter
+     CSS variable the page sets on this element's own className — see
+     (setup)/page.tsx for why (self-hosted at build time, CSP-clean, no
+     @font-face needed here). A second family (Instrument Serif) used to
+     load here too, for the italic "AI" emphasis word — removed along
+     with that treatment, see .vhome-h1 em below. */
   --vhome-bg: oklch(0.985 0.003 261);
   --vhome-text: #1d1d1f;
   --vhome-muted: #6e6e73;
@@ -142,15 +144,18 @@ body {
   position: fixed;
   inset: 0;
   z-index: 0;
-  /* One quiet Caribbean-sea accent moment, not a field of colour: a very
-     soft royal-blue glow in the upper-left, well below full strength
-     (12% peak opacity), fading out before it reaches the hero copy. This
-     is the "one hero colour moment" the Apple reference calls for —
-     everywhere else on this page, restraint comes from whitespace and
-     neutral greys, not colour. */
+  /* One quiet Caribbean-sea accent moment, not a field of colour — but
+     strong enough (28%, up from an initial 12% that read as almost
+     nothing behind the nav bar) to actually give the nav's frosted-glass
+     blur something visible to blur: backdrop-filter is invisible over a
+     flat, uncoloured field, which was the real reason the "liquid glass"
+     effect wasn't reading as glass at all — there was nothing behind the
+     glass to distort. This bleeds a soft blue wash through the nav
+     specifically (it sits right where this glow is strongest), which is
+     the clearest "glass" tell there is. */
   background: radial-gradient(
     55% 50% at 14% 0%,
-    oklch(0.75 0.13 var(--brand-h, 261) / 0.12),
+    oklch(0.75 0.13 var(--brand-h, 261) / 0.28),
     transparent 62%
   );
 }
@@ -203,11 +208,17 @@ body {
   /* Apple's actual nav-pill treatment: a soft, mostly-transparent white
      frosted glass over the page, dark text, no colour tint at rest — the
      opposite of the previous dark-tinted "liquid-metal" glass this held
-     across two earlier colour phases. */
+     across two earlier colour phases. A resting shadow + inset top
+     highlight added so the pill reads as a lifted glass surface even in
+     page regions where the hero glow behind it is faint — backdrop-blur
+     alone is easy to miss on a mostly-flat field. */
   border: 1px solid var(--vhome-border);
   background: rgba(255, 255, 255, 0.55);
-  backdrop-filter: blur(12px) saturate(140%);
-  -webkit-backdrop-filter: blur(12px) saturate(140%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.8),
+    0 4px 14px -6px oklch(0.2 0.02 var(--brand-h, 261) / 0.18);
+  backdrop-filter: blur(14px) saturate(160%);
+  -webkit-backdrop-filter: blur(14px) saturate(160%);
   color: #1d1d1f;
   font-size: var(--vhome-nav);
   font-weight: 400;
@@ -405,9 +416,12 @@ body.vhome-body-menu-open .vhome-burger-bar:nth-child(3) {
   border-radius: 5px;
   /* A soft Caribbean-sea tint, not the dark-glass gradient this held
      during earlier phases — Apple's own small pill badges are typically
-     a flat, quiet tint like this rather than a gradient. */
-  background: oklch(0.56 0.14 var(--brand-h, 261) / 0.1);
-  backdrop-filter: blur(10px) saturate(140%);
+     a flat, quiet tint like this rather than a gradient. Alpha bumped
+     (0.1 -> 0.16) and given an inset top highlight so the tint/glass
+     reads clearly rather than as a near-invisible whisper. */
+  background: oklch(0.56 0.14 var(--brand-h, 261) / 0.16);
+  box-shadow: inset 0 1px 0 oklch(1 0 0 / 0.5);
+  backdrop-filter: blur(10px) saturate(150%);
   -webkit-backdrop-filter: blur(10px) saturate(140%);
   color: oklch(0.4 0.1 var(--brand-h, 261));
   font-size: var(--vhome-badge);
@@ -437,18 +451,29 @@ body.vhome-body-menu-open .vhome-burger-bar:nth-child(3) {
   padding: 0.06em 0.15em 0.14em;
 }
 .vhome-h1 em {
-  font-family: var(--vhome-font-serif, "Instrument Serif"), "Times New Roman", Times, serif;
-  font-style: italic;
-  font-weight: 400;
-  font-size: 1.08em;
-  letter-spacing: -0.03em;
-  /* Solid brand-emerald, not the earlier gradient-fill "ShinyText" sweep —
-     background-clip:text gradient headlines are an absolute ban under the
-     impeccable skill (one of the most recognisable AI-generated-page
-     tells). The word still carries emphasis: italic serif against the sans
-     headline, a size bump, and this page's one deliberate accent colour —
-     weight, style and colour do the work a gradient used to. */
+  /* Was an italic serif treatment (Instrument Serif) — dropped per
+     explicit "I don't like the AI font" feedback. Now the SAME sans as
+     the rest of the headline (no font-family override, inherits
+     .vhome-h1's Inter), set apart by weight + an actual visible glass
+     pill instead of a font/style switch. This also directly answers "I
+     still can't see the colour change [or] the liquid glass effect": a
+     coloured text token alone is easy to miss in a single word: a
+     tinted, blurred, bordered SURFACE around the word is not. */
+  font-style: normal;
+  font-weight: 700;
+  font-size: 0.92em;
+  letter-spacing: -0.02em;
+  display: inline-flex;
+  align-items: center;
+  padding: 0.02em 0.22em 0.06em;
+  margin: 0 0.02em;
+  border-radius: 0.28em;
   color: var(--vhome-accent);
+  background: oklch(0.56 0.14 var(--brand-h, 261) / 0.14);
+  border: 1.5px solid oklch(0.56 0.14 var(--brand-h, 261) / 0.4);
+  box-shadow: 0 0 24px oklch(0.56 0.14 var(--brand-h, 261) / 0.22);
+  backdrop-filter: blur(10px) saturate(160%);
+  -webkit-backdrop-filter: blur(10px) saturate(160%);
 }
 .vhome-lede {
   max-width: var(--vhome-lede-max);
