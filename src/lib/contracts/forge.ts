@@ -51,8 +51,31 @@ export const GATE_REASON_CODES = [
 ] as const;
 export type ReasonCode = (typeof GATE_REASON_CODES)[number];
 
-export const APPROVAL_DECISION_VALUES = ['Approve', 'Return', 'Refuse'] as const;
+// R4 (mission pipeline rebuild): ApproveWithControls is a real stored value
+// (it round-trips through the DB, the audit log, and telemetry), but it is
+// never a raw dropdown choice — MissionGatePanel derives it client-side from
+// "Approve" + non-empty Controls text and sends it as the decision. Keep it
+// out of GATE_DECISION_CHOICES (what the Select renders) but in
+// APPROVAL_DECISION_VALUES (what the schema accepts).
+export const APPROVAL_DECISION_VALUES = [
+  'Approve',
+  'ApproveWithControls',
+  'Return',
+  'Refuse',
+] as const;
 export type ApprovalDecision = (typeof APPROVAL_DECISION_VALUES)[number];
+
+export const GATE_DECISION_CHOICES = APPROVAL_DECISION_VALUES.filter(
+  (d) => d !== 'ApproveWithControls',
+);
+
+// Approve and Approve-with-controls both pass the gate — every place that
+// used to check `decision === 'Approve'` for "did this gate pass" should use
+// this instead, so a control never silently blocks what it was meant to
+// flag conditionally rather than stop.
+export function isApproveDecision(decision: ApprovalDecision): boolean {
+  return decision === 'Approve' || decision === 'ApproveWithControls';
+}
 
 export const TOOL_SCOPE_VALUES = ['Internal', 'External'] as const;
 export type ToolActionScope = (typeof TOOL_SCOPE_VALUES)[number];
@@ -315,6 +338,10 @@ export const HandoffCorrect = z.object({
 
 export const GateDecide = z.object({
   decision: z.enum(APPROVAL_DECISION_VALUES),
+  // R4: free-text controls. Optional at the schema level (Return/Refuse
+  // never carry any); the client is responsible for only sending a non-empty
+  // value alongside decision: 'ApproveWithControls'.
+  controls: z.string().trim().max(4000).optional(),
   reasonCode: z.enum(GATE_REASON_CODES),
   reasonText: z.string().trim().min(1, 'Reason text is required for attribution.'),
   stageHandoffId: z.string(),
@@ -444,6 +471,7 @@ export const ApprovalItem = z.object({
   stageHandoffId: z.string(),
   approverUserId: z.string().nullable(),
   decision: z.enum(APPROVAL_DECISION_VALUES),
+  controls: z.string().nullable(),
   reasonCode: z.enum(GATE_REASON_CODES),
   reasonText: z.string(),
   supersedesApprovalId: z.string().nullable(),

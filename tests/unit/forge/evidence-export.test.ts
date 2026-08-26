@@ -52,6 +52,7 @@ function detailFixture(): MissionDetailT {
         stageHandoffId: 'h-1',
         approverUserId: 'user-1',
         decision: 'Approve',
+        controls: null,
         reasonCode: 'Approved',
         reasonText: 'Need is well-scoped',
         supersedesApprovalId: null,

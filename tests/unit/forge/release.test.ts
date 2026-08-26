@@ -14,6 +14,7 @@ function approval(decision: ApprovalItemT['decision'] = 'Approve'): ApprovalItem
     stageHandoffId: 'h-build-1',
     approverUserId: 'user-1',
     decision,
+    controls: null,
     reasonCode: 'Approved',
     reasonText: 'Looks good.',
     supersedesApprovalId: null,

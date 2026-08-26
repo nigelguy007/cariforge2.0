@@ -13,13 +13,14 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { apiFetch } from '@/lib/api-client';
 import { ORACLE_ROLE_NAMES } from '@/lib/business/forge/oracle-council';
-import type {
-  ApprovalItemT,
-  GateStateT,
-  HandoffItemT,
-  MissionDetailT,
-  MissionOracleAssignmentItemT,
-  OracleRole,
+import {
+  type ApprovalItemT,
+  type GateStateT,
+  type HandoffItemT,
+  isApproveDecision,
+  type MissionDetailT,
+  type MissionOracleAssignmentItemT,
+  type OracleRole,
 } from '@/lib/contracts/forge';
 
 interface OracleCouncilCardProps {
@@ -36,7 +37,7 @@ export function OracleCouncilCard({ detail, onWritten }: OracleCouncilCardProps)
   // Gate ladder rows — five gates, one per Oracle, in lifecycle order.
   const rows = detail.gates.map((g) => {
     const approvalForGate = detail.approvals.find(
-      (a) => a.gateIndex === g.gateIndex && a.decision === 'Approve',
+      (a) => a.gateIndex === g.gateIndex && isApproveDecision(a.decision),
     );
     const handoff = detail.handoffs.find((h) => h.id === g.currentStageHandoffId);
     const attestersOnHandoff = handoff

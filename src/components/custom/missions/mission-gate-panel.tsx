@@ -21,9 +21,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
 import { apiFetch } from '@/lib/api-client';
 import {
-  APPROVAL_DECISION_VALUES,
+  type APPROVAL_DECISION_VALUES,
+  GATE_DECISION_CHOICES,
   GATE_DEFS,
   type GATE_REASON_CODES,
   GateDecide,
@@ -48,6 +50,7 @@ export function MissionGatePanel({
     resolver: zodResolver(GateDecide),
     defaultValues: {
       decision: 'Approve' as (typeof APPROVAL_DECISION_VALUES)[number],
+      controls: '',
       reasonCode: 'Approved' as (typeof GATE_REASON_CODES)[number],
       reasonText: '',
       stageHandoffId: gateState.currentStageHandoffId ?? '',
@@ -55,9 +58,21 @@ export function MissionGatePanel({
   });
   const onSubmit = form.handleSubmit(async (values) => {
     try {
+      // R4 (mission pipeline rebuild): "Approve" + non-empty Controls text is
+      // the 4th outcome — never a raw dropdown choice (see
+      // GATE_DECISION_CHOICES). Derive it here, matching the reference
+      // platform's own rule: "adding any turns Approve into
+      // approve-with-controls."
+      const trimmedControls = values.controls?.trim() || undefined;
+      const effectiveDecision =
+        values.decision === 'Approve' && trimmedControls ? 'ApproveWithControls' : values.decision;
       await apiFetch(`/api/forge/missions/${missionId}/gates/${gateState.gateIndex}/decide`, {
         method: 'POST',
-        body: JSON.stringify(values),
+        body: JSON.stringify({
+          ...values,
+          decision: effectiveDecision,
+          controls: effectiveDecision === 'ApproveWithControls' ? trimmedControls : undefined,
+        }),
         schema: MissionDetail,
       });
       toast.success(`Gate ${gateState.gateIndex} decided`);
@@ -111,13 +126,30 @@ export function MissionGatePanel({
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    {APPROVAL_DECISION_VALUES.map((d) => (
+                    {GATE_DECISION_CHOICES.map((d) => (
                       <SelectItem key={d} value={d}>
                         {d}
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="controls"
+            render={({ field }) => (
+              <FormItem className="md:col-span-3">
+                <FormLabel>Controls (optional)</FormLabel>
+                <FormControl>
+                  <Textarea
+                    {...field}
+                    rows={2}
+                    placeholder="Conditions attached to this approval, one per line — adding any turns Approve into approve-with-controls."
+                  />
+                </FormControl>
                 <FormMessage />
               </FormItem>
             )}

@@ -5,18 +5,19 @@
 
 import 'server-only';
 import { Prisma } from '@prisma/client';
-import type {
-  ApprovalDecision,
-  MissionDetailT,
-  MissionListItemT,
-  MissionStatus,
-  ObjectionResolution,
-  ReasonCode,
-  StageName,
-  ToolActionDecision,
-  ToolActionScope,
-  WorkItemReadT,
-  WorkItemStatusT,
+import {
+  type ApprovalDecision,
+  isApproveDecision,
+  type MissionDetailT,
+  type MissionListItemT,
+  type MissionStatus,
+  type ObjectionResolution,
+  type ReasonCode,
+  type StageName,
+  type ToolActionDecision,
+  type ToolActionScope,
+  type WorkItemReadT,
+  type WorkItemStatusT,
 } from '@/lib/contracts/forge';
 import { prisma } from '@/lib/db';
 import { sendEmail } from '@/lib/email/send';
@@ -218,6 +219,7 @@ export async function getMissionDetail(
         stageHandoffId: a.stageHandoffId,
         approverUserId: a.approverUserId,
         decision: a.decision,
+        controls: a.controls,
         reasonCode: a.reasonCode as ReasonCode,
         reasonText: a.reasonText,
         supersedesApprovalId: a.supersedesApprovalId,
@@ -366,7 +368,7 @@ function computeGateStates(
     const lastApproval = apForGate[0] ?? null;
     let state: 'Awaiting' | 'Approved' | 'Returned' | 'Refused' = 'Awaiting';
     if (lastApproval) {
-      if (lastApproval.decision === 'Approve') state = 'Approved';
+      if (isApproveDecision(lastApproval.decision)) state = 'Approved';
       else if (lastApproval.decision === 'Return') state = 'Returned';
       else state = 'Refused';
     }
@@ -747,6 +749,7 @@ export async function decideGate(args: {
   isAdmin: boolean;
   gateIndex: number;
   decision: ApprovalDecision;
+  controls?: string | null;
   reasonCode: ReasonCode;
   reasonText: string;
   stageHandoffId: string;
@@ -757,9 +760,9 @@ export async function decideGate(args: {
   if (TERMINAL_STATUSES.has(mission.status)) throw new Error('FORGE_TERMINAL');
 
   assertReasonAllowed(args.gateIndex, args.reasonCode);
-  if (args.decision === 'Approve') {
+  if (isApproveDecision(args.decision)) {
     assertAttribution({
-      decision: 'Approve',
+      decision: args.decision,
       reasonCode: args.reasonCode,
       reasonText: args.reasonText,
       approverUserId: args.userId,
@@ -817,12 +820,13 @@ export async function decideGate(args: {
         stageHandoffId: args.stageHandoffId,
         approverUserId: args.userId,
         decision: args.decision,
+        controls: args.decision === 'ApproveWithControls' ? (args.controls ?? null) : null,
         reasonCode: args.reasonCode,
         reasonText: args.reasonText,
       },
     });
 
-    if (args.decision === 'Approve') {
+    if (isApproveDecision(args.decision)) {
       newStatus = nextStageFor(args.gateIndex);
     } else if (args.decision === 'Return') {
       // Return to the stage being gated — knock to the prior-stage In<status>.
@@ -1875,7 +1879,7 @@ export async function getOperatorControlPlane(): Promise<
     const last = approvals[0] ?? null;
     const latestGateState: 'Awaiting' | 'Approved' | 'Returned' | 'Refused' = !last
       ? 'Awaiting'
-      : last.decision === 'Approve'
+      : isApproveDecision(last.decision)
         ? 'Approved'
         : last.decision === 'Return'
           ? 'Returned'

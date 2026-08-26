@@ -23,6 +23,7 @@ function ap(overrides: Partial<ApprovalItemT>): ApprovalItemT {
     stageHandoffId: 'h-1',
     approverUserId: 'user-1',
     decision: 'Approve',
+    controls: null,
     reasonCode: 'Approved',
     reasonText: 'ok',
     supersedesApprovalId: null,

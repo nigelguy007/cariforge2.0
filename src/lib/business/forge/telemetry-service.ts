@@ -3,11 +3,12 @@
 // ApprovalActorTag rows, draft-age bucketisation, and admin overview scan.
 // No DB; called from /api/forge/missions/[id]/telemetry and
 // /api/forge/admin/telemetry.
-import type {
-  ApprovalDecision,
-  HandoffItemT,
-  MissionStatus,
-  StageName,
+import {
+  type ApprovalDecision,
+  type HandoffItemT,
+  isApproveDecision,
+  type MissionStatus,
+  type StageName,
 } from '@/lib/contracts/forge';
 
 export type ReleaseActorValue = 'AIOnly' | 'Human' | 'Hybrid';
@@ -54,7 +55,7 @@ export function gateDecisionCounts(
   for (const ap of approvals) {
     const entry = byGate.get(ap.gateIndex) ?? byGate.get(0);
     if (!entry) continue;
-    if (ap.decision === 'Approve') {
+    if (isApproveDecision(ap.decision)) {
       entry.approved += 1;
       const tags = ap.id ? actorTagsByApproval.get(ap.id) : undefined;
       if (tags && tags.length > 0) {
@@ -85,7 +86,7 @@ export function deriveReleaseActor(
   let sawAI = false;
   let sawHuman = false;
   for (const ap of approvals) {
-    if (ap.decision !== 'Approve') continue;
+    if (!isApproveDecision(ap.decision)) continue;
     const tags = ap.id ? actorTagsByApproval.get(ap.id) : undefined;
     if (!tags || tags.length === 0) continue;
     for (const tag of tags) {

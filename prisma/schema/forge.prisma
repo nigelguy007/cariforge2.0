@@ -31,6 +31,12 @@ enum StageName {
 
 enum ApprovalDecision {
   Approve
+  // R4 (mission pipeline rebuild): the reference platform's governance
+  // schema supports a 4th outcome for exactly this case — a named control
+  // attached to an otherwise-Approve decision. Client derives this value
+  // from "Approve" + non-empty Controls text; it is never a raw dropdown
+  // choice (see APPROVAL_DECISION_VALUES / isApproveDecision in forge.ts).
+  ApproveWithControls
   Return
   Refuse
 }
@@ -117,6 +123,10 @@ model Approval {
   stageHandoffId      String
   approverUserId      String?
   decision            ApprovalDecision
+  // R4: free-text controls attached to an ApproveWithControls decision —
+  // "adding any turns Approve into approve-with-controls" (reference
+  // platform's own ApprovalForm copy). Null for every other decision.
+  controls            String?
   reasonCode          String
   reasonText          String
   supersedesApprovalId String?

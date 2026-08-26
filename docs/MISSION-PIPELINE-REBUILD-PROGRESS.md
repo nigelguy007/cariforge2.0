@@ -101,6 +101,59 @@ confirmed unrelated to this change (fails identically importing totally
 different modules). `tsc` resolves the same aliases fine via `tsconfig.json`
 paths, so this is a Vitest/Vite config gap, not a real import problem.
 
-## R4, R6, R7 — not yet started
+## R4 — Add the 4th gate outcome: approve-with-controls
+
+**Status: done.**
+
+- `prisma/schema/forge.prisma`: added `ApproveWithControls` to the
+  `ApprovalDecision` enum and a nullable `controls String?` column on
+  `Approval`. Both purely additive — hand-authored a forward-only,
+  idempotent migration (`prisma/migrations/20260826020000_add_approve_with_controls/`)
+  matching this repo's existing migration style (no live DB in this
+  environment to actually apply it against; `prisma generate` confirms the
+  schema itself is valid and regenerates matching client types). Did **not**
+  touch `db/01-schema.sql` — that's a dated point-in-time DB snapshot/backup
+  file, not a live schema source, so editing it would misrepresent history
+  rather than apply a migration.
+- `forge.ts`: `APPROVAL_DECISION_VALUES` gained the 4th value;
+  `GATE_DECISION_CHOICES` (= `APPROVAL_DECISION_VALUES` minus
+  `ApproveWithControls`) is what the UI's Select actually renders, so it's
+  never a raw manually-picked choice — matching the "treat Approve +
+  non-empty controls as the 4th state" framing. Added `isApproveDecision()`
+  as the one place "did this gate pass" is decided, and a `controls` field
+  on `GateDecide` (write) and `ApprovalItem` (read).
+- `MissionGatePanel`: added a Controls textarea; on submit, `decision:
+  'Approve'` + non-empty controls text is upgraded client-side to
+  `'ApproveWithControls'` before the API call, exactly mirroring the
+  reference platform's own rule ("adding any turns Approve into
+  approve-with-controls").
+- Server-side (`decide/route.ts`, `service.ts`): `controls` flows through to
+  the DB, stored only when the decision is `ApproveWithControls`.
+- **Correctness sweep:** every place that checked `decision === 'Approve'`
+  to mean "this gate/approval passed" now goes through
+  `isApproveDecision()` instead, across `service.ts` (gate-state
+  computation, gate advancement, admin telemetry rows),
+  `telemetry-service.ts` (approval counts, release-actor derivation),
+  `oracle-council-card.tsx` (per-gate approval lookup), and
+  `tool-actions.ts` (external/internal tool-action gate-approval checks —
+  this one was a genuine latent bug catch: without the fix, an
+  approve-with-controls decision would have made `assertExternalApproved`
+  wrongly report "no approval found" and block legitimate tool actions).
+  Also widened and fixed `tag-oracle-gate-decision.ts`'s email template,
+  which had its own narrower 3-value decision type and a ternary that would
+  have silently mislabelled any 4th-value decision as "refused" — replaced
+  with a `Record<ApprovalDecision, string>` label map so a missing case is a
+  type error, not a silent wrong label.
+- Updated 4 test fixtures (`evidence-export`, `next-action`, `release`,
+  `telemetry-service`) to include the new required `controls` field.
+
+Verified: `tsc --noEmit` clean, `biome check` clean on all touched files,
+`prisma generate` succeeds against the updated schema. Full `vitest run`
+gives the identical 23-failed/4-passed file count as the pre-existing
+baseline (same alias-resolution gap noted under R1/R2) — no new failures
+among what's runnable; the forge-specific tests I edited can't actually
+execute in this environment for the same reason.
+
+## R6, R7 — not yet started
 
 ## R8 — no action required (flagged only, not touched)
