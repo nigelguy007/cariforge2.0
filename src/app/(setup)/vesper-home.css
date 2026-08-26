@@ -5,23 +5,32 @@
    file is imported only by src/app/(setup)/page.tsx, so Next's per-route CSS
    chunking means it only loads on /.
 
-   html/body are forced black WHILE ON THIS ROUTE (per the spec's own "the
+   html/body are forced dark WHILE ON THIS ROUTE (per the spec's own "the
    page can never flash white" requirement); site-nav.tsx's pathname check
    suppresses the app's normal light-mode SiteNav/SiteFooter on this one
    route so the two don't fight, and this page renders its own header/nav/
-   footer entirely. */
+   footer entirely.
+
+   The dark value itself is a tinted near-black, not literal #000000 — per
+   the impeccable skill's design context (.impeccable.md at the repo root)
+   and this app's own "pure black/white never appears in nature" rule, and
+   per the user's explicit request to modify this background using the
+   combined colours of the two design references (Caribbean emerald,
+   --brand-h=152, plus the cooler cyan-blue reference) rather than leave it
+   flat black. Chroma stays very low (0.02) so it reads as a considered
+   near-black, not a colour wash. */
 
 html,
 body {
-  /* biome-ignore lint/complexity/noImportantStyles: deliberate defensive rule, not an accident — guarantees no white flash regardless of load order, before any other rule (including the var()-based one right below) has a chance to apply. */
-  background: #000000 !important;
+  /* biome-ignore lint/complexity/noImportantStyles: deliberate defensive rule, not an accident — guarantees no white flash regardless of load order, before any other rule (including the var()-based one right below) has a chance to apply. oklch() needs no custom-property fallback: every engine that parses oklch() also supports custom properties, so this literal is just belt-and-braces against cascade-order races, not a compatibility fallback. */
+  background: oklch(0.09 0.02 165) !important;
   color: #ffffff;
 }
 html,
 body {
-  background: #000000;
-  /* biome-ignore lint/suspicious/noDuplicateProperties: intentional fallback — the plain #000000 above holds if custom properties aren't supported, var(--vhome-bg) wins where they are. */
-  background: var(--vhome-bg, #000000);
+  background: oklch(0.09 0.02 165);
+  /* biome-ignore lint/suspicious/noDuplicateProperties: intentional fallback — the plain value above holds if custom properties aren't supported, var(--vhome-bg) wins where they are. */
+  background: var(--vhome-bg, oklch(0.09 0.02 165));
   color: #ffffff;
   color: var(--vhome-text, #ffffff);
 }
@@ -31,8 +40,8 @@ body {
      vhome-font-serif CSS variables the page sets on this element's own
      className — see (setup)/page.tsx for why (self-hosted at build time,
      CSP-clean, no @font-face needed here). */
-  --vhome-bg: #000000;
-  --vhome-text: #ffffff;
+  --vhome-bg: oklch(0.09 0.02 165);
+  --vhome-text: oklch(0.96 0.005 165);
   --vhome-muted: #9a9a9a;
   --vhome-stat: #d8d8d8;
   --vhome-border: rgba(255, 255, 255, 0.16);
@@ -41,18 +50,21 @@ body {
   /* Colour pass: combines two references at the user's request — the
      Caribbean-emerald brand hue this app already settled on (--brand-h=152,
      set once in globals.css's brand_tokens slot and inherited here since
-     it's a plain :root custom property) for the glass surfaces, and a
-     cyan-blue shine highlight (matching a supplied "#64CEFB" reference) used
-     ONLY inside the animated text-shine sweep below, not as a standalone
-     surface colour — teal/cyan was explicitly rejected as this app's PRIMARY
-     colour earlier in this project, so it stays a highlight, not the base.
-     var(--brand-h) is a bare number (e.g. 152); oklch() is already used
-     elsewhere in this codebase (globals.css, custom-style.css) with no
+     it's a plain :root custom property) for the glass surfaces and text
+     emphasis, and a cyan-blue reference (matching a supplied "#64CEFB"
+     swatch) kept ONLY as the hero's secondary, low-opacity ambient glow
+     (.vhome-hero-photo below) — teal/cyan was explicitly rejected as this
+     app's PRIMARY colour earlier in this project, and the impeccable skill
+     flags cyan-on-dark as a recognisable "AI palette" tell when it's the
+     dominant note, so it stays a minority accent, not the base. The base
+     surface tint (--vhome-bg above) itself blends both hues at very low
+     chroma rather than sitting at literal black — see the file header
+     comment. var(--brand-h) is a bare number (e.g. 152); oklch() is already
+     used elsewhere in this codebase (globals.css, custom-style.css) with no
      fallback concerns, so no new browser-support tradeoff here. */
   --vhome-accent: oklch(0.62 0.13 var(--brand-h, 152));
   --vhome-accent-soft: oklch(0.62 0.13 var(--brand-h, 152) / 0.4);
   --vhome-accent-dim: oklch(0.3 0.07 var(--brand-h, 152) / 0.55);
-  --vhome-shine: #64cefb;
 
   --vhome-logo: 15.5px;
   --vhome-logo-mark: 22px;
@@ -74,8 +86,8 @@ body {
   --vhome-lede-max: 470px;
 
   position: relative;
-  background: #000000;
-  color: #ffffff;
+  background: var(--vhome-bg);
+  color: var(--vhome-text);
   font-family:
     var(--vhome-font-inter, "Inter"), system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
     sans-serif;
@@ -431,28 +443,13 @@ body.vhome-body-menu-open .vhome-burger-bar:nth-child(3) {
   font-weight: 400;
   font-size: 1.08em;
   letter-spacing: -0.03em;
-  /* "ShinyText" effect (combines both requested references — the Caribbean
-     emerald this app already settled on as the base, a cyan-blue shine
-     highlight sweeping through, 3s loop matching the supplied spec) done in
-     plain CSS rather than a framer-motion component: this is a Next.js app,
-     not the Vite/React stack the spec assumed, and background-position
-     keyframes produce the identical visible sweep with zero new JS
-     dependency. color:#9a9a9a is kept as the pre-gradient fallback for any
-     engine that doesn't support background-clip:text (it's simply
-     overpainted where supported). */
-  color: #9a9a9a;
-  background-image: linear-gradient(
-    100deg,
-    var(--vhome-accent) 0%,
-    var(--vhome-shine) 35%,
-    #ffffff 50%,
-    var(--vhome-shine) 65%,
-    var(--vhome-accent) 100%
-  );
-  background-size: 220% auto;
-  background-clip: text;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+  /* Solid brand-emerald, not the earlier gradient-fill "ShinyText" sweep —
+     background-clip:text gradient headlines are an absolute ban under the
+     impeccable skill (one of the most recognisable AI-generated-page
+     tells). The word still carries emphasis: italic serif against the sans
+     headline, a size bump, and this page's one deliberate accent colour —
+     weight, style and colour do the work a gradient used to. */
+  color: var(--vhome-accent);
 }
 .vhome-lede {
   max-width: var(--vhome-lede-max);
@@ -629,22 +626,11 @@ body.vhome-body-menu-open .vhome-burger-bar:nth-child(3) {
     filter: none;
   }
 }
-@keyframes vhome-shine-sweep {
-  from {
-    background-position: 200% 0;
-  }
-  to {
-    background-position: -200% 0;
-  }
-}
 .vhome-h1 em {
-  /* Two independent animations on non-overlapping properties: the one-time
-     blur-in entrance (opacity/filter, unchanged from before), plus the
-     continuous shine sweep (background-position only) starting once the
-     entrance has finished (delay = entrance's own 0.72s + 1.2s ≈ 1.9s). */
-  animation:
-    vhome-in-em 1.2s cubic-bezier(0.16, 1, 0.3, 1) 0.72s both,
-    vhome-shine-sweep 3s linear 1.9s infinite;
+  /* One-time blur-in entrance only, now that the word is solid-coloured —
+     no continuous shine sweep to run alongside it (removed with the
+     gradient-text fill above). */
+  animation: vhome-in-em 1.2s cubic-bezier(0.16, 1, 0.3, 1) 0.72s both;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -666,13 +652,11 @@ body.vhome-body-menu-open .vhome-burger-bar:nth-child(3) {
   /* The generic `.vhome-root * { animation: none }` two rules up can't
      actually win here: .vhome-h1 em's own base-rule `animation:` shorthand
      (0,1,1) outranks the universal-selector reset (0,1,0) on plain CSS
-     specificity, so the continuous shine sweep would otherwise keep
-     running under reduced-motion. .vhome-root .vhome-h1 em (0,2,1) is
-     already the highest-specificity rule targeting this element in this
-     block — adding animation: none here is what actually stops it. */
+     specificity. The entrance animation is one-time (not infinite) now
+     that the gradient shine sweep is gone, but it's still skipped under
+     reduced-motion like every other .vhome-appear element for consistency. */
   .vhome-root .vhome-h1 em {
     animation: none;
-    background-position: 0 0;
   }
 }
 
