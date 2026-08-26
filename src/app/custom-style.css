@@ -72,12 +72,13 @@
    silently winning every time this file used a plain `:root {}` selector.
    Keeping the specificity bump here permanently avoids re-hitting that. */
 :root:root {
-  /* Light mode's "ocean" identity: a clearly-tinted pale blue field, not
-     the near-imperceptible whisper this used to be — deliberately more
-     visible than the old chroma 0.004 so the recolour actually reads on a
-     system that resolves to light mode, not just in dark mode. Still
-     light enough to stay a professional, readable field, not a wash. */
-  --background: oklch(0.97 0.014 var(--brand-h));
+  /* Light mode's aquamarine identity: chroma pushed further again (0.014
+     -> 0.045) per explicit "more aqua marine, brighter, much brighter" —
+     the previous 0.014 was itself a correction to an earlier near-
+     imperceptible 0.004, so this keeps moving the same direction rather
+     than reversing it. Still light enough (L=0.94) to stay a readable
+     field, but now unmistakably a bright aqua tint, not a hint of one. */
+  --background: oklch(0.94 0.045 var(--brand-h));
   --foreground: oklch(0.2 0.02 var(--brand-h));
 
   /* Cards are crisp near-white, distinguished from the page by a hairline
@@ -416,29 +417,32 @@
 }
 
 /* === DARK-MODE OVERRIDES =====================================================
-   Deep-ocean dark theme — genuinely saturated navy-blue field (not a
-   generic dark-neutral grey with a faint hint of hue), per explicit
-   request for a "deep ocean contrast" applied to the entire site. Chroma
-   is meaningfully higher than a typical dark-mode "brand-tinted
-   undertone" specifically so it reads as ocean-blue, not dark grey.
+   Bright aquamarine dark theme — pushed considerably lighter than a
+   typical "dark mode" (background L=0.4, not the 0.15 this held right
+   after the deep-ocean pass) per an explicit, repeated "too dark ...
+   brighter, much brighter" request. At this point "dark mode" here means
+   "the more saturated of the two variants," not "a dark, low-light
+   surface" in the traditional sense — --foreground stays a light,
+   readable near-white since that contrast still needs to hold against a
+   background this much brighter than a conventional dark theme.
    Selector is `.dark.dark` (repeated class -> specificity (0,2,0)) for the
    same reason the :root block above became `:root:root` — globals.css's
    later framework-derived .dark{} block redeclares the same properties
    and would otherwise win by source order alone. */
 .dark.dark {
-  --background: oklch(0.15 0.045 var(--brand-h));
-  --foreground: oklch(0.94 0.012 var(--brand-h));
-  --card: oklch(0.21 0.04 var(--brand-h));
+  --background: oklch(0.4 0.11 var(--brand-h));
+  --foreground: oklch(0.97 0.012 var(--brand-h));
+  --card: oklch(0.46 0.1 var(--brand-h));
   --card-foreground: var(--foreground);
   --popover: var(--card);
   --popover-foreground: var(--foreground);
-  --primary: oklch(0.62 calc(var(--brand-c) * 1.1) var(--brand-h));
+  --primary: oklch(0.72 calc(var(--brand-c) * 1.1) var(--brand-h));
   --primary-foreground: oklch(0.14 0.02 var(--brand-h));
-  --secondary: oklch(0.26 0.035 var(--brand-h));
+  --secondary: oklch(0.5 0.09 var(--brand-h));
   --secondary-foreground: var(--foreground);
-  --muted: oklch(0.26 0.035 var(--brand-h));
-  --muted-foreground: oklch(0.68 0.025 var(--brand-h));
-  --accent: oklch(0.28 0.045 var(--brand-h));
+  --muted: oklch(0.5 0.09 var(--brand-h));
+  --muted-foreground: oklch(0.86 0.02 var(--brand-h));
+  --accent: oklch(0.52 0.1 var(--brand-h));
   --accent-foreground: var(--foreground);
   --border: oklch(1 0 0 / 12%);
   --input: oklch(1 0 0 / 14%);
@@ -467,6 +471,48 @@
   box-shadow:
     0 1px 0 oklch(1 0 0 / 0.08) inset,
     0 18px 40px -16px oklch(0 0 0 / 0.55);
+}
+
+/* .glass-outline-cta's `color: var(--brand-700)` (a fixed L=0.4 tone) was
+   tuned for light mode, where `background: var(--secondary)` used to sit
+   near-white (~0.96 lightness) — plenty of contrast. Brightening dark
+   mode's --secondary to ~0.5 lightness (part of the aquamarine pass
+   above) put a similarly-dark text colour on a similarly-mid-lightness
+   background, which is nearly unreadable — caught on the "Meet The
+   Oracles" outline button on mobile. Same category of bug as the
+   .glass-card fix above: a token that stopped tracking the surface it
+   sits on once that surface got dramatically brighter/darker. */
+.dark .glass-outline-cta {
+  color: var(--foreground);
+}
+
+/* Same root cause as .glass-outline-cta above: .link-brand's `color:
+   var(--brand-700)` (a fixed L=0.4 tone, tuned for a light page) now sits
+   almost exactly on top of dark mode's own --background lightness (also
+   ~0.4 after the aquamarine brightening pass), so any inline brand link
+   in body text would otherwise nearly vanish into the page. brand-300 is
+   a light, still-saturated aqua tint that reads clearly against that
+   background instead. */
+.dark .link-brand {
+  color: var(--brand-300);
+}
+
+/* Same root cause, much wider blast radius: `text-brand-600` / `text-
+   brand-700` (fixed L=0.5/0.4 steps of the background-agnostic-by-formula
+   brand ramp — see the ramp comment above) are used directly as Tailwind
+   utility classes across 20+ components (ordinals, eyebrows, stance
+   labels — anywhere accent text sits straight on the page background,
+   not inside a .glass-* card). All of them assumed a light page
+   background, same as .link-brand did. Rather than hunt down and edit
+   every call site individually, one global override here catches them
+   all: `.dark .text-brand-700` is (0,2,0) specificity, which beats the
+   bare (0,1,0) utility class regardless of source order, the same trick
+   :root:root / .dark.dark use above for the same reason. brand-200 is a
+   light, still-saturated aqua tint that reads clearly against dark
+   mode's own ~0.4-lightness background. */
+.dark .text-brand-600,
+.dark .text-brand-700 {
+  color: var(--brand-200);
 }
 
 /* Reduced-motion: switch off hover transitions for users who request it.

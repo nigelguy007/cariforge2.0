@@ -11,30 +11,36 @@
    route so the two don't fight, and this page renders its own header/nav/
    footer entirely.
 
-   The dark value itself (oklch(0.07 0.012 222)) is deliberately close to
-   black — that's correct now that the whole site's identity (see
-   globals.css's brand_tokens seed, --brand-h=222) is "deep ocean," where
-   black-adjacent depth is the point, not something to hide. Earlier passes
-   here (oklch(0.09 0.02 165) → 0.2 0.035 160 → 0.3 0.045 155, then a
-   two-colour sea-blue/green/black contrast layer) were chasing a "still
-   looks black" complaint through several different ideas before the site's
-   colour identity was consolidated into one deep-ocean-blue family — see
-   custom-style.css's top-of-file comment for that history. The actual
-   visible contrast against this near-black base lives in
-   .vhome-hero-photo below (two ocean-blue glows at different depths), not
-   in this base value. */
+   This route's own background (oklch(0.42 0.16 188)) is a vivid, MEDIUM-
+   bright aquamarine, not a dark theme at all any more — per an explicit,
+   repeated request to move away from a dark/near-black field toward
+   "more aqua marine, brighter, much brighter." IMPORTANT: this route
+   completely ignores the app's light/dark toggle (it force-sets its own
+   background here regardless of theme, per the file header above) — so
+   when a "too dark" complaint is actually about THIS route, changing the
+   rest of the app's theme system does nothing, because this file's own
+   hardcoded value is the one actually on screen. That gap is exactly what
+   caused a "still too dark" report to survive an entire site-wide dark
+   theme rebrand in this project's history: the rest of the app changed,
+   this route didn't. Check this value FIRST for any future "still dark"
+   complaint about /. Lightness is capped around 0.4-0.45 rather than
+   pushed all the way to a pale/light background because this page's text
+   (nav, headline, badges) is hardcoded white throughout — going lighter
+   than this would need those flipped to dark text too, which is a bigger
+   change than a background-brightness complaint calls for; ask before
+   doing that if "brighter" still isn't enough. */
 
 html,
 body {
   /* biome-ignore lint/complexity/noImportantStyles: deliberate defensive rule, not an accident — guarantees no white flash regardless of load order, before any other rule (including the var()-based one right below) has a chance to apply. oklch() needs no custom-property fallback: every engine that parses oklch() also supports custom properties, so this literal is just belt-and-braces against cascade-order races, not a compatibility fallback. */
-  background: oklch(0.07 0.012 222) !important;
+  background: oklch(0.42 0.16 188) !important;
   color: #ffffff;
 }
 html,
 body {
-  background: oklch(0.07 0.012 222);
+  background: oklch(0.42 0.16 188);
   /* biome-ignore lint/suspicious/noDuplicateProperties: intentional fallback — the plain value above holds if custom properties aren't supported, var(--vhome-bg) wins where they are. */
-  background: var(--vhome-bg, oklch(0.07 0.012 222));
+  background: var(--vhome-bg, oklch(0.42 0.16 188));
   color: #ffffff;
   color: var(--vhome-text, #ffffff);
 }
@@ -44,28 +50,30 @@ body {
      vhome-font-serif CSS variables the page sets on this element's own
      className — see (setup)/page.tsx for why (self-hosted at build time,
      CSP-clean, no @font-face needed here). */
-  --vhome-bg: oklch(0.07 0.012 222);
-  --vhome-text: oklch(0.96 0.006 222);
-  --vhome-muted: #9a9a9a;
-  --vhome-stat: #d8d8d8;
-  --vhome-border: rgba(255, 255, 255, 0.16);
-  --vhome-border-soft: rgba(255, 255, 255, 0.12);
+  --vhome-bg: oklch(0.42 0.16 188);
+  --vhome-text: oklch(0.98 0.006 170);
+  --vhome-muted: #cfe9e2;
+  --vhome-stat: #e4f5f0;
+  --vhome-border: rgba(255, 255, 255, 0.22);
+  --vhome-border-soft: rgba(255, 255, 255, 0.16);
 
   /* Colour pass: reads var(--brand-h) — the site-wide seed in globals.css's
-     brand_tokens slot, currently 222 (deep ocean blue) — so this page's
-     glass surfaces, text emphasis, and glows stay in lockstep with the
-     rest of the app automatically whenever that seed changes, without
-     editing this file. (It was 152, emerald green, earlier in this
-     project's history — a two-colour sea-blue/green/black contrast layer
-     lived here briefly before the whole site consolidated onto one
-     deep-ocean identity; see custom-style.css's top-of-file comment.)
+     brand_tokens slot, currently 170 (aquamarine) — so this page's glass
+     surfaces, text emphasis, and glows stay in lockstep with the rest of
+     the app automatically whenever that seed changes, without editing
+     this file. (222 = ocean blue, 152 = emerald green, earlier in this
+     project's history; see custom-style.css's top-of-file comment.)
      var(--brand-h) is a bare number; oklch() is already used elsewhere in
      this codebase (globals.css, custom-style.css) with no fallback
-     concerns, so no new browser-support tradeoff here. The `, 222` fallback
-     only fires if --brand-h were ever unset entirely, which it isn't. */
-  --vhome-accent: oklch(0.62 0.13 var(--brand-h, 222));
-  --vhome-accent-soft: oklch(0.62 0.13 var(--brand-h, 222) / 0.4);
-  --vhome-accent-dim: oklch(0.3 0.07 var(--brand-h, 222) / 0.55);
+     concerns, so no new browser-support tradeoff here. The `, 170`
+     fallback only fires if --brand-h were ever unset entirely, which it
+     isn't. --vhome-muted/--vhome-stat were pure greys (#9a9a9a/#d8d8d8)
+     before — nudged to a faint aquamarine tint so secondary text doesn't
+     read as flatly grey against the now-colourful background; still
+     light enough to clear contrast against --vhome-bg. */
+  --vhome-accent: oklch(0.85 0.1 var(--brand-h, 170));
+  --vhome-accent-soft: oklch(0.85 0.1 var(--brand-h, 170) / 0.4);
+  --vhome-accent-dim: oklch(0.3 0.07 var(--brand-h, 170) / 0.55);
 
   --vhome-logo: 15.5px;
   --vhome-logo-mark: 22px;
@@ -130,23 +138,16 @@ body {
   position: fixed;
   inset: 0;
   z-index: 0;
-  /* Deep-ocean contrast against the near-black base above: two blue glows
-     at different depths — a brighter, slightly cyan-leaning surface-water
-     glow top-left (hue 210, hand-picked, not tied to the seed) and a
-     deeper, seed-driven ocean-blue glow bottom-right (var(--brand-h),
-     currently 222) — diagonal from each other so they read as depth/
-     contrast rather than blending into one flat wash. This used to pair a
-     sea-blue glow with a GREEN one when the site's brand seed was still
-     emerald (152); now that the seed itself is ocean-blue (222, see
-     globals.css), both glows sit in the same family by construction —
-     which is the point: one consolidated deep-ocean identity, not the
-     three-colour experiment this layer briefly carried. Bolder (45-55%
-     opacity, large radii) than this layer's original 10-28%-opacity
-     ambient touches, which were too subtle to register as intentional
-     colour. */
+  /* Gentle depth on top of the now-vivid, medium-bright aquamarine base
+     above — a lighter mint highlight top-left and a deeper teal shadow
+     bottom-right, diagonal from each other. This layer used to be doing
+     the heavy lifting of providing colour CONTRAST against a near-black
+     base; now that the base itself is the bright, saturated colour, this
+     is a much subtler dimension/vignette effect rather than the main
+     event — see the file header for why the base got this much brighter. */
   background:
-    radial-gradient(65% 60% at 12% 6%, oklch(0.62 0.15 210 / 0.55), transparent 68%),
-    radial-gradient(60% 55% at 90% 96%, oklch(0.6 0.16 var(--brand-h, 222) / 0.5), transparent 68%),
+    radial-gradient(65% 60% at 12% 6%, oklch(0.85 0.1 170 / 0.45), transparent 68%),
+    radial-gradient(60% 55% at 90% 96%, oklch(0.28 0.1 var(--brand-h, 170) / 0.4), transparent 68%),
     radial-gradient(120% 90% at 50% 100%, rgba(255, 255, 255, 0.04), transparent 60%);
 }
 .vhome-page {
@@ -200,9 +201,9 @@ body {
   border: 1px solid var(--vhome-accent-soft);
   background: linear-gradient(
     105deg,
-    oklch(0.16 0.03 var(--brand-h, 222) / 0.55) 0%,
-    oklch(0.24 0.05 var(--brand-h, 222) / 0.42) 48%,
-    oklch(0.34 0.07 var(--brand-h, 222) / 0.32) 100%
+    oklch(0.16 0.03 var(--brand-h, 170) / 0.55) 0%,
+    oklch(0.24 0.05 var(--brand-h, 170) / 0.42) 48%,
+    oklch(0.34 0.07 var(--brand-h, 170) / 0.32) 100%
   );
   backdrop-filter: blur(12px) saturate(140%);
   -webkit-backdrop-filter: blur(12px) saturate(140%);
@@ -230,14 +231,14 @@ body {
   transition: transform 0.6s ease;
 }
 .vhome-nav-link:hover {
-  border-color: oklch(0.72 0.13 var(--brand-h, 222) / 0.75);
+  border-color: oklch(0.72 0.13 var(--brand-h, 170) / 0.75);
   background: linear-gradient(
     105deg,
-    oklch(0.2 0.05 var(--brand-h, 222) / 0.62) 0%,
-    oklch(0.32 0.09 var(--brand-h, 222) / 0.5) 45%,
-    oklch(0.46 0.11 var(--brand-h, 222) / 0.4) 100%
+    oklch(0.2 0.05 var(--brand-h, 170) / 0.62) 0%,
+    oklch(0.32 0.09 var(--brand-h, 170) / 0.5) 45%,
+    oklch(0.46 0.11 var(--brand-h, 170) / 0.4) 100%
   );
-  box-shadow: 0 0 18px oklch(0.65 0.13 var(--brand-h, 222) / 0.25);
+  box-shadow: 0 0 18px oklch(0.65 0.13 var(--brand-h, 170) / 0.25);
 }
 .vhome-nav-link:hover::before {
   transform: translateX(120%);
@@ -331,27 +332,27 @@ body.vhome-body-menu-open .vhome-burger-bar:nth-child(3) {
   background: linear-gradient(
     180deg,
     #fff 0%,
-    oklch(0.95 0.03 var(--brand-h, 222)) 42%,
-    oklch(0.88 0.06 var(--brand-h, 222)) 100%
+    oklch(0.95 0.03 var(--brand-h, 170)) 42%,
+    oklch(0.88 0.06 var(--brand-h, 170)) 100%
   );
-  border-color: oklch(0.95 0.03 var(--brand-h, 222));
+  border-color: oklch(0.95 0.03 var(--brand-h, 170));
   box-shadow:
     inset 0 1px 0 #fff,
-    0 0 22px oklch(0.7 0.13 var(--brand-h, 222) / 0.35),
+    0 0 22px oklch(0.7 0.13 var(--brand-h, 170) / 0.35),
     0 8px 18px rgba(255, 255, 255, 0.12);
 }
 .vhome-hero-btn-solid:hover {
   box-shadow:
     inset 0 1px 0 #fff,
-    0 0 26px oklch(0.7 0.13 var(--brand-h, 222) / 0.4),
+    0 0 26px oklch(0.7 0.13 var(--brand-h, 170) / 0.4),
     0 8px 18px rgba(255, 255, 255, 0.14);
 }
 .vhome-btn-ghost {
   background: linear-gradient(
     135deg,
     rgba(255, 255, 255, 0.1),
-    oklch(0.2 0.04 var(--brand-h, 222) / 0.45) 50%,
-    oklch(0.5 0.09 var(--brand-h, 222) / 0.12) 100%
+    oklch(0.2 0.04 var(--brand-h, 170) / 0.45) 50%,
+    oklch(0.5 0.09 var(--brand-h, 170) / 0.12) 100%
   );
   color: #fff;
   border: 1px solid var(--vhome-accent-soft);
@@ -360,21 +361,21 @@ body.vhome-body-menu-open .vhome-burger-bar:nth-child(3) {
 .vhome-btn-ghost:hover {
   background: linear-gradient(
     135deg,
-    oklch(0.75 0.1 var(--brand-h, 222) / 0.2) 0%,
-    oklch(0.18 0.04 var(--brand-h, 222) / 0.35) 48%,
-    oklch(0.55 0.1 var(--brand-h, 222) / 0.2) 100%
+    oklch(0.75 0.1 var(--brand-h, 170) / 0.2) 0%,
+    oklch(0.18 0.04 var(--brand-h, 170) / 0.35) 48%,
+    oklch(0.55 0.1 var(--brand-h, 170) / 0.2) 100%
   );
-  border-color: oklch(0.78 0.11 var(--brand-h, 222) / 0.8);
+  border-color: oklch(0.78 0.11 var(--brand-h, 170) / 0.8);
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.22),
-    0 0 20px oklch(0.7 0.13 var(--brand-h, 222) / 0.28);
+    0 0 20px oklch(0.7 0.13 var(--brand-h, 170) / 0.28);
 }
 .vhome-hero-btn-ghost {
   background: linear-gradient(
     135deg,
     rgba(255, 255, 255, 0.12),
-    oklch(0.22 0.04 var(--brand-h, 222) / 0.5) 46%,
-    oklch(0.5 0.09 var(--brand-h, 222) / 0.14) 100%
+    oklch(0.22 0.04 var(--brand-h, 170) / 0.5) 46%,
+    oklch(0.5 0.09 var(--brand-h, 170) / 0.14) 100%
   );
   border: 1px solid var(--vhome-accent-soft);
   backdrop-filter: blur(16px);
@@ -383,8 +384,8 @@ body.vhome-body-menu-open .vhome-burger-bar:nth-child(3) {
 .vhome-hero-btn-ghost:hover {
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.22),
-    0 0 24px oklch(0.7 0.13 var(--brand-h, 222) / 0.32);
-  border-color: oklch(0.78 0.11 var(--brand-h, 222) / 0.85);
+    0 0 24px oklch(0.7 0.13 var(--brand-h, 170) / 0.32);
+  border-color: oklch(0.78 0.11 var(--brand-h, 170) / 0.85);
 }
 .vhome-hero-btn {
   height: var(--vhome-hero-btn-h);
@@ -419,9 +420,9 @@ body.vhome-body-menu-open .vhome-burger-bar:nth-child(3) {
   border-radius: 5px;
   background: linear-gradient(
     90deg,
-    oklch(0.5 0.1 var(--brand-h, 222) / 0.4) 0%,
-    oklch(0.2 0.05 var(--brand-h, 222) / 0.6) 52%,
-    oklch(0.08 0.03 var(--brand-h, 222) / 0.7) 100%
+    oklch(0.5 0.1 var(--brand-h, 170) / 0.4) 0%,
+    oklch(0.2 0.05 var(--brand-h, 170) / 0.6) 52%,
+    oklch(0.08 0.03 var(--brand-h, 170) / 0.7) 100%
   );
   backdrop-filter: blur(10px) saturate(140%);
   -webkit-backdrop-filter: blur(10px) saturate(140%);
