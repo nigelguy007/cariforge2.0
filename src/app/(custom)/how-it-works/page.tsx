@@ -18,6 +18,7 @@ import {
   GlassPanel,
   GlassSectionHeader,
 } from '@/components/custom/glass';
+import { WorkflowConfigurator } from '@/components/custom/workflow-configurator';
 import { siteName } from '@/lib/site';
 
 export const metadata: Metadata = {
@@ -448,6 +449,88 @@ export default function HowItWorksPage() {
         </div>
       </section>
 
+      {/* ARCHITECTURE — Priority-10 item from the handoff doc. Shows only
+          layers this system actually has: no "identity and access (SSO/
+          RBAC)" layer (not verified real), no named third-party
+          integration layer (Salesforce/SAP/M365 — not built), no
+          "Caribbean Intelligence Graph" (not a real component here). Five
+          real layers, top to bottom: where a case starts, the pipeline +
+          council that rules on it, the seven agents that run it, the
+          assurance records every gate produces, and the two wraparound
+          agents that hand a case to production. */}
+      <section id="architecture" className="section relative overflow-hidden section-aurora">
+        <div className="container-page flex flex-col gap-10">
+          <GlassSectionHeader
+            eyebrow="Technical architecture"
+            title="What actually runs a case, layer by layer."
+          />
+          <div className="mx-auto flex w-full max-w-3xl flex-col items-stretch">
+            {(
+              [
+                {
+                  label: 'Where a case starts',
+                  items: ['Front-door brief', 'Workflow configurator (indicative)'],
+                },
+                {
+                  label: 'Council & orchestration',
+                  items: [
+                    'The Oracles (5 voices)',
+                    'Elder Oracle ruling',
+                    '5-stage gated pipeline',
+                  ],
+                },
+                {
+                  label: 'Agent layer',
+                  items: [
+                    'Discovery',
+                    'Readiness',
+                    'Workflow',
+                    'Governance',
+                    'AI Build',
+                    'Partner',
+                    'Impact',
+                  ],
+                },
+                {
+                  label: 'Assurance',
+                  items: [
+                    'Case file',
+                    'Typed gate decisions',
+                    'Append-only audit trail',
+                    'Hash chain',
+                  ],
+                },
+                {
+                  label: 'Production handoff',
+                  items: ['Partner → buyer infrastructure', 'Impact → realised-value read-out'],
+                },
+              ] as const
+            ).map((layer, idx, arr) => (
+              <div key={layer.label} className="flex flex-col items-center">
+                <GlassPanel tone="surface" padding="md" className="w-full">
+                  <p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">
+                    {layer.label}
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    {layer.items.map((item) => (
+                      <GlassChip key={item} tone="outline" size="sm">
+                        {item}
+                      </GlassChip>
+                    ))}
+                  </div>
+                </GlassPanel>
+                {idx < arr.length - 1 && (
+                  <div
+                    className="h-6 w-px bg-gradient-to-b from-brand-700/40 to-brand-700/10"
+                    aria-hidden="true"
+                  />
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* FIT — good-fit/poor-fit criteria, placed deliberately right before
           the closing CTA: lets a prospect self-qualify before they submit,
           rather than after. */}
@@ -480,6 +563,37 @@ export default function HowItWorksPage() {
               </ul>
             </GlassCard>
           </div>
+        </div>
+      </section>
+
+      {/* CONFIGURATOR — Priority-11 item from the handoff doc: an actual,
+          AI-backed indicative read, not a mock. Explicitly not the real
+          front-door: it doesn't persist anything and doesn't gate a case —
+          the copy says so twice (in the intro and inside the result card
+          itself). Genuinely calls Claude via /api/configurator
+          (src/lib/business/configurator.ts), gracefully degrading to a
+          plain nudge toward the real form if ANTHROPIC_API_KEY isn't
+          configured or the call fails. */}
+      <section id="configurator" className="section relative overflow-hidden section-aurora">
+        <div className="container-page grid gap-10 lg:grid-cols-[0.9fr_1.1fr] lg:items-start">
+          <div className="flex flex-col gap-3">
+            <GlassChip tone="brand" className="self-start">
+              Try it before you apply
+            </GlassChip>
+            <h2 className="font-display text-h3 tracking-tight text-foreground">
+              Get an indicative read in one minute.
+            </h2>
+            <p className="text-body text-muted-foreground">
+              Describe what you want to build and get an automated, indicative fit assessment —
+              which agents would carry it, what risks would come up, and the questions a human
+              Discovery approver would actually ask. This is a preview, not a ruling: it
+              doesn&rsquo;t save anything, and it isn&rsquo;t the real gate. When you&rsquo;re
+              ready, the form above is what an actual named human reads.
+            </p>
+          </div>
+          <GlassCard tone="surface" padding="lg">
+            <WorkflowConfigurator />
+          </GlassCard>
         </div>
       </section>
 
