@@ -13,6 +13,7 @@
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import * as React from 'react';
+import { AgentTeamPanel } from '@/components/custom/dashboard/agent-team-panel';
 import { MissionList } from '@/components/custom/missions/mission-list';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -86,6 +87,16 @@ export default function DashboardPage() {
         <h2 className="text-h3 text-foreground">Your missions</h2>
         <div className="mt-4">
           <MissionList />
+        </div>
+      </section>
+
+      <section>
+        <h2 className="text-h3 text-foreground">Your AI team</h2>
+        <p className="mt-1 text-small text-muted-foreground">
+          Seven specialists work every mission — you never have to manage them directly.
+        </p>
+        <div className="mt-4">
+          <AgentTeamPanel />
         </div>
       </section>
     </div>

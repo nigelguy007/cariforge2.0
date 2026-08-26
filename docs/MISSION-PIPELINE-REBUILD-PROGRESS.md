@@ -154,6 +154,36 @@ baseline (same alias-resolution gap noted under R1/R2) — no new failures
 among what's runnable; the forge-specific tests I edited can't actually
 execute in this environment for the same reason.
 
-## R6, R7 — not yet started
+## R6 — Wire up a "Your AI team" agent-roster panel
+
+**Status: done.**
+
+Did not reuse `ORACLE_ROLE_NAMES` (Need/Readiness/Workflow/Governance/Build
+Oracle) for this — those are the five **human** approvers per gate, the
+opposite concept from an AI-agent roster, and labeling them as "AI team"
+would misrepresent human governance as automation. Instead found and reused
+`src/lib/business/agents.ts`'s existing `CORE_AGENTS` — a pre-built
+seven-agent catalog (`GET /api/agents`) that already matches the reference
+platform's "Seven specialists work every project" framing almost verbatim,
+with 5 pipeline agents (Discovery/Readiness/Workflow/Governance/AI Build,
+1:1 with the gate stages) plus 2 wraparound agents (Partner/Impact — the
+same two concepts section 3/R6 of the handover doc flags as having zero UI
+surface anywhere in this repo).
+
+New `AgentTeamPanel` (`src/components/custom/dashboard/agent-team-panel.tsx`)
+fetches `GET /api/agents` (static catalog) and `GET /api/forge/missions`
+(live data, already existing), and computes real Agent/Does/Active now/
+Completed rows: a mission counts toward an agent's "Active now" when
+`currentStageIndex` equals that agent's gate and status isn't terminal, and
+toward "Completed" once `currentStageIndex` has passed that gate. Partner
+and Impact show "Not tracked yet" rather than a fabricated `0` — there's no
+mission data behind either concept yet, and showing a real zero would claim
+something was checked when it wasn't. Wired into `dashboard/page.tsx` below
+the mission list.
+
+Verified: `tsc --noEmit` clean, `biome check` clean, `next build` clean
+(same route tree as before, new component adds no new routes).
+
+## R7 — not yet started
 
 ## R8 — no action required (flagged only, not touched)
