@@ -174,10 +174,21 @@ export const GATE_DEFS: readonly GateDef[] = [
   },
   {
     id: 4,
+    // R5 (mission pipeline rebuild, low-effort half): this gate's actual
+    // output (MissionBlueprintView + MissionRunbookView) is a pair of
+    // schema-versioned *specification* documents, not deployable code — the
+    // reference platform's equivalent (Prototype) really does generate a
+    // downloadable multi-file app + test report, so "Build complete" was a
+    // real, checkable mismatch between this name and what crossing it
+    // produces. Deliberately NOT renaming the underlying `stage` enum value
+    // ('SoftwareBuild') here — it's a native Postgres enum threaded through
+    // ~15 business-logic files, prisma/schema/forge.prisma, and db/01-schema.sql;
+    // that's the doc's "Longer term (high effort)" option, scoped separately.
     stage: 'SoftwareBuild',
-    name: 'Build complete',
+    name: 'Prototype spec approved',
     predecessorStage: 'Governance',
-    purpose: 'Confirm build matches acceptance criteria and is ready to ship.',
+    purpose:
+      'Confirm the prototype spec (Blueprint + Runbook) matches acceptance criteria and is approved to hand off — not yet a deployable build.',
     allowedReasonCodes: [
       'Approved',
       'InsufficientConfidence',

@@ -59,6 +59,48 @@ base branch (unrelated module-resolution issues, confirmed via `git stash`
 before touching anything) — untouched by this work, not fixed here (out of
 scope for this rebuild).
 
-## R5, R4, R6, R7 — not yet started
+## R5 — Rename the SoftwareBuild gate
+
+**Status: done (display-name rename only — the "Short term / low effort" half
+of R5's two options).**
+
+Renamed what a user actually reads: `GATE_DEFS[4].name` ("Build complete" →
+"Prototype spec approved") and `.purpose` in `forge.ts`; `GateCard` in
+`mission-detail.tsx` (was rendering the raw `gate.stage` enum value verbatim
+for all 5 cards — now looks up `GATE_DEFS[gate.gateIndex].name`, fixing a
+latent display bug for gates 1–4 too, not just gate 5); the replay-form
+dropdown option text; and the generated Blueprint's "Build outcome —
+SoftwareBuild vN" block heading/summary/reuse-signal copy in `release.ts`
+(`"Prototype spec — vN"` etc). Updated the one test whose assertion locked
+that exact reuse-signal string (`tests/unit/forge/release.test.ts`).
+
+**Deliberately did NOT rename the underlying `stage: 'SoftwareBuild'` enum
+value.** The handover doc frames renaming as "Low effort," but the identifier
+turned out to be threaded through far more than the doc anticipated: it's a
+native Postgres enum (`prisma/schema/forge.prisma`, `db/01-schema.sql`) plus
+~15 business-logic files (state machine transitions, replay invalidation,
+telemetry, oracle council role binding, release-note generation) and ~10 test
+files that assert on the literal string. A real rename needs a hand-authored
+Postgres migration (`ALTER TYPE ... RENAME VALUE`, since Prisma Migrate's
+default diff would want to drop+recreate the enum) and touches
+correctness-critical code, not just labels. That's genuinely the doc's own
+"Longer term (high effort)" bucket — recommend scoping the full identifier +
+DB rename as its own follow-up ticket, separate from this rebuild pass.
+
+One accepted seam from this scoping choice: `MissionStatus`'s `'InBuild'`
+value (a separate enum) still displays as "InBuild" even though the gate that
+produces it is now labeled "Prototype spec approved" — not fixed here, since
+`MissionStatus` wasn't in scope for R5 and renaming it opens the same
+enum-migration question.
+
+Verified: `tsc --noEmit` clean, `biome check` clean on touched files. Could
+not run the specific vitest files touched (`release.test.ts`,
+`blueprint-runbook.test.ts`, `contracts-parity.test.ts`) — same pre-existing
+`@/` alias resolution gap in this repo's Vitest config noted under R1/R2,
+confirmed unrelated to this change (fails identically importing totally
+different modules). `tsc` resolves the same aliases fine via `tsconfig.json`
+paths, so this is a Vitest/Vite config gap, not a real import problem.
+
+## R4, R6, R7 — not yet started
 
 ## R8 — no action required (flagged only, not touched)

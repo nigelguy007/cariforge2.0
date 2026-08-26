@@ -8,6 +8,7 @@ import * as React from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { apiFetch } from '@/lib/api-client';
 import {
+  GATE_DEFS,
   type GateStateT,
   MissionDetail as MissionDetailSchema,
   type MissionDetailT,
@@ -273,12 +274,12 @@ export function MissionDetail({ missionSlug }: { missionSlug: string }) {
   );
 }
 
+// R5 (mission pipeline rebuild): read the "current stage" label from
+// GATE_DEFS instead of a hand-duplicated array — the array previously said
+// 'SoftwareBuild' here regardless of what GATE_DEFS itself called the gate,
+// so the two could silently drift. Single source of truth now.
 function stageLabelForIndex(idx: number): string {
-  return (
-    (['Discovery', 'Readiness', 'Workflow', 'Governance', 'SoftwareBuild'] as const)[
-      Math.min(idx, 4)
-    ] ?? 'Draft'
-  );
+  return GATE_DEFS[Math.min(idx, GATE_DEFS.length - 1)]?.stage ?? 'Draft';
 }
 
 function GateCard({ gate }: { gate: GateStateT }) {
@@ -290,10 +291,15 @@ function GateCard({ gate }: { gate: GateStateT }) {
         : gate.state === 'Returned'
           ? 'bg-amber-500/15 text-amber-800'
           : 'glass-chip';
+  // R5: show the gate's actual title (GATE_DEFS[i].name — e.g. "Prototype
+  // spec approved") rather than the raw internal stage identifier. This was
+  // previously rendering gate.stage verbatim for all 5 cards, which is how
+  // "SoftwareBuild" ended up on-screen with no honest gate-5 label at all.
+  const def = GATE_DEFS[gate.gateIndex];
   return (
     <div className={`rounded-2xl p-4 ${tone}`}>
       <p className="text-caption uppercase tracking-wide">Gate {gate.gateIndex}</p>
-      <p className="text-h4">{gate.stage}</p>
+      <p className="text-h4">{def?.name ?? gate.stage}</p>
       <p className="mt-1 text-small">State: {gate.state}</p>
     </div>
   );
