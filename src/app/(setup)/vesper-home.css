@@ -144,20 +144,29 @@ body {
   position: fixed;
   inset: 0;
   z-index: 0;
-  /* One quiet Caribbean-sea accent moment, not a field of colour — but
-     strong enough (28%, up from an initial 12% that read as almost
-     nothing behind the nav bar) to actually give the nav's frosted-glass
-     blur something visible to blur: backdrop-filter is invisible over a
-     flat, uncoloured field, which was the real reason the "liquid glass"
-     effect wasn't reading as glass at all — there was nothing behind the
-     glass to distort. This bleeds a soft blue wash through the nav
-     specifically (it sits right where this glow is strongest), which is
-     the clearest "glass" tell there is. */
-  background: radial-gradient(
-    55% 50% at 14% 0%,
-    oklch(0.75 0.13 var(--brand-h, 261) / 0.28),
-    transparent 62%
-  );
+  /* Caribbean-sea accent wash, not a field of colour — but it has to
+     actually sit BEHIND the glass surfaces to give backdrop-filter
+     something to distort; backdrop-filter is invisible over a flat,
+     uncoloured field. The single top-left-anchored glow this held before
+     (55% 50% at 14% 0%, fading to transparent by 62% of its own radius)
+     only ever reached the header — by the ~46-86% viewport-height band
+     where the badge/headline/buttons actually sit, it had already faded
+     to nothing, so every "glass" surface down there (the badge, the "AI"
+     pill, both hero buttons) was blurring plain near-white page and
+     reading as flat. Three stacked radial glows now cover header AND
+     hero: the original corner glow for the nav, plus two larger, offset
+     glows (a cooler teal-shifted one + the brand blue) centred on the
+     hero content band, so every glass element has real colour behind it
+     and the two hues actually read as a "sea" gradient rather than one
+     flat blue wash. */
+  background:
+    radial-gradient(
+      54% 60% at 38% 64%,
+      oklch(0.8 0.11 calc(var(--brand-h, 261) - 55) / 0.34),
+      transparent 76%
+    ),
+    radial-gradient(50% 56% at 72% 72%, oklch(0.72 0.15 var(--brand-h, 261) / 0.3), transparent 76%),
+    radial-gradient(55% 50% at 14% 0%, oklch(0.75 0.13 var(--brand-h, 261) / 0.3), transparent 62%);
 }
 .vhome-page {
   position: relative;
