@@ -23,6 +23,30 @@ export const CORE_AGENTS: CoreAgents = {
         'Translates a one-line inbound brief into a testable problem statement card with named must-not-happen clauses and a named buyer approver. The case is only legible to the rest of the pipeline once Discovery has approved the framing.',
       relatesToStage: 'Discovery',
       scope: 'Pipeline',
+      boundary: {
+        inputs: ['The inbound requirements brief', 'A named buyer approver'],
+        tools: ['Case file record (create/read)', 'Problem-statement template'],
+        outputs: [
+          'A testable problem statement',
+          'Named must-not-happen clauses',
+          'The Discovery gate decision request',
+        ],
+        prohibited: [
+          'Cannot approve its own gate',
+          'Cannot start designing the workflow or writing code ahead of Readiness and Governance',
+        ],
+        humanApproval:
+          'A named buyer approver must approve, return, or refuse the Discovery gate — with a typed reason recorded — before Readiness starts.',
+        evidence: [
+          'The problem statement card',
+          'The gate decision record with its typed reason',
+          'A timestamped case file entry',
+        ],
+        successMeasures: [
+          'Time to a testable, unambiguous problem statement',
+          'Gate return rate (fewer returns signal a clearer initial framing)',
+        ],
+      },
     },
     {
       id: 'readiness',
@@ -33,6 +57,35 @@ export const CORE_AGENTS: CoreAgents = {
         'Audits data sources, integrations, and regulatory regimes before code. Writes the build-versus-buy comparison statement to the case file (FRISS / Shift / Guidewire ClaimCenter or equivalent) and locks the data-minimisation clause.',
       relatesToStage: 'Readiness',
       scope: 'Pipeline',
+      boundary: {
+        inputs: [
+          'The approved Discovery problem statement',
+          'Buyer-supplied data samples and documents',
+          'The buyer-named systems of record relevant to the case',
+        ],
+        tools: [
+          'Case file record',
+          'Build-versus-buy comparison template',
+          'Data-minimisation checklist',
+        ],
+        outputs: [
+          'An audit of the relevant data sources, integrations, and regulatory regime',
+          'A build-versus-buy comparison statement',
+          'A locked data-minimisation clause',
+        ],
+        prohibited: [
+          'Cannot access any data the buyer has not explicitly supplied or named',
+          'Cannot recommend a build over an adequate off-the-shelf option without a written justification',
+        ],
+        humanApproval:
+          'A named buyer approver approves, returns, or refuses the Readiness gate with a typed reason.',
+        evidence: [
+          'The readiness audit record',
+          'The comparison statement',
+          'The gate decision record',
+        ],
+        successMeasures: ['Readiness gate pass rate', 'Data-minimisation clause compliance'],
+      },
     },
     {
       id: 'workflow',
@@ -43,6 +96,29 @@ export const CORE_AGENTS: CoreAgents = {
         'Designs the role/escalation diagram for the proposed system: the human checkpoints, the SIU / Compliance / Officer gates, the per-regime SLAs, and the typed-note to the buyer on what the build unlocks downstream.',
       relatesToStage: 'Workflow',
       scope: 'Pipeline',
+      boundary: {
+        inputs: [
+          'The approved Readiness audit',
+          'The human checkpoints the buyer has named as required',
+        ],
+        tools: ['Case file record', 'Role/escalation diagram template'],
+        outputs: [
+          'The role/escalation diagram',
+          'Per-regime SLAs',
+          'A typed note to the buyer on what the build unlocks downstream',
+        ],
+        prohibited: [
+          'Cannot remove a human checkpoint the buyer named as required',
+          "Cannot finalise the binding governance spec — that's the Governance agent's gate",
+        ],
+        humanApproval:
+          'A named buyer approver approves, returns, or refuses the Workflow gate with a typed reason.',
+        evidence: ['The workflow design diagram', 'The gate decision record'],
+        successMeasures: [
+          'Escalation-path completeness',
+          'SLA coverage per named regulatory regime',
+        ],
+      },
     },
     {
       id: 'governance',
@@ -53,6 +129,29 @@ export const CORE_AGENTS: CoreAgents = {
         'Confirms the logging, oversight, and stop-the-line controls hold under the named human approvals at every gate. Produces the binding spec handed to Agent 5 (AI Build) — every route handler and prisma model below is derived from this matrix.',
       relatesToStage: 'Governance',
       scope: 'Pipeline',
+      boundary: {
+        inputs: [
+          'The approved Workflow design',
+          'The named human approver for every remaining gate',
+        ],
+        tools: ['Case file record', 'Gate/approval permission matrix', 'Audit-log schema'],
+        outputs: [
+          'The binding governance spec handed to AI Build',
+          'Confirmation that logging, oversight, and stop-the-line controls hold',
+        ],
+        prohibited: [
+          'Cannot approve its own gate',
+          'Cannot hand a spec to AI Build without a confirmed named human approver at every remaining gate',
+        ],
+        humanApproval:
+          'A named buyer approver approves, returns, or refuses the Governance gate — the last human checkpoint before code is written.',
+        evidence: [
+          'The governance spec document',
+          'The gate decision record',
+          'The full gate history to date',
+        ],
+        successMeasures: ['Governance gate pass rate', 'Control completeness against the spec'],
+      },
     },
     {
       id: 'ai-build',
@@ -63,6 +162,36 @@ export const CORE_AGENTS: CoreAgents = {
         'Runs Stage 5 (Software Build) of the pipeline and ships the runnable Next.js + TypeScript codebase from the binding spec handed over by Governance: route handlers, the append-only audit-trail prisma model, the immutable hash chain, and the developer-facing case file receipt. AI Build is the agent name; "Software Build" is the stage name it operates.',
       relatesToStage: 'Software Build',
       scope: 'Pipeline',
+      boundary: {
+        inputs: ['The binding governance spec from the Governance agent'],
+        tools: [
+          'Next.js + TypeScript code generation',
+          'Prisma schema and migration authoring',
+          'Route handler authoring',
+        ],
+        outputs: [
+          'The runnable Next.js + TypeScript codebase',
+          'The append-only audit-trail Prisma model',
+          'The immutable hash chain',
+          'A developer-facing case file receipt',
+        ],
+        prohibited: [
+          'Cannot deviate from the binding governance spec without a new Governance gate approval',
+          'Cannot release or deploy without the Software Build gate’s final approval',
+        ],
+        humanApproval:
+          "A named buyer approver's final approve on the Software Build gate releases the build — approve, return, or refuse with a typed reason, the same as every other gate.",
+        evidence: [
+          'The generated repository',
+          'Audit-trail records',
+          'Hash-chain integrity',
+          'The gate decision record',
+        ],
+        successMeasures: [
+          'Build correctness against the governance spec',
+          'Time from Governance approval to a runnable build',
+        ],
+      },
     },
     {
       id: 'partner',
@@ -73,6 +202,31 @@ export const CORE_AGENTS: CoreAgents = {
         'Wraps around delivery. Engages the buyer-side integrator / GA / cloud partner ecosystem so the runnable software build lands on infrastructure the buyer’s own people can run. Not a stage — a wraparound that turns a repository into an operated system.',
       relatesToStage: 'Wraparound',
       scope: 'Wraparound',
+      boundary: {
+        inputs: [
+          'The completed, gated Software Build',
+          "The buyer's target infrastructure and environment",
+        ],
+        tools: [
+          'Deployment handoff checklist',
+          'Buyer-side integrator / cloud-partner coordination',
+        ],
+        outputs: [
+          'The build running on buyer-controlled infrastructure',
+          'Operational handoff documentation',
+        ],
+        prohibited: [
+          'Cannot bypass the Software Build gate',
+          'Cannot keep operating the build on CariForge-controlled infrastructure indefinitely — the point of this agent is a buyer-run system',
+        ],
+        humanApproval:
+          "The buyer's own operations owner signs off that the build is live on their infrastructure and their people can run it.",
+        evidence: ['The deployment handoff record', 'The buyer sign-off'],
+        successMeasures: [
+          "Successful handoff to the buyer's own infrastructure",
+          'Time from build approval to live handoff',
+        ],
+      },
     },
     {
       id: 'impact',
@@ -83,6 +237,29 @@ export const CORE_AGENTS: CoreAgents = {
         'Wraps around delivery. Measures the change in the world the build was meant to make — the agreed unit economics in production (not on a slide), the kept promise on the named must-not-happen clauses, and the learning that flows back into the next brief. Not a stage — a wraparound.',
       relatesToStage: 'Wraparound',
       scope: 'Wraparound',
+      boundary: {
+        inputs: [
+          'The live, buyer-operated build',
+          'The agreed unit-economics targets from the case file',
+          'The named must-not-happen clauses set by Discovery',
+        ],
+        tools: ['Outcome tracking against the original case file clauses'],
+        outputs: [
+          'A realised-value read-out against the original case',
+          'Confirmation of whether the must-not-happen clauses held',
+          'Learning fed back into the next brief',
+        ],
+        prohibited: [
+          'Cannot retroactively alter the original must-not-happen clauses to improve a result',
+        ],
+        humanApproval:
+          'A named buyer approver reviews and signs the Impact read-out — no gate blocks delivery at this point since the build is already live, but the read-out itself is a signed record.',
+        evidence: ['The Impact read-out document', 'The case file closure record'],
+        successMeasures: [
+          'Must-not-happen clauses kept vs. broken',
+          'Realised value against the original case',
+        ],
+      },
     },
   ],
 } as const;

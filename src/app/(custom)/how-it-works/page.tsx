@@ -172,6 +172,73 @@ export default function HowItWorksPage() {
         </div>
       </section>
 
+      {/* PATHWAY — the 21-Day Forge proves the case; Production Forge (the
+          Partner + Impact agents' real wraparound work) hands it to the
+          buyer's own infrastructure and tracks whether it kept its
+          promises. Kept deliberately modest: only claims what Partner and
+          Impact's actual mandates cover (deployment handoff, realised-value
+          tracking) — not integration/security-assurance/monitoring
+          deliverables this system doesn't actually produce yet. */}
+      <section id="pathway" className="section relative overflow-hidden section-aurora">
+        <div className="container-page flex flex-col gap-10">
+          <GlassSectionHeader
+            eyebrow="From proof to production"
+            title="A 21-day proof and a production handoff are two different promises."
+            lede="The 21-Day Forge is bounded on purpose — a named problem, a working prototype, and an evidence-based decision, inside three weeks. What happens after a case clears the last gate is a separate, connected stage, not an implied extension of the same 21 days."
+          />
+          <div className="grid gap-4 lg:grid-cols-2">
+            <GlassCard tone="surface" padding="lg" className="h-full">
+              <GlassChip tone="brand" className="self-start">
+                Stage one
+              </GlassChip>
+              <h3 className="mt-3 font-display text-h4 tracking-tight text-foreground">
+                The 21-Day Forge
+              </h3>
+              <p className="text-small text-card-foreground/80">
+                Turns one named need into a governed, working proof and a decision you can act on.
+                Agents 1&ndash;5 run it, gated by a named human at every stage.
+              </p>
+              <ul className="mt-2 flex flex-col gap-1 text-small text-card-foreground/85">
+                <li>&middot; A testable problem statement, with named must-not-happen clauses</li>
+                <li>&middot; A readiness audit and a build-versus-buy comparison</li>
+                <li>&middot; A workflow design with human checkpoints and escalation paths</li>
+                <li>&middot; A governance spec confirming the controls hold</li>
+                <li>&middot; A runnable software build, with an audit trail and a hash chain</li>
+              </ul>
+            </GlassCard>
+            <GlassCard tone="surface" padding="lg" className="h-full">
+              <GlassChip tone="outline" className="self-start">
+                Stage two
+              </GlassChip>
+              <h3 className="mt-3 font-display text-h4 tracking-tight text-foreground">
+                Production Forge
+              </h3>
+              <p className="text-small text-card-foreground/80">
+                Starts only once a case has cleared the Software Build gate. Run by the two
+                wraparound agents — Partner and Impact — not part of the 21-day clock.
+              </p>
+              <ul className="mt-2 flex flex-col gap-1 text-small text-card-foreground/85">
+                <li>
+                  &middot; <span className="font-semibold text-foreground">Partner</span> hands the
+                  approved build to your own infrastructure, with your integrator or cloud partner,
+                  so your own people run it &mdash; not us
+                </li>
+                <li>
+                  &middot; <span className="font-semibold text-foreground">Impact</span> reads back
+                  whether the named must-not-happen clauses held once the build was live, and
+                  whether the case's own economics showed up in production
+                </li>
+              </ul>
+              <p className="mt-3 text-caption text-muted-foreground">
+                Deeper integration work, formal security review, and ongoing operations are scoped
+                per engagement once a case reaches this stage &mdash; they are not a default
+                inclusion of the 21-day proof.
+              </p>
+            </GlassCard>
+          </div>
+        </div>
+      </section>
+
       {/* COUNCIL — five voices (The Oracles), then the chairman (Elder Oracle) */}
       <section id="council" className="section relative overflow-hidden section-aurora">
         <div className="container-page flex flex-col gap-10">
@@ -272,6 +339,147 @@ export default function HowItWorksPage() {
               </li>
             ))}
           </ol>
+
+          {/* Explicit governance controls, named — turns "governed" into
+              verifiable mechanisms instead of a single adjective. Every
+              item here is something this system actually does (named gate
+              approvals, typed reasons, the append-only audit trail and hash
+              chain from the AI Build agent's own mandate), not aspirational. */}
+          <GlassPanel tone="panel" padding="lg" className="section-aurora">
+            <GlassChip tone="brand" className="self-start">
+              What &ldquo;governed&rdquo; actually means here
+            </GlassChip>
+            <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              <div>
+                <p className="font-display text-h4 tracking-tight text-foreground">
+                  Named approvers
+                </p>
+                <p className="text-small text-card-foreground/80">
+                  Every gate names the human who approved, returned, or refused it &mdash; never an
+                  anonymous system action.
+                </p>
+              </div>
+              <div>
+                <p className="font-display text-h4 tracking-tight text-foreground">Typed reasons</p>
+                <p className="text-small text-card-foreground/80">
+                  Approve, return, and refuse all require a written reason, recorded in the case
+                  file at the moment of decision.
+                </p>
+              </div>
+              <div>
+                <p className="font-display text-h4 tracking-tight text-foreground">
+                  Append-only audit trail
+                </p>
+                <p className="text-small text-card-foreground/80">
+                  Every gate decision writes an immutable record &mdash; nothing in the case file
+                  history can be edited after the fact.
+                </p>
+              </div>
+              <div>
+                <p className="font-display text-h4 tracking-tight text-foreground">Hash chain</p>
+                <p className="text-small text-card-foreground/80">
+                  The audit trail is chained by hash, so a tampered or reordered record would be
+                  detectable, not just discouraged.
+                </p>
+              </div>
+              <div>
+                <p className="font-display text-h4 tracking-tight text-foreground">
+                  No gate-skipping
+                </p>
+                <p className="text-small text-card-foreground/80">
+                  Agents 1&ndash;5 cannot approve their own gate, and AI Build cannot ship without
+                  the Software Build gate&rsquo;s final approval.
+                </p>
+              </div>
+              <div>
+                <p className="font-display text-h4 tracking-tight text-foreground">
+                  Full gate history
+                </p>
+                <p className="text-small text-card-foreground/80">
+                  Every prior gate&rsquo;s decision and reasoning stays attached to the case file
+                  for the agents and humans that come after it.
+                </p>
+              </div>
+            </div>
+          </GlassPanel>
+        </div>
+      </section>
+
+      {/* SYSTEMS OF RECORD — CARI Forge doesn't replace what a buyer already
+          runs; grounded directly in the Readiness agent's real mandate
+          (audits the buyer's actual data sources and regulatory regime,
+          locks a data-minimisation clause) rather than naming specific
+          third-party integrations (Salesforce, SAP, M365) this system
+          doesn't actually connect to yet. */}
+      <section id="systems-of-record" className="section relative overflow-hidden section-aurora">
+        <div className="container-page grid gap-10 lg:grid-cols-[1fr_1fr] lg:items-center">
+          <div className="flex flex-col gap-3">
+            <GlassChip tone="brand" className="self-start">
+              Systems of record
+            </GlassChip>
+            <h2 className="font-display text-h3 tracking-tight text-foreground">
+              CARI Forge doesn&rsquo;t ask you to replace what you already run.
+            </h2>
+            <p className="text-body text-muted-foreground">
+              Before any code is written, the Readiness agent audits the data sources and regulatory
+              regime a case actually touches, writes a build-versus-buy comparison to the case file,
+              and locks a data-minimisation clause. Your systems stay authoritative; the pipeline
+              works with what you already have, not instead of it.
+            </p>
+          </div>
+          <GlassCard tone="highlight" padding="lg">
+            <p className="font-display text-h4 tracking-tight text-foreground">
+              What this means in practice
+            </p>
+            <ul className="mt-2 flex flex-col gap-2 text-small text-card-foreground/85">
+              <li>&middot; The Readiness agent only sees data you explicitly supply or name</li>
+              <li>
+                &middot; A build-versus-buy comparison is written before a line of code exists
+              </li>
+              <li>
+                &middot; The data-minimisation clause is locked in the case file, not a promise
+              </li>
+              <li>
+                &middot; Deeper, connector-level integration into a specific system of record is
+                scoped per engagement in Production Forge, not assumed by default
+              </li>
+            </ul>
+          </GlassCard>
+        </div>
+      </section>
+
+      {/* FIT — good-fit/poor-fit criteria, placed deliberately right before
+          the closing CTA: lets a prospect self-qualify before they submit,
+          rather than after. */}
+      <section id="fit" className="section relative overflow-hidden section-aurora">
+        <div className="container-page flex flex-col gap-10">
+          <GlassSectionHeader
+            eyebrow="Before you apply"
+            title="What actually fits inside a 21-day proof — and what doesn't."
+            lede="A bounded proof needs a bounded case. Checking fit before applying saves everyone a returned Discovery gate."
+          />
+          <div className="grid gap-4 lg:grid-cols-2">
+            <GlassCard tone="highlight" padding="lg" className="h-full">
+              <p className="font-display text-h4 tracking-tight text-foreground">Good fit</p>
+              <ul className="mt-2 flex flex-col gap-2 text-small text-card-foreground/85">
+                <li>&middot; A real workflow or service need with a named owner</li>
+                <li>&middot; Accessible sample data or representative documents to test against</li>
+                <li>&middot; A decision that can stay human-controlled where it needs to</li>
+                <li>&middot; A measurable operational or customer outcome</li>
+                <li>&middot; A case bounded enough to evaluate inside 21 days</li>
+              </ul>
+            </GlassCard>
+            <GlassCard tone="surface" padding="lg" className="h-full">
+              <p className="font-display text-h4 tracking-tight text-foreground">Not a good fit</p>
+              <ul className="mt-2 flex flex-col gap-2 text-small text-card-foreground/85">
+                <li>&middot; A generic chatbot with no defined workflow or named owner</li>
+                <li>&middot; A speculative model comparison with no business outcome attached</li>
+                <li>&middot; A request for uncontrolled, fully autonomous decisions</li>
+                <li>&middot; A use case with no lawful or approved access to the data it needs</li>
+                <li>&middot; A full enterprise transformation, presented as a 21-day prototype</li>
+              </ul>
+            </GlassCard>
+          </div>
         </div>
       </section>
 

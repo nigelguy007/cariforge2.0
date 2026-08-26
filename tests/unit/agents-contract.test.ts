@@ -8,6 +8,21 @@ import { type CoreAgent, CoreAgents } from '@/lib/contracts/agents';
 // parse it through the shared contract — single source of truth is the
 // contract shape; what changes between the live route and this test is only
 // where the data lives.
+//
+// A minimal `boundary` fixture is shared across every agent below — this
+// test only needs to prove the CONTRACT SHAPE round-trips and stays
+// non-empty per field, not that each agent's real copy is accurate (that's
+// eyeballed against business/agents.ts directly, not asserted here).
+const MINIMAL_BOUNDARY = {
+  inputs: ['input'],
+  tools: ['tool'],
+  outputs: ['output'],
+  prohibited: ['prohibited action'],
+  humanApproval: 'a named approver signs off',
+  evidence: ['evidence record'],
+  successMeasures: ['measure'],
+};
+
 const FIXTURE: { items: CoreAgent[] } = {
   items: [
     {
@@ -19,6 +34,7 @@ const FIXTURE: { items: CoreAgent[] } = {
         'Translates a one-line inbound brief into a testable problem statement card with named must-not-happen clauses and a named buyer approver.',
       relatesToStage: 'Discovery',
       scope: 'Pipeline',
+      boundary: MINIMAL_BOUNDARY,
     },
     {
       id: 'readiness',
@@ -29,6 +45,7 @@ const FIXTURE: { items: CoreAgent[] } = {
         'Audits data sources, integrations, and regulatory regimes before code; writes the build-vs-buy comparison statement.',
       relatesToStage: 'Readiness',
       scope: 'Pipeline',
+      boundary: MINIMAL_BOUNDARY,
     },
     {
       id: 'workflow',
@@ -39,6 +56,7 @@ const FIXTURE: { items: CoreAgent[] } = {
         'Designs the role/escalation diagram and per-regime SLAs; writes the typed note on downstream reuse.',
       relatesToStage: 'Workflow',
       scope: 'Pipeline',
+      boundary: MINIMAL_BOUNDARY,
     },
     {
       id: 'governance',
@@ -49,6 +67,7 @@ const FIXTURE: { items: CoreAgent[] } = {
         'Confirms logging, oversight, and stop-the-line controls; produces the binding spec handed to Agent 5 (AI Build).',
       relatesToStage: 'Governance',
       scope: 'Pipeline',
+      boundary: MINIMAL_BOUNDARY,
     },
     {
       id: 'ai-build',
@@ -59,6 +78,7 @@ const FIXTURE: { items: CoreAgent[] } = {
         'Runs Stage 5 (Software Build) of the pipeline and ships the runnable Next.js + TypeScript codebase.',
       relatesToStage: 'Software Build',
       scope: 'Pipeline',
+      boundary: MINIMAL_BOUNDARY,
     },
     {
       id: 'partner',
@@ -69,6 +89,7 @@ const FIXTURE: { items: CoreAgent[] } = {
         'Wraps around delivery; lands the runnable codebase on infrastructure the buyer operators can run.',
       relatesToStage: 'Wraparound',
       scope: 'Wraparound',
+      boundary: MINIMAL_BOUNDARY,
     },
     {
       id: 'impact',
@@ -79,6 +100,7 @@ const FIXTURE: { items: CoreAgent[] } = {
         'Wraps around delivery; measures the change in the world the build was meant to make.',
       relatesToStage: 'Wraparound',
       scope: 'Wraparound',
+      boundary: MINIMAL_BOUNDARY,
     },
   ],
 };
@@ -156,5 +178,25 @@ describe('agents contract — seven-agent core', () => {
   it('does not assign an Agent name equal to the literal stage name "Software Build"', () => {
     const names = items.map((a) => a.role);
     expect(names).not.toContain('Software Build');
+  });
+
+  it('requires every agent to publish non-empty operational boundaries', () => {
+    for (const agent of items) {
+      expect(agent.boundary.inputs.length).toBeGreaterThan(0);
+      expect(agent.boundary.tools.length).toBeGreaterThan(0);
+      expect(agent.boundary.outputs.length).toBeGreaterThan(0);
+      expect(agent.boundary.prohibited.length).toBeGreaterThan(0);
+      expect(agent.boundary.humanApproval.length).toBeGreaterThan(0);
+      expect(agent.boundary.evidence.length).toBeGreaterThan(0);
+      expect(agent.boundary.successMeasures.length).toBeGreaterThan(0);
+    }
+  });
+
+  it('rejects an agent missing the boundary field entirely', () => {
+    const missingBoundary = { ...FIXTURE.items[0] } as Partial<CoreAgent>;
+    delete missingBoundary.boundary;
+    expect(() =>
+      CoreAgents.parse({ items: [missingBoundary, ...FIXTURE.items.slice(1)] }),
+    ).toThrow();
   });
 });

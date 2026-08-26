@@ -10,6 +10,7 @@
 
 'use client';
 
+import { ChevronDown } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { GlassCard, GlassChip, GlassPanel, GlassSectionHeader } from '@/components/custom/glass';
 import { apiFetch } from '@/lib/api-client';
@@ -34,10 +35,37 @@ function stagePill(agent: Agent): { label: string; tone: 'brand' | 'outline' | '
   return { label: `Runs stage · ${agent.relatesToStage}`, tone: 'brand' };
 }
 
-function AgentCard({ agent }: { agent: Agent }) {
-  const pill = stagePill(agent);
+// One labeled list inside the expanded boundary detail — reused for each of
+// the seven boundary fields so they render identically.
+function BoundaryList({ label, items }: { label: string; items: readonly string[] }) {
   return (
-    <GlassCard tone="surface" padding="md" interactive className="h-full">
+    <div className="flex flex-col gap-1">
+      <p className="text-[10px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">
+        {label}
+      </p>
+      <ul className="flex flex-col gap-0.5">
+        {items.map((item) => (
+          <li key={item} className="text-small text-card-foreground/85">
+            {item}
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+/* Operational-boundary detail — per the "seven-agent control specification":
+   every agent publishes its inputs, tools, outputs, prohibited actions,
+   human-approval requirement, evidence produced, and success measures, so
+   an agent reads as a bounded component with named limits rather than an
+   opaque black box. Collapsed by default (seven cards' worth of this all
+   expanded at once would overwhelm the page) — expands per-card on click. */
+function AgentCard({ agent }: { agent: Agent }) {
+  const [open, setOpen] = useState(false);
+  const pill = stagePill(agent);
+  const detailId = `agent-boundary-${agent.id}`;
+  return (
+    <GlassCard tone="surface" padding="md" className="h-full">
       <div className="mb-2 flex items-baseline justify-between gap-2">
         <span className="font-display text-caption font-semibold tracking-[0.1em] text-brand-700">
           {ordinalPill(agent.ordinal)}
@@ -50,6 +78,37 @@ function AgentCard({ agent }: { agent: Agent }) {
       <p className="text-small text-card-foreground/80">
         <span className="font-semibold">{agent.roleLong}.</span> {agent.mandate}
       </p>
+
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        aria-expanded={open}
+        aria-controls={detailId}
+        className="mt-3 flex items-center gap-1.5 self-start text-caption font-semibold text-brand-700 hover:text-brand-800"
+      >
+        {open ? 'Hide operational boundaries' : 'Show operational boundaries'}
+        <ChevronDown
+          className={`size-3.5 transition-transform ${open ? 'rotate-180' : ''}`}
+          aria-hidden="true"
+        />
+      </button>
+
+      {open && (
+        <div id={detailId} className="mt-3 flex flex-col gap-3 border-t border-border pt-3">
+          <BoundaryList label="Inputs" items={agent.boundary.inputs} />
+          <BoundaryList label="Tools" items={agent.boundary.tools} />
+          <BoundaryList label="Outputs" items={agent.boundary.outputs} />
+          <BoundaryList label="Prohibited actions" items={agent.boundary.prohibited} />
+          <div className="flex flex-col gap-1">
+            <p className="text-[10px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">
+              Human approval
+            </p>
+            <p className="text-small text-card-foreground/85">{agent.boundary.humanApproval}</p>
+          </div>
+          <BoundaryList label="Evidence produced" items={agent.boundary.evidence} />
+          <BoundaryList label="Success measures" items={agent.boundary.successMeasures} />
+        </div>
+      )}
     </GlassCard>
   );
 }
