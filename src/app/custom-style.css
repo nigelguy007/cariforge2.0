@@ -19,12 +19,14 @@
  * professional" again, the fix is almost certainly the same lesson learned
  * last time — the flatness/blandness of the treatment, not the hue itself.
  *
- * The brand_tokens seed in globals.css sets --brand-h=222 (deep ocean
- * blue), --brand-c=0.15, --brand-l=0.44, which derive the full --brand-NN
- * ramp. That ramp is background-agnostic by formula (brand-50 near-white
- * through brand-900 near-black) and needed no change — only the ROLE
- * tokens below (background/card/secondary/etc.) and the .glass-* utility
- * classes changed.
+ * The brand_tokens seed in globals.css sets --brand-h=261 (a vivid
+ * royal/cobalt blue sourced from icolorpalette.com's Caribbean palette
+ * collection — see .impeccable.md; was 222/deep-ocean-blue, then
+ * 188/aquamarine, before that), --brand-c=0.17, --brand-l=0.48, which
+ * derive the full --brand-NN ramp. That ramp is background-agnostic by
+ * formula (brand-50 near-white through brand-900 near-black) and needed
+ * no change on any of these colour passes — only the ROLE tokens below
+ * (background/card/secondary/etc.) and the .glass-* utility classes did.
  *
  * Surface model:
  *   --background   : light mode — a clearly (not barely) ocean-blue-tinted

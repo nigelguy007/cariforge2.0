@@ -12,7 +12,7 @@
    footer entirely.
 
    This route's own background is now a near-white Apple-style field
-   (oklch(0.985 0.003 188)), a complete reversal from every previous pass
+   (oklch(0.985 0.003 261)), a complete reversal from every previous pass
    on this file (dark near-black, then a vivid bright aquamarine wash) —
    per an explicit new instruction: "the texture and contrast of
    apple.com... keeping a caribbean sea colour." Apple's actual product
@@ -32,14 +32,14 @@
 html,
 body {
   /* biome-ignore lint/complexity/noImportantStyles: deliberate defensive rule, not an accident — guarantees no unstyled flash regardless of load order, before any other rule (including the var()-based one right below) has a chance to apply. oklch() needs no custom-property fallback: every engine that parses oklch() also supports custom properties, so this literal is just belt-and-braces against cascade-order races, not a compatibility fallback. */
-  background: oklch(0.985 0.003 188) !important;
+  background: oklch(0.985 0.003 261) !important;
   color: #1d1d1f;
 }
 html,
 body {
-  background: oklch(0.985 0.003 188);
+  background: oklch(0.985 0.003 261);
   /* biome-ignore lint/suspicious/noDuplicateProperties: intentional fallback — the plain value above holds if custom properties aren't supported, var(--vhome-bg) wins where they are. */
-  background: var(--vhome-bg, oklch(0.985 0.003 188));
+  background: var(--vhome-bg, oklch(0.985 0.003 261));
   color: #1d1d1f;
   color: var(--vhome-text, #1d1d1f);
 }
@@ -49,7 +49,7 @@ body {
      vhome-font-serif CSS variables the page sets on this element's own
      className — see (setup)/page.tsx for why (self-hosted at build time,
      CSP-clean, no @font-face needed here). */
-  --vhome-bg: oklch(0.985 0.003 188);
+  --vhome-bg: oklch(0.985 0.003 261);
   --vhome-text: #1d1d1f;
   --vhome-muted: #6e6e73;
   --vhome-stat: #424245;
@@ -57,12 +57,14 @@ body {
   --vhome-border-soft: rgba(0, 0, 0, 0.07);
 
   /* Colour pass: reads var(--brand-h) — the site-wide seed in globals.css's
-     brand_tokens slot, currently 188 (aquamarine/Caribbean sea) — so this
-     page's accent moments (badge, "AI" emphasis, button glows) stay in
-     lockstep with the rest of the app automatically whenever that seed
-     changes, without editing this file. (222 = ocean blue, 152 = emerald
-     green, earlier in this project's history; see custom-style.css's
-     top-of-file comment.) --vhome-accent is tuned to a moderate lightness
+     brand_tokens slot, currently 261 (a vivid royal/cobalt blue sourced
+     from icolorpalette.com's Caribbean palette collection, see
+     .impeccable.md) — so this page's accent moments (badge, "AI"
+     emphasis, button glows) stay in lockstep with the rest of the app
+     automatically whenever that seed changes, without editing this file.
+     (188 = aquamarine, 222 = ocean blue, 152 = emerald green, earlier in
+     this project's history; see custom-style.css's top-of-file comment.)
+     --vhome-accent is tuned to a moderate lightness
      (0.56, not the 0.85 this held during the "bright wash" phase)
      specifically because it now needs to read clearly as a SATURATED
      COLOUR against a near-white page — a pale/light accent would wash
@@ -72,9 +74,9 @@ body {
      this page's "restraint" now comes from neutral greys doing most of
      the work, with colour appearing only where --vhome-accent is used
      directly. */
-  --vhome-accent: oklch(0.56 0.14 var(--brand-h, 188));
-  --vhome-accent-soft: oklch(0.56 0.14 var(--brand-h, 188) / 0.35);
-  --vhome-accent-dim: oklch(0.9 0.03 var(--brand-h, 188) / 0.6);
+  --vhome-accent: oklch(0.56 0.14 var(--brand-h, 261));
+  --vhome-accent-soft: oklch(0.56 0.14 var(--brand-h, 261) / 0.35);
+  --vhome-accent-dim: oklch(0.9 0.03 var(--brand-h, 261) / 0.6);
 
   --vhome-logo: 15.5px;
   --vhome-logo-mark: 22px;
@@ -141,14 +143,14 @@ body {
   inset: 0;
   z-index: 0;
   /* One quiet Caribbean-sea accent moment, not a field of colour: a very
-     soft aquamarine glow in the upper-left, well below full strength
+     soft royal-blue glow in the upper-left, well below full strength
      (12% peak opacity), fading out before it reaches the hero copy. This
      is the "one hero colour moment" the Apple reference calls for —
      everywhere else on this page, restraint comes from whitespace and
      neutral greys, not colour. */
   background: radial-gradient(
     55% 50% at 14% 0%,
-    oklch(0.75 0.13 var(--brand-h, 188) / 0.12),
+    oklch(0.75 0.13 var(--brand-h, 261) / 0.12),
     transparent 62%
   );
 }
@@ -231,8 +233,8 @@ body {
 }
 .vhome-nav-link:hover {
   border-color: var(--vhome-accent-soft);
-  background: oklch(0.56 0.14 var(--brand-h, 188) / 0.1);
-  box-shadow: 0 0 18px oklch(0.65 0.13 var(--brand-h, 188) / 0.14);
+  background: oklch(0.56 0.14 var(--brand-h, 261) / 0.1);
+  box-shadow: 0 0 18px oklch(0.65 0.13 var(--brand-h, 261) / 0.14);
 }
 .vhome-nav-link:hover::before {
   transform: translateX(120%);
@@ -333,13 +335,13 @@ body.vhome-body-menu-open .vhome-burger-bar:nth-child(3) {
   border-color: #000;
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.1),
-    0 0 22px oklch(0.65 0.13 var(--brand-h, 188) / 0.3),
+    0 0 22px oklch(0.65 0.13 var(--brand-h, 261) / 0.3),
     0 8px 18px rgba(0, 0, 0, 0.18);
 }
 .vhome-hero-btn-solid:hover {
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.1),
-    0 0 26px oklch(0.65 0.13 var(--brand-h, 188) / 0.35),
+    0 0 26px oklch(0.65 0.13 var(--brand-h, 261) / 0.35),
     0 8px 18px rgba(0, 0, 0, 0.2);
 }
 /* .vhome-btn-ghost — the secondary CTA: a light, barely-there frosted
@@ -352,11 +354,11 @@ body.vhome-body-menu-open .vhome-burger-bar:nth-child(3) {
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.4);
 }
 .vhome-btn-ghost:hover {
-  background: oklch(0.56 0.14 var(--brand-h, 188) / 0.08);
+  background: oklch(0.56 0.14 var(--brand-h, 261) / 0.08);
   border-color: var(--vhome-accent-soft);
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.5),
-    0 0 20px oklch(0.65 0.13 var(--brand-h, 188) / 0.16);
+    0 0 20px oklch(0.65 0.13 var(--brand-h, 261) / 0.16);
 }
 .vhome-hero-btn-ghost {
   background: rgba(255, 255, 255, 0.65);
@@ -367,7 +369,7 @@ body.vhome-body-menu-open .vhome-burger-bar:nth-child(3) {
 .vhome-hero-btn-ghost:hover {
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.5),
-    0 0 24px oklch(0.65 0.13 var(--brand-h, 188) / 0.18);
+    0 0 24px oklch(0.65 0.13 var(--brand-h, 261) / 0.18);
   border-color: var(--vhome-accent-soft);
 }
 .vhome-hero-btn {
@@ -404,16 +406,16 @@ body.vhome-body-menu-open .vhome-burger-bar:nth-child(3) {
   /* A soft Caribbean-sea tint, not the dark-glass gradient this held
      during earlier phases — Apple's own small pill badges are typically
      a flat, quiet tint like this rather than a gradient. */
-  background: oklch(0.56 0.14 var(--brand-h, 188) / 0.1);
+  background: oklch(0.56 0.14 var(--brand-h, 261) / 0.1);
   backdrop-filter: blur(10px) saturate(140%);
   -webkit-backdrop-filter: blur(10px) saturate(140%);
-  color: oklch(0.4 0.1 var(--brand-h, 188));
+  color: oklch(0.4 0.1 var(--brand-h, 261));
   font-size: var(--vhome-badge);
   font-weight: 500;
   letter-spacing: -0.01em;
 }
 .vhome-badge-star {
-  filter: drop-shadow(0 0 2px oklch(0.56 0.14 var(--brand-h, 188) / 0.3));
+  filter: drop-shadow(0 0 2px oklch(0.56 0.14 var(--brand-h, 261) / 0.3));
 }
 .vhome-h1 {
   font-family:
