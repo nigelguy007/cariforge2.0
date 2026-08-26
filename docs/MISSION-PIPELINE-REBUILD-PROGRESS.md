@@ -184,6 +184,91 @@ the mission list.
 Verified: `tsc --noEmit` clean, `biome check` clean, `next build` clean
 (same route tree as before, new component adds no new routes).
 
-## R7 — not yet started
+## R7 — Add a QA-review layer ahead of the approval form
+
+**Status: done — real LLM-backed version, user explicitly opted into this
+over the deterministic/rule-based lightweight alternative.**
+
+This repo had zero existing AI/LLM integration to build on (no SDK, no
+provider key). Added `@anthropic-ai/sdk`, model `claude-opus-5`, using
+structured outputs (`messages.parse()` + `output_config.format`) rather than
+free-text + manual JSON parsing, so a malformed model response can't corrupt
+what reaches the UI.
+
+- `src/lib/contracts/qa-review.ts`: `QAReview` (discriminated union —
+  `unavailable` | `ok` with a `review`), matching the reference platform's
+  own `QAReviewCard` contract (`verdict`, `confidence`, `summary`, `issues`
+  by severity, `questionsForApprover`). Standard app-wide `zod` (v3 API), so
+  it plugs into `apiFetch` and every route handler the same as every other
+  contract.
+- `src/lib/business/forge/qa-review.ts`: `getQAReview()` — **never throws**.
+  No `ANTHROPIC_API_KEY` configured, a rate limit, a network error, a model
+  refusal, a malformed response — all degrade to `{status: 'unavailable'}`,
+  exactly the reference platform's own "QA reviewer couldn't run" fallback.
+  This sits in front of a real governance decision; it must never be the
+  reason a gate can't be decided. Reads the key directly from
+  `process.env` rather than through `src/lib/env.ts` — that file is
+  `@polsia:shared/composed`, hand-edited only through its declared
+  module-contribution slots by the Polsia installer, and this is an
+  optional feature, not required deploy-time config.
+- **Real version-conflict catch, not just typing noise:** the Anthropic
+  SDK's `zodOutputFormat()` calls `zod/v4`'s `toJSONSchema()` internally —
+  it needs a schema actually built with zod/v4, not one that's merely
+  structurally similar. This app's contracts all use the standard top-level
+  `zod` import (v3 API, to match `apiFetch`'s `ZodType` and every other
+  route handler) — so `qa-review.ts` builds a small private `zod/v4` shadow
+  schema (`QAReviewResultV4`) used only for the one `zodOutputFormat()`
+  call, and re-validates the model's `parsed_output` through the real (v3)
+  `QAReviewResult` before it's trusted anywhere else. Confirmed via `tsc`:
+  the naive version (passing the v3 schema straight to `zodOutputFormat`)
+  fails to type-check, which is what surfaced this before it became a
+  runtime bug.
+- New route: `GET /api/forge/missions/:id/gates/:gateIndex/qa-review` —
+  computed fresh on every call (no persistence in this pass — an accepted
+  gap, see below). Returns `unavailable` (still HTTP 200) when there's no
+  handoff at that gate yet, rather than treating "nothing to review" as an
+  error.
+- New `QAReviewCard` (`src/components/custom/missions/qa-review-card.tsx`),
+  rendered directly above `MissionGatePanel` in the Gates tab — but only for
+  gates still in the `'Awaiting'` state (an already-decided gate has no
+  pending approval form for it to sit in front of). Loading/unavailable
+  states render small and never block `MissionGatePanel` underneath.
+  Advisory only, matching the reference platform's own contract: it never
+  gates anything, calls no gate-decision endpoint, and can't affect
+  `APPROVAL_DECISION_VALUES` in any way.
+
+**Accepted gaps in this lightweight-but-real pass:**
+- No persistence — the review isn't stored, so it re-runs (and re-costs)
+  every time the Gates tab is viewed. A real deployment would want to cache
+  per-`stageHandoffId` in the DB and only re-run when the handoff changes.
+- No live end-to-end test — this environment has no `ANTHROPIC_API_KEY`
+  configured, so the actual model call was never exercised; verified via
+  `tsc`/`biome`/`next build` plus tracing the SDK's own `zodOutputFormat`
+  source, not a live run. **You'll need to set `ANTHROPIC_API_KEY`** (server
+  env, not `NEXT_PUBLIC_*`) wherever this app is deployed for the feature to
+  do anything beyond gracefully no-op as "unavailable" — until then it's
+  inert by design, not broken.
+
+Verified: `tsc --noEmit` clean, `biome check` clean, `next build` clean (new
+route appears in the tree), confirmed `ANTHROPIC_API_KEY` doesn't appear in
+any `.next/static` client chunk (grep count 0 across every chunk).
 
 ## R8 — no action required (flagged only, not touched)
+
+---
+
+## Summary
+
+All 8 recommendations (R1–R8) from the handover doc are addressed, in the
+requested sequencing order. R1, R2, R4, R6, R7 shipped as real functional
+changes; R3 and R8 were verify-only findings (no code change needed); R5
+shipped its low-effort half (display rename) and explicitly deferred its
+high-effort half (the underlying `SoftwareBuild` enum/DB rename) as a
+separate follow-up ticket, with the reasoning written up above. Section 4's
+two "already correct" items (gate names 1–4, the Idea Council's 5 advisor
+roles/order) were not touched anywhere in this branch.
+
+7 commits on `mission-pipeline-rebuild` (branched off
+`claude/upload-website-github-707ova`), each independently `tsc`/`biome`/
+`next build`-verified. Not yet pushed or opened as a PR — branch is local
+only, pending review.

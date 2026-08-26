@@ -35,6 +35,7 @@ import { MissionToolActionsTimeline } from './mission-tool-actions-timeline';
 import { MissionWorkItemsPanel } from './mission-work-items-panel';
 import { OracleAttestationList } from './oracle-attestation-list';
 import { OracleCouncilCard } from './oracle-council-card';
+import { QAReviewCard } from './qa-review-card';
 
 export function MissionDetail({ missionSlug }: { missionSlug: string }) {
   const [detail, setDetail] = React.useState<MissionDetailT | null>(null);
@@ -193,12 +194,19 @@ export function MissionDetail({ missionSlug }: { missionSlug: string }) {
         <TabsContent value="gates">
           <div className="space-y-4">
             {detail.gates.map((g) => (
-              <MissionGatePanel
-                key={g.gateIndex}
-                missionId={detail.mission.id}
-                gateState={g}
-                onWritten={handleWritten}
-              />
+              <div key={g.gateIndex} className="space-y-3">
+                {/* R7: QA review only makes sense ahead of a decision still
+                    to be made — an already-decided gate has no pending
+                    approval form for it to sit in front of. */}
+                {g.state === 'Awaiting' && (
+                  <QAReviewCard missionId={detail.mission.id} gateIndex={g.gateIndex} />
+                )}
+                <MissionGatePanel
+                  missionId={detail.mission.id}
+                  gateState={g}
+                  onWritten={handleWritten}
+                />
+              </div>
             ))}
           </div>
         </TabsContent>
