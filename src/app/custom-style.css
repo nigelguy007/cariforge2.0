@@ -3,41 +3,52 @@
  * tw-animate-css for motion (animate-in, fade-in, slide-in-from-bottom-N,
  * duration-*). globals.css is framework-owned — edit HERE.
  *
- * CARI Forge — light-first professional register, deep emerald/rainforest
- * green (Blue Mountains, El Yunque) as a RESTRAINED ACCENT, not a full-page
- * saturated wash. This replaced two earlier passes (ocean-teal, then a
- * full-bleed dark emerald field) that both read as "marketing site" rather
- * than "professional governance software" — the same complaint survived a
- * hue change alone, which is what confirmed the actual problem was the
- * saturated full-page background model itself, not the specific color.
- * Matches the pattern real professional SaaS products use (and the actual
- * CARI Forge platform's own "Daylight" register: warm light background,
- * dark ink, one accent color — chosen after benchmarking Lindy, Linear,
- * Relevance AI, Gumloop and finding all of them light-first).
+ * CARI Forge — deep-ocean blue identity, applied site-wide per explicit
+ * user request ("give it a deep ocean contrast the entire site .. with a
+ * lighter version in liquid glass effect"). This supersedes an earlier
+ * decision in this same file's history that had deliberately moved AWAY
+ * from an ocean-teal full-page wash toward a light-first, near-white,
+ * green-as-accent-only register (benchmarked against Lindy, Linear,
+ * Relevance AI, Gumloop) — that decision was a direct response to
+ * specific complaints about an earlier, DIFFERENT ocean-teal pass reading
+ * as "not professional." This pass is deliberately different from that
+ * one in the way that seemed to matter: colour genuinely CONTRASTS against
+ * a deep dark field instead of being a single flat saturated wash, and
+ * surfaces are true frosted liquid-glass (translucent + blurred) rather
+ * than either flat colour or flat opaque white. If this reads as "not
+ * professional" again, the fix is almost certainly the same lesson learned
+ * last time — the flatness/blandness of the treatment, not the hue itself.
  *
- * The brand_tokens seed in globals.css sets --brand-h=152 (emerald green),
- * --brand-c=0.13, --brand-l=0.42, which derive the full --brand-NN ramp.
- * That ramp is background-agnostic by formula (brand-50 near-white through
- * brand-900 near-black) and needed no change — only the ROLE tokens below
- * (background/card/secondary/etc.) flipped from "dark field" to "light
- * neutral, green as accent."
+ * The brand_tokens seed in globals.css sets --brand-h=222 (deep ocean
+ * blue), --brand-c=0.15, --brand-l=0.44, which derive the full --brand-NN
+ * ramp. That ramp is background-agnostic by formula (brand-50 near-white
+ * through brand-900 near-black) and needed no change — only the ROLE
+ * tokens below (background/card/secondary/etc.) and the .glass-* utility
+ * classes changed.
  *
  * Surface model:
- *   --background   : near-white, barely brand-tinted page field
- *   --card         : crisp white card, defined by a hairline border + soft
- *                    shadow rather than a color difference from the page
- *   --outcome      : a step LIGHTER-TINTED-GREEN "value" surface with a
+ *   --background   : light mode — a clearly (not barely) ocean-blue-tinted
+ *                    near-white field; dark mode — a genuinely deep,
+ *                    saturated navy field, not a generic dark-neutral
+ *                    grey with a hint of hue
+ *   --card         : the raw token backing shadcn primitives (Popover,
+ *                    Dialog, etc.) that must stay OPAQUE regardless of
+ *                    theme — deliberately NOT used by .glass-* below
+ *   --outcome      : a step LIGHTER-TINTED-BLUE "value" surface with a
  *                    visible brand-colored border (the deliverable /
- *                    highlight surface; hero form shell, pricing CTAs) —
- *                    still distinguishable on an already-light page via
- *                    tint + border, not via being dramatically lighter
- *   --primary      : the one place full-saturation emerald shows up —
+ *                    highlight surface; hero form shell, pricing CTAs)
+ *   --primary      : the one place full-saturation ocean blue shows up —
  *                    solid CTA fills, the nav bar, links
  *
- * Restrained Liquid Glass: white cards with a soft shadow + thin hairline,
- * a light backdrop-blur for texture, NOT a translucent color-tinted panel
- * revealing a colored field behind it (there's no colored field to reveal
- * anymore — see the body background below). */
+ * Liquid Glass, for real this time: .glass-card / .glass-panel (the
+ * actual UI-primitive card/panel components used across the whole app,
+ * not just decorative homepage elements) now use var(--glass-bg) +
+ * backdrop-filter blur — a genuinely translucent, blurred "lighter
+ * version" of the surface beneath them — matching .glass-surface, which
+ * already worked this way. Both --glass-bg and --glass-border stay theme-
+ * agnostic by formula (defined once in the brand_tokens seed, not
+ * redeclared per theme), so they read as a pale, frosted, ocean-tinted
+ * glass in both light and dark mode without any extra per-theme rules. */
 
 /* Sora (display) + Manrope (body) — single source of truth: src/lib/fonts.ts.
  * The import runs first to satisfy CSS @import ordering rules; the fallback
@@ -61,10 +72,12 @@
    silently winning every time this file used a plain `:root {}` selector.
    Keeping the specificity bump here permanently avoids re-hitting that. */
 :root:root {
-  /* Near-white page field, the faintest brand tint (not a real color —
-     this is what "light background" actually means: not pure #fff, a
-     whisper of hue so the page doesn't feel clinical). */
-  --background: oklch(0.99 0.004 var(--brand-h));
+  /* Light mode's "ocean" identity: a clearly-tinted pale blue field, not
+     the near-imperceptible whisper this used to be — deliberately more
+     visible than the old chroma 0.004 so the recolour actually reads on a
+     system that resolves to light mode, not just in dark mode. Still
+     light enough to stay a professional, readable field, not a wash. */
+  --background: oklch(0.97 0.014 var(--brand-h));
   --foreground: oklch(0.2 0.02 var(--brand-h));
 
   /* Cards are crisp near-white, distinguished from the page by a hairline
@@ -175,8 +188,22 @@
      white surfaces on a near-white page, distinguished by shadow + border,
      the way most professional SaaS products build cards. */
 
-  /* .glass-surface — translucent white panel, the default card shell. */
-  .glass-surface {
+  /* .glass-surface / .glass-card / .glass-panel all share one real bug
+     fixed here: var(--glass-bg)/--glass-border are THEME-AGNOSTIC (defined
+     once in the brand_tokens seed, always a pale translucent tint), but
+     the text rendered inside them normally comes from --card-foreground /
+     --foreground / --muted-foreground, which DO flip per theme. That
+     mismatch is invisible in light mode (pale glass + dark text already
+     matches) but breaks badly in dark mode: near-white --foreground text
+     lands on this same pale glass panel and goes nearly invisible — caught
+     on /pricing, where the card titles were unreadable ghost-text against
+     their own card background. Same root cause, same fix as
+     .glass-highlight below: rescope the text tokens locally to a fixed
+     dark colour that reads correctly against this fixed pale glass in
+     BOTH themes, rather than letting them follow the page-level flip. */
+  .glass-surface,
+  .glass-card,
+  .glass-panel {
     background-color: var(--glass-bg);
     border: 1px solid var(--glass-border);
     box-shadow:
@@ -184,23 +211,11 @@
       0 8px 24px -12px var(--glass-shadow);
     backdrop-filter: blur(var(--glass-blur)) saturate(120%);
     -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(120%);
+    --foreground: oklch(0.22 0.025 var(--brand-h));
+    --card-foreground: oklch(0.22 0.025 var(--brand-h));
+    --muted-foreground: oklch(0.42 0.03 var(--brand-h));
   }
-
-  /* .glass-card — the default card with rounded corners. Crisp white,
-     defined by border + shadow. */
-  .glass-card {
-    background: var(--card);
-    border: 1px solid var(--border);
-    box-shadow:
-      0 1px 2px oklch(0.2 0.02 var(--brand-h) / 0.04),
-      0 8px 24px -12px var(--glass-shadow);
-  }
-
-  /* .glass-panel — broader section-level wrapper; same white surface,
-     slightly larger shadow spread for a section-level container. */
   .glass-panel {
-    background: var(--card);
-    border: 1px solid var(--border);
     box-shadow:
       0 1px 2px oklch(0.2 0.02 var(--brand-h) / 0.04),
       0 16px 40px -20px var(--glass-shadow);
@@ -401,28 +416,29 @@
 }
 
 /* === DARK-MODE OVERRIDES =====================================================
-   Standard dark-neutral theme (near-black, brand-tinted undertone) — the
-   same convention most professional dark modes use (GitHub, Linear,
-   Vercel), NOT a return to the old full-saturation dark-emerald field.
-   Emerald stays the accent in dark mode too. Selector is `.dark.dark`
-   (repeated class -> specificity (0,2,0)) for the same reason the :root
-   block above became `:root:root` — globals.css's later framework-derived
-   .dark{} block redeclares the same properties and would otherwise win by
-   source order alone. */
+   Deep-ocean dark theme — genuinely saturated navy-blue field (not a
+   generic dark-neutral grey with a faint hint of hue), per explicit
+   request for a "deep ocean contrast" applied to the entire site. Chroma
+   is meaningfully higher than a typical dark-mode "brand-tinted
+   undertone" specifically so it reads as ocean-blue, not dark grey.
+   Selector is `.dark.dark` (repeated class -> specificity (0,2,0)) for the
+   same reason the :root block above became `:root:root` — globals.css's
+   later framework-derived .dark{} block redeclares the same properties
+   and would otherwise win by source order alone. */
 .dark.dark {
-  --background: oklch(0.16 0.01 var(--brand-h));
-  --foreground: oklch(0.94 0.01 var(--brand-h));
-  --card: oklch(0.21 0.014 var(--brand-h));
+  --background: oklch(0.15 0.045 var(--brand-h));
+  --foreground: oklch(0.94 0.012 var(--brand-h));
+  --card: oklch(0.21 0.04 var(--brand-h));
   --card-foreground: var(--foreground);
   --popover: var(--card);
   --popover-foreground: var(--foreground);
   --primary: oklch(0.62 calc(var(--brand-c) * 1.1) var(--brand-h));
   --primary-foreground: oklch(0.14 0.02 var(--brand-h));
-  --secondary: oklch(0.26 0.016 var(--brand-h));
+  --secondary: oklch(0.26 0.035 var(--brand-h));
   --secondary-foreground: var(--foreground);
-  --muted: oklch(0.26 0.016 var(--brand-h));
-  --muted-foreground: oklch(0.68 0.02 var(--brand-h));
-  --accent: oklch(0.28 0.024 var(--brand-h));
+  --muted: oklch(0.26 0.035 var(--brand-h));
+  --muted-foreground: oklch(0.68 0.025 var(--brand-h));
+  --accent: oklch(0.28 0.045 var(--brand-h));
   --accent-foreground: var(--foreground);
   --border: oklch(1 0 0 / 12%);
   --input: oklch(1 0 0 / 14%);
@@ -436,13 +452,20 @@
   --outcome: oklch(0.3 0.05 var(--brand-h));
 }
 
+/* Dark mode's ".glass-*" cards were previously flipped back to opaque
+   var(--card) here — the base rules above already switched to translucent
+   var(--glass-bg)/--glass-border, and --glass-bg/--glass-border are
+   theme-agnostic by formula (see the top-of-file comment), so this
+   override is no longer needed for background/border: leaving the base
+   rule's glass treatment in place IS the "lighter version in liquid
+   glass effect" against the deep-ocean dark field. Kept only for the
+   dark-appropriate shadow (a light page's soft shadow reads wrong against
+   a dark field — needs a stronger, darker drop shadow instead). */
 .dark .glass-surface,
 .dark .glass-card,
 .dark .glass-panel {
-  background-color: var(--card);
-  border-color: var(--border);
   box-shadow:
-    0 1px 0 oklch(1 0 0 / 0.05) inset,
+    0 1px 0 oklch(1 0 0 / 0.08) inset,
     0 18px 40px -16px oklch(0 0 0 / 0.55);
 }
 
