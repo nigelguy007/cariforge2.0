@@ -11,37 +11,30 @@
    route so the two don't fight, and this page renders its own header/nav/
    footer entirely.
 
-   The dark value itself is a tinted near-black, not literal #000000 — per
-   the impeccable skill's design context (.impeccable.md at the repo root)
-   and this app's own "pure black/white never appears in nature" rule, and
-   per the user's explicit request to modify this background using the
-   combined colours of the two design references (Caribbean emerald,
-   --brand-h=152, plus the cooler cyan-blue reference) rather than leave it
-   flat black.
-
-   oklch(0.3 0.045 155) — the third value tried here, not the first. Two
-   earlier, more conservative passes (oklch(0.09 0.02 165) → sRGB(0,4,2),
-   then oklch(0.2 0.035 160) → sRGB(6,27,16)) both still read as flat
-   black to the user even after ruling out browser/dev-server caching as
-   the cause — near-black tints in the ~0-30 RGB range are apparently too
-   subtle to register as "not black" on a real screen/screenshot, however
-   correct they measure on paper. This value renders to roughly
-   sRGB(28,53,38): an unambiguous dark forest-green, confirmed by sampling
-   actual rendered pixels, not just the CSS/oklch() label. Don't walk the
-   lightness back down toward those earlier values without re-confirming
-   with a real user, not just a computed-style check. */
+   The dark value itself (oklch(0.07 0.012 220)) is deliberately close to
+   black again, after three earlier passes tried to fix a "still looks
+   black" complaint by tinting the FLAT fill progressively lighter/greener
+   (oklch(0.09 0.02 165) → oklch(0.2 0.035 160) → oklch(0.3 0.045 155)) —
+   which only ever traded one flat colour for another (plain black, a
+   barely-there tint, then a flat forest-green wash) and never delivered
+   what was actually being asked for: a *contrast* of sea-blue, green and
+   black, referencing motionsites.ai's "luminex-hero" and its sibling
+   gallery entries (bold, saturated colour glows/shapes against a black
+   base — not a monochrome fill). That contrast lives in
+   .vhome-hero-photo below, not in this base value — see its comment
+   before re-tinting this one for a "too dark" complaint again. */
 
 html,
 body {
   /* biome-ignore lint/complexity/noImportantStyles: deliberate defensive rule, not an accident — guarantees no white flash regardless of load order, before any other rule (including the var()-based one right below) has a chance to apply. oklch() needs no custom-property fallback: every engine that parses oklch() also supports custom properties, so this literal is just belt-and-braces against cascade-order races, not a compatibility fallback. */
-  background: oklch(0.3 0.045 155) !important;
+  background: oklch(0.07 0.012 220) !important;
   color: #ffffff;
 }
 html,
 body {
-  background: oklch(0.3 0.045 155);
+  background: oklch(0.07 0.012 220);
   /* biome-ignore lint/suspicious/noDuplicateProperties: intentional fallback — the plain value above holds if custom properties aren't supported, var(--vhome-bg) wins where they are. */
-  background: var(--vhome-bg, oklch(0.3 0.045 155));
+  background: var(--vhome-bg, oklch(0.07 0.012 220));
   color: #ffffff;
   color: var(--vhome-text, #ffffff);
 }
@@ -51,7 +44,7 @@ body {
      vhome-font-serif CSS variables the page sets on this element's own
      className — see (setup)/page.tsx for why (self-hosted at build time,
      CSP-clean, no @font-face needed here). */
-  --vhome-bg: oklch(0.3 0.045 155);
+  --vhome-bg: oklch(0.07 0.012 220);
   --vhome-text: oklch(0.96 0.005 165);
   --vhome-muted: #9a9a9a;
   --vhome-stat: #d8d8d8;
@@ -140,10 +133,20 @@ body {
   position: fixed;
   inset: 0;
   z-index: 0;
+  /* The actual "sea-blue, green and black" contrast the user asked for
+     (referencing motionsites.ai's luminex-hero and its gallery siblings —
+     bold colour glows against a black base) lives here, not in the base
+     fill above: a sea-blue glow top-left and a green glow bottom-right,
+     both sized and saturated enough to read clearly as colour against the
+     near-black page, diagonal from each other so they contrast rather
+     than blend into a single wash. Considerably bolder than the previous
+     10-28%-opacity ambient touches this layer had before — those were
+     too subtle to register as intentional colour, part of the same
+     mistake as the base-fill tint attempts above. */
   background:
-    radial-gradient(70% 55% at 18% -6%, oklch(0.35 0.1 var(--brand-h, 152) / 0.28), transparent 62%),
-    radial-gradient(60% 50% at 88% 4%, rgba(100, 206, 251, 0.1), transparent 65%),
-    radial-gradient(120% 90% at 50% 100%, rgba(255, 255, 255, 0.05), transparent 60%);
+    radial-gradient(65% 60% at 12% 6%, oklch(0.62 0.15 210 / 0.55), transparent 68%),
+    radial-gradient(60% 55% at 90% 96%, oklch(0.6 0.16 var(--brand-h, 152) / 0.5), transparent 68%),
+    radial-gradient(120% 90% at 50% 100%, rgba(255, 255, 255, 0.04), transparent 60%);
 }
 .vhome-page {
   position: relative;
