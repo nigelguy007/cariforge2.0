@@ -111,6 +111,13 @@ export function SiteNav() {
   const isSlotActive = (slot: NavSlot) =>
     slot.type === 'link' ? isActive(slot.item.href) : slot.items.some((i) => isActive(i.href));
 
+  // / is a single fixed-viewport page that owns its own complete header/nav
+  // (src/app/(setup)/page.tsx + vesper-header.tsx) — this global nav would
+  // double up with it and break the page's own no-scroll layout, so it opts
+  // out entirely on that one route. All hooks above still run unconditionally
+  // (rules of hooks); only the render bails.
+  if (pathname === '/') return null;
+
   return (
     <>
       {/* Keyboard-only skip link — hidden until focused, jumps past the nav
@@ -368,7 +375,10 @@ export function SiteNav() {
 export function SiteFooter() {
   const isAuthenticated = useIsAuthenticated();
   const footer = visibleItems('footer', isAuthenticated);
-  if (footer.length === 0) return null;
+  const pathname = usePathname();
+  // Same reason as SiteNav above: / owns its own complete footer (the
+  // three-stat bar), so the global footer opts out on that one route.
+  if (footer.length === 0 || pathname === '/') return null;
 
   return (
     // Unlike the nav bar, the footer sits directly on the (now light) page

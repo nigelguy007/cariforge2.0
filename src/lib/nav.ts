@@ -24,9 +24,13 @@ export interface NavItem {
 // Keep the bar short: ~3-5 primary slots, group the tail with `menu`, push the
 // rest to 'footer' (SiteNav overflows extras into a "More" dropdown).
 export const navItems: NavItem[] = [
-  { label: 'How it works', href: '/#how-it-works', group: 'primary', order: 0 },
-  { label: 'Council', href: '/#council', group: 'primary', order: 1 },
-  { label: 'Stages', href: '/#stages', group: 'primary', order: 2 },
+  // The / homepage is a single fixed-viewport hero (see
+  // src/app/(setup)/page.tsx) — these anchors live on /how-it-works now,
+  // where the Oracles/Agents/Stages sections + the real brief-intake form
+  // moved to.
+  { label: 'How it works', href: '/how-it-works', group: 'primary', order: 0 },
+  { label: 'Council', href: '/how-it-works#council', group: 'primary', order: 1 },
+  { label: 'Stages', href: '/how-it-works#stages', group: 'primary', order: 2 },
   { label: 'Oracles', href: '/pilot/oracle-council', group: 'primary', order: 3 },
   { label: 'FAQ', href: '/faq', group: 'primary', order: 4 },
   { label: 'Blog', href: '/blog', group: 'primary', order: 5 },
@@ -93,7 +97,7 @@ export const navItems: NavItem[] = [
   { label: 'Pilot intro', href: '/pilot-intro', group: 'footer', order: 9 },
   {
     label: 'Submit a brief',
-    href: '/#how-it-works',
+    href: '/how-it-works#front-door',
     group: 'secondary',
     order: 0,
   },

@@ -1,0 +1,873 @@
+/* @polsia:user-owned — standalone stylesheet for the / homepage only.
+   Ported from a supplied pixel-exact spec (originally written for a
+   fictional "Vesper.ai"); every class is namespaced vhome-* so nothing here
+   can collide with the rest of the app's Tailwind-based classes, and the
+   file is imported only by src/app/(setup)/page.tsx, so Next's per-route CSS
+   chunking means it only loads on /.
+
+   html/body are forced black WHILE ON THIS ROUTE (per the spec's own "the
+   page can never flash white" requirement); site-nav.tsx's pathname check
+   suppresses the app's normal light-mode SiteNav/SiteFooter on this one
+   route so the two don't fight, and this page renders its own header/nav/
+   footer entirely. */
+
+html,
+body {
+  /* biome-ignore lint/complexity/noImportantStyles: deliberate defensive rule, not an accident — guarantees no white flash regardless of load order, before any other rule (including the var()-based one right below) has a chance to apply. */
+  background: #000000 !important;
+  color: #ffffff;
+}
+html,
+body {
+  background: #000000;
+  /* biome-ignore lint/suspicious/noDuplicateProperties: intentional fallback — the plain #000000 above holds if custom properties aren't supported, var(--vhome-bg) wins where they are. */
+  background: var(--vhome-bg, #000000);
+  color: #ffffff;
+  color: var(--vhome-text, #ffffff);
+}
+
+.vhome-root {
+  /* Fonts come from next/font/google, applied via the vhome-font-inter /
+     vhome-font-serif CSS variables the page sets on this element's own
+     className — see (setup)/page.tsx for why (self-hosted at build time,
+     CSP-clean, no @font-face needed here). */
+  --vhome-bg: #000000;
+  --vhome-text: #ffffff;
+  --vhome-muted: #9a9a9a;
+  --vhome-stat: #d8d8d8;
+  --vhome-border: rgba(255, 255, 255, 0.16);
+  --vhome-border-soft: rgba(255, 255, 255, 0.12);
+
+  --vhome-logo: 15.5px;
+  --vhome-logo-mark: 22px;
+  --vhome-nav: 14px;
+  --vhome-nav-h: 40px;
+  --vhome-btn: 13.5px;
+  --vhome-btn-h: 40px;
+  --vhome-hero-btn-h: 42px;
+  --vhome-h1: 48px;
+  --vhome-lede: 15.5px;
+  --vhome-badge: 12.5px;
+  --vhome-stat-size: 13.5px;
+  --vhome-header-y: 22px;
+  --vhome-header-x: 40px;
+  --vhome-stats-x: 72px;
+  --vhome-stats-y: 36px;
+  --vhome-hero-gap: 85px;
+  --vhome-copy-max: 860px;
+  --vhome-lede-max: 470px;
+
+  position: relative;
+  background: #000000;
+  color: #ffffff;
+  font-family:
+    var(--vhome-font-inter, "Inter"), system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  overflow-x: hidden;
+}
+.vhome-root * {
+  box-sizing: border-box;
+}
+/* :where(.vhome-root) contributes ZERO specificity (unlike a plain
+   .vhome-root prefix), so these two resets stay exactly as weak as a bare
+   `a` / `button` selector — scoped to this page, but unable to beat any
+   later single-class rule like .vhome-btn-solid's color: #111. Without
+   :where(), .vhome-root a (0,1,1) actually OUTRANKS a single-class button
+   rule like .vhome-btn-solid (0,1,0) — a real bug this file shipped with
+   the first time: every solid button rendered white text on its own white
+   background (inherited color winning over the intended dark #111),
+   invisible except on hover. */
+:where(.vhome-root) a {
+  color: inherit;
+  text-decoration: none;
+}
+:where(.vhome-root) button {
+  font-family: inherit;
+}
+
+/* === layer stack ========================================================= */
+.vhome-grain {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  pointer-events: none;
+  opacity: 0.025;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='60'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+.vhome-hero-photo {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  background: radial-gradient(120% 90% at 50% 100%, rgba(255, 255, 255, 0.05), transparent 60%);
+}
+.vhome-page {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  min-height: 100vh;
+  /* biome-ignore lint/suspicious/noDuplicateProperties: intentional dvh-with-vh-fallback (older browsers keep 100vh; dvh wins where supported). */
+  min-height: 100dvh;
+}
+
+/* === header =============================================================== */
+.vhome-header {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  padding: var(--vhome-header-y) var(--vhome-header-x) 10px;
+  z-index: 50;
+  position: relative;
+}
+.vhome-logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  justify-self: start;
+  font-size: var(--vhome-logo);
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  color: #fff;
+}
+.vhome-logo-suffix {
+  font-weight: 400;
+}
+.vhome-nav {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  justify-self: center;
+}
+.vhome-nav-link {
+  height: var(--vhome-nav-h);
+  padding: 0 18px;
+  border-radius: 7px;
+  overflow: hidden;
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid rgba(198, 198, 198, 0.55);
+  background: linear-gradient(105deg, #050505 0%, #2a2a2a 48%, #4a4a4a 100%);
+  color: #f3f3f3;
+  font-size: var(--vhome-nav);
+  font-weight: 400;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+  transition:
+    background 0.35s ease,
+    border-color 0.35s ease,
+    box-shadow 0.35s ease;
+}
+.vhome-nav-link::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    115deg,
+    transparent 30%,
+    rgba(255, 255, 255, 0.16) 50%,
+    transparent 70%
+  );
+  transform: translateX(-120%);
+  transition: transform 0.6s ease;
+}
+.vhome-nav-link:hover {
+  border-color: rgba(235, 235, 235, 0.9);
+  background: linear-gradient(105deg, #111 0%, #3a3a3a 45%, #6a6a6a 100%);
+  box-shadow: 0 0 18px rgba(200, 210, 230, 0.18);
+}
+.vhome-nav-link:hover::before {
+  transform: translateX(120%);
+}
+.vhome-burger {
+  display: none;
+  width: 42px;
+  height: 42px;
+  border-radius: 6px;
+  border: 1px solid var(--vhome-border);
+  background: rgba(8, 8, 8, 0.55);
+  z-index: 60;
+  place-items: center;
+  cursor: pointer;
+}
+.vhome-burger:hover {
+  border-color: rgba(255, 255, 255, 0.32);
+  background: rgba(255, 255, 255, 0.05);
+}
+.vhome-burger-bars {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.vhome-burger-bar {
+  width: 16px;
+  height: 1.5px;
+  border-radius: 1px;
+  background: #fff;
+  transition:
+    transform 0.25s ease,
+    opacity 0.2s ease;
+}
+body.vhome-body-menu-open .vhome-burger-bar:nth-child(1) {
+  transform: translateY(6.5px) rotate(45deg);
+}
+body.vhome-body-menu-open .vhome-burger-bar:nth-child(2) {
+  opacity: 0;
+}
+body.vhome-body-menu-open .vhome-burger-bar:nth-child(3) {
+  transform: translateY(-6.5px) rotate(-45deg);
+}
+
+/* === buttons ============================================================== */
+.vhome-btn {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: var(--vhome-btn-h);
+  padding: 0 16px;
+  border-radius: 6px;
+  font-size: var(--vhome-btn);
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  line-height: 1;
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    background 0.35s ease,
+    border-color 0.35s ease,
+    box-shadow 0.35s ease,
+    color 0.35s ease,
+    filter 0.35s ease;
+}
+.vhome-btn::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    115deg,
+    transparent 20%,
+    rgba(255, 255, 255, 0.45) 48%,
+    transparent 76%
+  );
+  transform: translateX(-130%);
+  transition: transform 0.65s ease;
+}
+.vhome-btn:hover::after {
+  transform: translateX(130%);
+}
+.vhome-btn-solid {
+  background: linear-gradient(180deg, #ffffff 0%, #e7e7e7 48%, #cfcfcf 100%);
+  color: #111;
+  border: 1px solid #fff;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.95);
+}
+.vhome-btn-solid:hover {
+  background: linear-gradient(180deg, #fff 0%, #f3f6ff 42%, #d5def2 100%);
+  border-color: #f2f6ff;
+  box-shadow:
+    inset 0 1px 0 #fff,
+    0 0 22px rgba(186, 208, 255, 0.35),
+    0 8px 18px rgba(255, 255, 255, 0.12);
+}
+.vhome-hero-btn-solid:hover {
+  box-shadow:
+    inset 0 1px 0 #fff,
+    0 0 26px rgba(186, 208, 255, 0.4),
+    0 8px 18px rgba(255, 255, 255, 0.14);
+}
+.vhome-btn-ghost {
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.1),
+    rgba(0, 0, 0, 0.45) 50%,
+    rgba(160, 175, 200, 0.08)
+  );
+  color: #fff;
+  border: 1px solid rgba(198, 198, 198, 0.45);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12);
+}
+.vhome-btn-ghost:hover {
+  background: linear-gradient(
+    135deg,
+    rgba(210, 225, 255, 0.18),
+    rgba(0, 0, 0, 0.35) 48%,
+    rgba(180, 195, 220, 0.16)
+  );
+  border-color: rgba(220, 230, 255, 0.75);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.22),
+    0 0 20px rgba(170, 200, 255, 0.22);
+}
+.vhome-hero-btn-ghost {
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.12),
+    rgba(0, 0, 0, 0.5) 46%,
+    rgba(150, 170, 200, 0.1)
+  );
+  border: 1px solid rgba(198, 198, 198, 0.55);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+.vhome-hero-btn-ghost:hover {
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.22),
+    0 0 24px rgba(170, 200, 255, 0.28);
+  border-color: rgba(220, 230, 255, 0.8);
+}
+.vhome-hero-btn {
+  height: var(--vhome-hero-btn-h);
+  padding: 0 18px;
+}
+
+/* === hero ================================================================= */
+.vhome-hero {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding: 8px 24px var(--vhome-hero-gap);
+  min-height: 0;
+}
+.vhome-hero-copy {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  max-width: var(--vhome-copy-max);
+  width: 100%;
+}
+.vhome-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 22px;
+  padding: 9px 15px;
+  border: 0;
+  border-radius: 5px;
+  background: linear-gradient(90deg, #7d7d7d 0%, #2a2a2a 52%, #0a0a0a 100%);
+  color: #f2f2f2;
+  font-size: var(--vhome-badge);
+  font-weight: 400;
+  letter-spacing: -0.01em;
+}
+.vhome-badge-star {
+  filter: drop-shadow(0 0 3px rgba(255, 255, 255, 0.45));
+}
+.vhome-h1 {
+  font-family:
+    var(--vhome-font-inter, "Inter"), system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+    sans-serif;
+  font-weight: 500;
+  font-size: var(--vhome-h1);
+  letter-spacing: -0.045em;
+  line-height: 1.12;
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 0;
+}
+.vhome-headline-line {
+  display: block;
+  overflow: hidden;
+  padding: 0.06em 0.15em 0.14em;
+}
+.vhome-h1 em {
+  font-family: var(--vhome-font-serif, "Instrument Serif"), "Times New Roman", Times, serif;
+  font-style: italic;
+  font-weight: 400;
+  font-size: 1.08em;
+  letter-spacing: -0.03em;
+  color: #9a9a9a;
+}
+.vhome-lede {
+  max-width: var(--vhome-lede-max);
+  margin-top: 18px;
+  color: #9a9a9a;
+  font-size: var(--vhome-lede);
+  font-weight: 400;
+  line-height: 1.55;
+  letter-spacing: -0.015em;
+}
+.vhome-hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 26px;
+}
+
+/* === stats footer ========================================================= */
+.vhome-stats {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 0 var(--vhome-stats-x) var(--vhome-stats-y);
+  padding-bottom: max(var(--vhome-stats-y), env(safe-area-inset-bottom));
+  color: #d8d8d8;
+}
+.vhome-stat {
+  display: inline-flex;
+  align-items: center;
+  gap: 14px;
+  font-size: var(--vhome-stat-size);
+  letter-spacing: -0.015em;
+  white-space: nowrap;
+}
+.vhome-stat-icon {
+  color: #e8e8e8;
+  flex: none;
+}
+
+/* === entrance motion ====================================================== */
+.vhome-root .vhome-appear {
+  opacity: 1;
+  animation-duration: 1.05s;
+  animation-fill-mode: both;
+  animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+  animation-delay: var(--vhome-d, 0.08s);
+}
+.vhome-root .vhome-appear.vhome-is-in {
+  animation: none;
+  opacity: 1;
+  transform: none;
+  clip-path: none;
+  filter: none;
+}
+.vhome-appear--scale {
+  animation-name: vhome-in-scale;
+}
+.vhome-appear--soft {
+  animation-name: vhome-in-soft;
+}
+.vhome-appear--mask {
+  animation-name: vhome-in-mask;
+}
+.vhome-appear--pop {
+  animation-name: vhome-in-pop;
+}
+.vhome-appear--btn {
+  animation-name: vhome-in-btn;
+}
+.vhome-appear--side {
+  animation-name: vhome-in-side;
+}
+.vhome-appear--stat {
+  animation-name: vhome-in-stat;
+}
+
+@keyframes vhome-in-scale {
+  from {
+    opacity: 0;
+    transform: scale(0.84);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes vhome-in-soft {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes vhome-in-mask {
+  from {
+    opacity: 0;
+    transform: translateY(40%);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes vhome-in-pop {
+  0% {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  70% {
+    opacity: 1;
+    transform: scale(1.03);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+@keyframes vhome-in-btn {
+  from {
+    opacity: 0;
+    transform: translateY(18px) scale(0.94);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes vhome-in-side {
+  from {
+    opacity: 0;
+    transform: translateX(22px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes vhome-in-stat {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes vhome-in-star {
+  0% {
+    transform: scale(0.2) rotate(-50deg);
+  }
+  65% {
+    transform: scale(1.2) rotate(8deg);
+  }
+  100% {
+    transform: none;
+  }
+}
+.vhome-badge-star {
+  animation: vhome-in-star 0.9s cubic-bezier(0.16, 1, 0.3, 1) 0.28s both;
+}
+@keyframes vhome-in-em {
+  from {
+    opacity: 0.35;
+    filter: blur(4px);
+  }
+  to {
+    opacity: 1;
+    filter: none;
+  }
+}
+.vhome-h1 em {
+  animation: vhome-in-em 1.2s cubic-bezier(0.16, 1, 0.3, 1) 0.72s both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .vhome-root *,
+  .vhome-root *::before,
+  .vhome-root *::after {
+    transition: none;
+    animation: none;
+  }
+  .vhome-root .vhome-appear,
+  .vhome-root .vhome-hero-photo,
+  .vhome-root .vhome-h1 em,
+  .vhome-root .vhome-badge-star {
+    opacity: 1;
+    transform: none;
+    clip-path: none;
+    filter: none;
+  }
+}
+
+/* === responsive ============================================================ */
+@media (min-width: 1600px) {
+  .vhome-root {
+    --vhome-logo: 17px;
+    --vhome-logo-mark: 24px;
+    --vhome-nav: 15px;
+    --vhome-nav-h: 44px;
+    --vhome-btn: 15px;
+    --vhome-btn-h: 44px;
+    --vhome-hero-btn-h: 48px;
+    --vhome-h1: 64px;
+    --vhome-lede: 18px;
+    --vhome-badge: 13.5px;
+    --vhome-stat-size: 15px;
+    --vhome-header-y: 28px;
+    --vhome-header-x: 64px;
+    --vhome-stats-x: 96px;
+    --vhome-stats-y: 44px;
+    --vhome-copy-max: 980px;
+    --vhome-lede-max: 540px;
+  }
+  .vhome-nav-link {
+    padding: 0 20px;
+  }
+  .vhome-badge {
+    margin-bottom: 26px;
+  }
+  .vhome-lede {
+    margin-top: 22px;
+  }
+  .vhome-hero-actions {
+    margin-top: 30px;
+    gap: 12px;
+  }
+}
+@media (min-width: 1920px) {
+  .vhome-root {
+    --vhome-logo: 18px;
+    --vhome-logo-mark: 26px;
+    --vhome-nav: 16px;
+    --vhome-nav-h: 48px;
+    --vhome-btn: 16px;
+    --vhome-btn-h: 48px;
+    --vhome-hero-btn-h: 52px;
+    --vhome-h1: 76px;
+    --vhome-lede: 20px;
+    --vhome-badge: 14.5px;
+    --vhome-stat-size: 16px;
+    --vhome-header-y: 32px;
+    --vhome-header-x: 80px;
+    --vhome-stats-x: 120px;
+    --vhome-stats-y: 52px;
+    --vhome-copy-max: 1120px;
+    --vhome-lede-max: 620px;
+  }
+  .vhome-nav {
+    gap: 10px;
+  }
+  .vhome-nav-link {
+    padding: 0 22px;
+  }
+  .vhome-btn {
+    padding: 0 22px;
+  }
+  .vhome-badge {
+    padding: 10px 15px;
+  }
+}
+@media (min-width: 2560px) {
+  .vhome-root {
+    --vhome-h1: 88px;
+    --vhome-lede: 22px;
+    --vhome-header-x: 120px;
+    --vhome-stats-x: 160px;
+    --vhome-copy-max: 1280px;
+    --vhome-lede-max: 680px;
+  }
+}
+@media (min-width: 1280px) and (max-width: 1599px) {
+  .vhome-root {
+    --vhome-h1: 54px;
+    --vhome-lede: 16px;
+    --vhome-header-x: 48px;
+    --vhome-stats-x: 80px;
+    --vhome-copy-max: 900px;
+  }
+}
+@media (min-width: 901px) and (max-width: 1279px) {
+  .vhome-root {
+    --vhome-logo: 15px;
+    --vhome-nav: 13px;
+    --vhome-nav-h: 36px;
+    --vhome-btn: 13px;
+    --vhome-btn-h: 38px;
+    --vhome-hero-btn-h: 40px;
+    --vhome-h1: 42px;
+    --vhome-lede: 15px;
+    --vhome-badge: 12px;
+    --vhome-stat-size: 12.5px;
+    --vhome-header-y: 16px;
+    --vhome-header-x: 28px;
+    --vhome-stats-x: 36px;
+    --vhome-stats-y: 28px;
+    --vhome-hero-gap: 64px;
+    --vhome-copy-max: 760px;
+    --vhome-lede-max: 440px;
+  }
+  .vhome-nav-link {
+    padding: 0 14px;
+  }
+  .vhome-badge {
+    margin-bottom: 16px;
+  }
+  .vhome-lede {
+    margin-top: 14px;
+  }
+  .vhome-hero-actions {
+    margin-top: 20px;
+  }
+}
+@media (min-width: 901px) and (max-height: 850px) {
+  .vhome-root {
+    --vhome-header-y: 14px;
+    --vhome-stats-y: 24px;
+    --vhome-hero-gap: 48px;
+    --vhome-h1: 40px;
+  }
+  .vhome-badge {
+    margin-bottom: 12px;
+  }
+  .vhome-lede {
+    margin-top: 12px;
+  }
+  .vhome-hero-actions {
+    margin-top: 16px;
+  }
+}
+@media (min-width: 901px) and (max-height: 720px) {
+  .vhome-root {
+    --vhome-h1: 34px;
+    --vhome-lede: 14px;
+    --vhome-hero-gap: 32px;
+    --vhome-stats-y: 18px;
+    --vhome-nav-h: 30px;
+    --vhome-btn-h: 34px;
+    --vhome-hero-btn-h: 36px;
+  }
+  .vhome-badge {
+    margin-bottom: 8px;
+  }
+}
+@media (min-width: 901px) {
+  .vhome-root {
+    height: 100%;
+    overflow: hidden;
+  }
+  .vhome-page {
+    height: 100vh;
+    /* biome-ignore lint/suspicious/noDuplicateProperties: intentional dvh-with-vh-fallback. */
+    height: 100dvh;
+    overflow: hidden;
+  }
+}
+
+@media (max-width: 900px) {
+  .vhome-root {
+    height: auto;
+    overflow-y: auto;
+  }
+  .vhome-header {
+    grid-template-columns: 1fr auto auto;
+    gap: 8px;
+    padding-left: max(var(--vhome-header-x), env(safe-area-inset-left));
+    padding-right: max(var(--vhome-header-x), env(safe-area-inset-right));
+  }
+  .vhome-logo,
+  .vhome-header-cta,
+  .vhome-burger {
+    z-index: 80;
+  }
+  .vhome-nav {
+    display: none;
+  }
+  .vhome-burger {
+    display: grid;
+  }
+  .vhome-menu-backdrop {
+    /* Reset: this is a <button> (see vesper-header.tsx — sidesteps two a11y
+       rules a bare clickable <div> trips), not styled to look like one. */
+    appearance: none;
+    border: none;
+    padding: 0;
+    margin: 0;
+    cursor: default;
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 40;
+    background: rgba(8, 8, 8, 0.42);
+    opacity: 0;
+    visibility: hidden;
+    transition:
+      opacity 0.28s ease,
+      visibility 0.28s ease;
+  }
+  body.vhome-body-menu-open .vhome-menu-backdrop {
+    opacity: 1;
+    visibility: visible;
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+  }
+  body.vhome-body-menu-open .vhome-nav {
+    display: flex;
+    position: fixed;
+    inset: 0;
+    z-index: 45;
+    background: transparent;
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: flex-start;
+    gap: 12px;
+    padding: 96px 22px 32px;
+    padding-top: max(96px, calc(env(safe-area-inset-top) + 88px));
+  }
+  body.vhome-body-menu-open .vhome-nav-link {
+    width: 100%;
+    justify-content: center;
+    height: 56px;
+    font-size: 19px;
+    border-radius: 10px;
+  }
+  body.vhome-body-menu-open {
+    overflow: hidden;
+  }
+  .vhome-hero {
+    padding: 20px 20px 64px;
+    align-items: flex-end;
+  }
+  .vhome-stats {
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+  }
+  .vhome-stat {
+    white-space: normal;
+  }
+  .vhome-hero-copy {
+    max-width: 100%;
+  }
+  .vhome-lede {
+    max-width: 100%;
+  }
+  .vhome-root {
+    --vhome-logo: 16px;
+    --vhome-btn: 15px;
+    --vhome-btn-h: 46px;
+    --vhome-hero-btn-h: 48px;
+    --vhome-h1: 36px;
+    --vhome-lede: 16.5px;
+    --vhome-badge: 13.5px;
+    --vhome-stat-size: 15px;
+    --vhome-header-y: 16px;
+    --vhome-header-x: 18px;
+    --vhome-stats-x: 20px;
+    --vhome-stats-y: 28px;
+    --vhome-hero-gap: 36px;
+  }
+}
+@media (max-width: 560px) {
+  .vhome-root {
+    --vhome-h1: 34px;
+    --vhome-lede: 16px;
+    --vhome-header-x: 16px;
+  }
+  .vhome-hero-actions {
+    flex-direction: column;
+    /* Without an explicit width, a column-direction flex container shrinks
+       to its widest child's natural size (centered via the parent's
+       align-items), so a child's own width:100% below has nothing real to
+       fill — it was measuring 100% of an already-content-sized box. */
+    width: 100%;
+  }
+  .vhome-hero-actions .vhome-btn {
+    width: 100%;
+  }
+}
