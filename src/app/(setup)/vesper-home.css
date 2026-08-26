@@ -38,6 +38,22 @@ body {
   --vhome-border: rgba(255, 255, 255, 0.16);
   --vhome-border-soft: rgba(255, 255, 255, 0.12);
 
+  /* Colour pass: combines two references at the user's request — the
+     Caribbean-emerald brand hue this app already settled on (--brand-h=152,
+     set once in globals.css's brand_tokens slot and inherited here since
+     it's a plain :root custom property) for the glass surfaces, and a
+     cyan-blue shine highlight (matching a supplied "#64CEFB" reference) used
+     ONLY inside the animated text-shine sweep below, not as a standalone
+     surface colour — teal/cyan was explicitly rejected as this app's PRIMARY
+     colour earlier in this project, so it stays a highlight, not the base.
+     var(--brand-h) is a bare number (e.g. 152); oklch() is already used
+     elsewhere in this codebase (globals.css, custom-style.css) with no
+     fallback concerns, so no new browser-support tradeoff here. */
+  --vhome-accent: oklch(0.62 0.13 var(--brand-h, 152));
+  --vhome-accent-soft: oklch(0.62 0.13 var(--brand-h, 152) / 0.4);
+  --vhome-accent-dim: oklch(0.3 0.07 var(--brand-h, 152) / 0.55);
+  --vhome-shine: #64cefb;
+
   --vhome-logo: 15.5px;
   --vhome-logo-mark: 22px;
   --vhome-nav: 14px;
@@ -101,7 +117,10 @@ body {
   position: fixed;
   inset: 0;
   z-index: 0;
-  background: radial-gradient(120% 90% at 50% 100%, rgba(255, 255, 255, 0.05), transparent 60%);
+  background:
+    radial-gradient(70% 55% at 18% -6%, oklch(0.35 0.1 var(--brand-h, 152) / 0.28), transparent 62%),
+    radial-gradient(60% 50% at 88% 4%, rgba(100, 206, 251, 0.1), transparent 65%),
+    radial-gradient(120% 90% at 50% 100%, rgba(255, 255, 255, 0.05), transparent 60%);
 }
 .vhome-page {
   position: relative;
@@ -149,8 +168,17 @@ body {
   position: relative;
   display: inline-flex;
   align-items: center;
-  border: 1px solid rgba(198, 198, 198, 0.55);
-  background: linear-gradient(105deg, #050505 0%, #2a2a2a 48%, #4a4a4a 100%);
+  /* Liquid-glass: translucent + blurred, Caribbean-emerald tinted, instead
+     of the prior opaque grey "liquid-metal" gradient. */
+  border: 1px solid var(--vhome-accent-soft);
+  background: linear-gradient(
+    105deg,
+    oklch(0.16 0.03 var(--brand-h, 152) / 0.55) 0%,
+    oklch(0.24 0.05 var(--brand-h, 152) / 0.42) 48%,
+    oklch(0.34 0.07 var(--brand-h, 152) / 0.32) 100%
+  );
+  backdrop-filter: blur(12px) saturate(140%);
+  -webkit-backdrop-filter: blur(12px) saturate(140%);
   color: #f3f3f3;
   font-size: var(--vhome-nav);
   font-weight: 400;
@@ -175,9 +203,14 @@ body {
   transition: transform 0.6s ease;
 }
 .vhome-nav-link:hover {
-  border-color: rgba(235, 235, 235, 0.9);
-  background: linear-gradient(105deg, #111 0%, #3a3a3a 45%, #6a6a6a 100%);
-  box-shadow: 0 0 18px rgba(200, 210, 230, 0.18);
+  border-color: oklch(0.72 0.13 var(--brand-h, 152) / 0.75);
+  background: linear-gradient(
+    105deg,
+    oklch(0.2 0.05 var(--brand-h, 152) / 0.62) 0%,
+    oklch(0.32 0.09 var(--brand-h, 152) / 0.5) 45%,
+    oklch(0.46 0.11 var(--brand-h, 152) / 0.4) 100%
+  );
+  box-shadow: 0 0 18px oklch(0.65 0.13 var(--brand-h, 152) / 0.25);
 }
 .vhome-nav-link:hover::before {
   transform: translateX(120%);
@@ -268,58 +301,63 @@ body.vhome-body-menu-open .vhome-burger-bar:nth-child(3) {
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.95);
 }
 .vhome-btn-solid:hover {
-  background: linear-gradient(180deg, #fff 0%, #f3f6ff 42%, #d5def2 100%);
-  border-color: #f2f6ff;
+  background: linear-gradient(
+    180deg,
+    #fff 0%,
+    oklch(0.95 0.03 var(--brand-h, 152)) 42%,
+    oklch(0.88 0.06 var(--brand-h, 152)) 100%
+  );
+  border-color: oklch(0.95 0.03 var(--brand-h, 152));
   box-shadow:
     inset 0 1px 0 #fff,
-    0 0 22px rgba(186, 208, 255, 0.35),
+    0 0 22px oklch(0.7 0.13 var(--brand-h, 152) / 0.35),
     0 8px 18px rgba(255, 255, 255, 0.12);
 }
 .vhome-hero-btn-solid:hover {
   box-shadow:
     inset 0 1px 0 #fff,
-    0 0 26px rgba(186, 208, 255, 0.4),
+    0 0 26px oklch(0.7 0.13 var(--brand-h, 152) / 0.4),
     0 8px 18px rgba(255, 255, 255, 0.14);
 }
 .vhome-btn-ghost {
   background: linear-gradient(
     135deg,
     rgba(255, 255, 255, 0.1),
-    rgba(0, 0, 0, 0.45) 50%,
-    rgba(160, 175, 200, 0.08)
+    oklch(0.2 0.04 var(--brand-h, 152) / 0.45) 50%,
+    oklch(0.5 0.09 var(--brand-h, 152) / 0.12) 100%
   );
   color: #fff;
-  border: 1px solid rgba(198, 198, 198, 0.45);
+  border: 1px solid var(--vhome-accent-soft);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12);
 }
 .vhome-btn-ghost:hover {
   background: linear-gradient(
     135deg,
-    rgba(210, 225, 255, 0.18),
-    rgba(0, 0, 0, 0.35) 48%,
-    rgba(180, 195, 220, 0.16)
+    oklch(0.75 0.1 var(--brand-h, 152) / 0.2) 0%,
+    oklch(0.18 0.04 var(--brand-h, 152) / 0.35) 48%,
+    oklch(0.55 0.1 var(--brand-h, 152) / 0.2) 100%
   );
-  border-color: rgba(220, 230, 255, 0.75);
+  border-color: oklch(0.78 0.11 var(--brand-h, 152) / 0.8);
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.22),
-    0 0 20px rgba(170, 200, 255, 0.22);
+    0 0 20px oklch(0.7 0.13 var(--brand-h, 152) / 0.28);
 }
 .vhome-hero-btn-ghost {
   background: linear-gradient(
     135deg,
     rgba(255, 255, 255, 0.12),
-    rgba(0, 0, 0, 0.5) 46%,
-    rgba(150, 170, 200, 0.1)
+    oklch(0.22 0.04 var(--brand-h, 152) / 0.5) 46%,
+    oklch(0.5 0.09 var(--brand-h, 152) / 0.14) 100%
   );
-  border: 1px solid rgba(198, 198, 198, 0.55);
+  border: 1px solid var(--vhome-accent-soft);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
 }
 .vhome-hero-btn-ghost:hover {
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.22),
-    0 0 24px rgba(170, 200, 255, 0.28);
-  border-color: rgba(220, 230, 255, 0.8);
+    0 0 24px oklch(0.7 0.13 var(--brand-h, 152) / 0.32);
+  border-color: oklch(0.78 0.11 var(--brand-h, 152) / 0.85);
 }
 .vhome-hero-btn {
   height: var(--vhome-hero-btn-h);
@@ -350,9 +388,16 @@ body.vhome-body-menu-open .vhome-burger-bar:nth-child(3) {
   gap: 8px;
   margin-bottom: 22px;
   padding: 9px 15px;
-  border: 0;
+  border: 1px solid var(--vhome-accent-soft);
   border-radius: 5px;
-  background: linear-gradient(90deg, #7d7d7d 0%, #2a2a2a 52%, #0a0a0a 100%);
+  background: linear-gradient(
+    90deg,
+    oklch(0.5 0.1 var(--brand-h, 152) / 0.4) 0%,
+    oklch(0.2 0.05 var(--brand-h, 152) / 0.6) 52%,
+    oklch(0.08 0.03 var(--brand-h, 152) / 0.7) 100%
+  );
+  backdrop-filter: blur(10px) saturate(140%);
+  -webkit-backdrop-filter: blur(10px) saturate(140%);
   color: #f2f2f2;
   font-size: var(--vhome-badge);
   font-weight: 400;
@@ -386,7 +431,28 @@ body.vhome-body-menu-open .vhome-burger-bar:nth-child(3) {
   font-weight: 400;
   font-size: 1.08em;
   letter-spacing: -0.03em;
+  /* "ShinyText" effect (combines both requested references — the Caribbean
+     emerald this app already settled on as the base, a cyan-blue shine
+     highlight sweeping through, 3s loop matching the supplied spec) done in
+     plain CSS rather than a framer-motion component: this is a Next.js app,
+     not the Vite/React stack the spec assumed, and background-position
+     keyframes produce the identical visible sweep with zero new JS
+     dependency. color:#9a9a9a is kept as the pre-gradient fallback for any
+     engine that doesn't support background-clip:text (it's simply
+     overpainted where supported). */
   color: #9a9a9a;
+  background-image: linear-gradient(
+    100deg,
+    var(--vhome-accent) 0%,
+    var(--vhome-shine) 35%,
+    #ffffff 50%,
+    var(--vhome-shine) 65%,
+    var(--vhome-accent) 100%
+  );
+  background-size: 220% auto;
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 .vhome-lede {
   max-width: var(--vhome-lede-max);
@@ -563,8 +629,22 @@ body.vhome-body-menu-open .vhome-burger-bar:nth-child(3) {
     filter: none;
   }
 }
+@keyframes vhome-shine-sweep {
+  from {
+    background-position: 200% 0;
+  }
+  to {
+    background-position: -200% 0;
+  }
+}
 .vhome-h1 em {
-  animation: vhome-in-em 1.2s cubic-bezier(0.16, 1, 0.3, 1) 0.72s both;
+  /* Two independent animations on non-overlapping properties: the one-time
+     blur-in entrance (opacity/filter, unchanged from before), plus the
+     continuous shine sweep (background-position only) starting once the
+     entrance has finished (delay = entrance's own 0.72s + 1.2s ≈ 1.9s). */
+  animation:
+    vhome-in-em 1.2s cubic-bezier(0.16, 1, 0.3, 1) 0.72s both,
+    vhome-shine-sweep 3s linear 1.9s infinite;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -582,6 +662,17 @@ body.vhome-body-menu-open .vhome-burger-bar:nth-child(3) {
     transform: none;
     clip-path: none;
     filter: none;
+  }
+  /* The generic `.vhome-root * { animation: none }` two rules up can't
+     actually win here: .vhome-h1 em's own base-rule `animation:` shorthand
+     (0,1,1) outranks the universal-selector reset (0,1,0) on plain CSS
+     specificity, so the continuous shine sweep would otherwise keep
+     running under reduced-motion. .vhome-root .vhome-h1 em (0,2,1) is
+     already the highest-specificity rule targeting this element in this
+     block — adding animation: none here is what actually stops it. */
+  .vhome-root .vhome-h1 em {
+    animation: none;
+    background-position: 0 0;
   }
 }
 
