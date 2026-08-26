@@ -1,9 +1,10 @@
 // @polsia:user-owned — root error boundary; REPLACES the layout, so it
 // renders its own <html>/<body> with inline styles (theme/providers/CSS
-// imports unavailable here). Restyled to match the white-teal Liquid Glass
-// system — kept self-contained, no external assets: white-teal background
-// tint derived from the brand hue, generous typography, and a glass-tone
-// retry button.
+// imports unavailable here). Restyled to match the white-emerald Liquid
+// Glass system — kept self-contained, no external assets: white-emerald
+// background tint derived from the brand hue (152, matching
+// src/app/globals.css's brand_tokens seed — computed via OKLCH->sRGB, not
+// eyeballed), generous typography, and a glass-tone retry button.
 
 'use client';
 
@@ -27,10 +28,10 @@ export default function GlobalError({
           padding: '2rem',
           textAlign: 'center',
           fontFamily: '"Sora", "Manrope", "Inter", ui-sans-serif, system-ui, sans-serif',
-          color: '#0e3a40',
-          backgroundColor: '#f5fafb',
+          color: '#14301c',
+          backgroundColor: '#f3fbf4',
           backgroundImage:
-            'radial-gradient(circle at 20% 0%, oklch(0.95 0.05 178 / 0.55), transparent 55%), radial-gradient(circle at 80% 100%, oklch(0.93 0.06 178 / 0.45), transparent 50%)',
+            'radial-gradient(circle at 20% 0%, oklch(0.95 0.05 152 / 0.55), transparent 55%), radial-gradient(circle at 80% 100%, oklch(0.93 0.06 152 / 0.45), transparent 50%)',
           backgroundAttachment: 'fixed',
         }}
       >
@@ -39,13 +40,13 @@ export default function GlobalError({
             display: 'inline-block',
             padding: '0.35rem 0.75rem',
             borderRadius: '999px',
-            border: '1px solid oklch(0.52 0.10 178 / 0.35)',
+            border: '1px solid oklch(0.52 0.10 152 / 0.35)',
             background: 'oklch(1 0 0 / 0.55)',
             fontSize: '0.75rem',
             fontWeight: 600,
             letterSpacing: '0.08em',
             textTransform: 'uppercase',
-            color: '#0e3a40',
+            color: '#14301c',
           }}
         >
           Critical error
@@ -59,7 +60,7 @@ export default function GlobalError({
             margin: 0,
             fontSize: '1rem',
             lineHeight: 1.6,
-            color: '#4a6166',
+            color: '#455c4a',
           }}
         >
           A critical error occurred above the layout. Reload to retry, or step back to the home page
@@ -72,9 +73,9 @@ export default function GlobalError({
             marginTop: '0.25rem',
             padding: '0.75rem 1.25rem',
             borderRadius: '0.75rem',
-            border: '1px solid oklch(0.52 0.10 178 / 0.55)',
-            background: 'oklch(0.52 0.10 178 / 0.95)',
-            color: '#f5fafb',
+            border: '1px solid oklch(0.52 0.10 152 / 0.55)',
+            background: 'oklch(0.52 0.10 152 / 0.95)',
+            color: '#f3fbf4',
             fontWeight: 600,
             fontSize: '0.95rem',
             cursor: 'pointer',

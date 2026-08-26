@@ -3,20 +3,22 @@
  * tw-animate-css for motion (animate-in, fade-in, slide-in-from-bottom-N,
  * duration-*). globals.css is framework-owned — edit HERE.
  *
- * CARI Forge — genuine blue/teal (matches cariforge.com). The brand_tokens
- * seed in globals.css sets --brand-h=195 (teal-cyan), --brand-c=0.16,
- * --brand-l=0.5, which derive the full --brand-NN ramp + every framework
- * role. The overrides below paint a CONTINUOUS BLUE/TEAL field with a
- * lighter outcome/value layer on top — not the prior dark navy gap, not a
- * blanket teal glow, not a white-first wash.
+ * CARI Forge — deep emerald/rainforest green, not the prior ocean-teal
+ * register (Blue Mountains, El Yunque — a Caribbean highland register
+ * rather than a beach-postcard one). The brand_tokens seed in globals.css
+ * sets --brand-h=152 (emerald green), --brand-c=0.13, --brand-l=0.42, which
+ * derive the full --brand-NN ramp + every framework role. The overrides
+ * below paint a CONTINUOUS EMERALD field with a lighter outcome/value layer
+ * on top — not the prior dark navy gap, not a blanket teal glow, not a
+ * white-first wash.
  *
  * Surface model (light mode = CARI Forge's intended register):
- *   --background   : mid-luminance teal-blue field (the brand-aligned backplane)
- *   --card         : slightly lifted teal-blue panel, reads above the field
- *   --outcome      : clearly LIGHTER near-white teal-tinted panel  (the
+ *   --background   : mid-luminance emerald field (the brand-aligned backplane)
+ *   --card         : slightly lifted emerald panel, reads above the field
+ *   --outcome      : clearly LIGHTER near-white emerald-tinted panel  (the
  *                    deliverable / value surface; used by highlight cards,
  *                    hero form shells, pricing CTAs)
- *   --primary      : mid-luminance engine teal (CTA surface)
+ *   --primary      : mid-luminance engine emerald (CTA surface)
  *
  * Restrained Liquid Glass depth: a single backdrop-blur step (~14px),
  * hairline borders, soft brand-tinted shadows. No sat >150%, no full-bleed
@@ -29,16 +31,35 @@
  * round-trip. */
 
 /* === ROLE TOKEN OVERRIDES ====================================================
-   CARI Forge visual system: DEEP CARIBBEAN SEA BLUE/TEAL FIELD with a LIGHTER
-   outcome surface on top. Tuned inside :root so every primitive utility in
-   the codebase (bg-background, text-foreground, border-border, bg-card,
-   text-brand-600/700, ...) already composes against the right tones. */
-:root {
-  /* Brand-aligned backplane. Deep Caribbean Sea blue-teal — a GENUINE deep
-     ocean-teal field (genuinely deep, NOT pale, NOT dark navy). High
-     chroma keeps the hue locked to cariforge.com's blue/teal register so
-     the field reads teal, not grey. White text on this register sits at
-     well above 12:1 contrast, while DARK ink (--foreground) stays kept
+   CARI Forge visual system: DEEP CARIBBEAN RAINFOREST EMERALD FIELD with a
+   LIGHTER outcome surface on top. Tuned inside :root so every primitive
+   utility in the codebase (bg-background, text-foreground, border-border,
+   bg-card, text-brand-600/700, ...) already composes against the right
+   tones.
+
+   BUG FOUND + FIXED while restyling the brand hue: this file is @import'd
+   near the TOP of globals.css (right after the tailwindcss/tw-animate-css
+   imports), but globals.css's own later "FRAMEWORK-DERIVED" :root block
+   redeclares these SAME custom properties (--background, --foreground,
+   --card, --primary, --brand-50..900, etc.) further down in the same
+   stylesheet. Two unlayered :root rules of equal specificity resolve by
+   source order — so that later, framework block was silently winning,
+   and the whole page was rendering on the framework's pale near-white
+   --background instead of this file's intended deep field. Only classes
+   that compute their own oklch() directly from --brand-h (like .glass-nav)
+   escaped it — which is exactly why the nav bar read correctly while the
+   page body and every text-white/85 hero paragraph sitting on it did not:
+   white text on an accidentally-pale background, nowhere near the
+   documented 12:1 contrast. Selector below is `:root:root` (repeated
+   pseudo-class -> specificity (0,2,0) instead of :root's (0,1,0)) purely to
+   win that fight regardless of import position — no framework file edited,
+   no !important. */
+:root:root {
+  /* Brand-aligned backplane. Deep Caribbean rainforest emerald — a GENUINE
+     deep forest-green field (genuinely deep, NOT pale, NOT dark navy). High
+     chroma keeps the hue locked to CARI Forge's emerald register so the
+     field reads as forest green, not grey. White text on this register sits
+     at well above 12:1 contrast, while DARK ink (--foreground) stays kept
      back for the lighter outcome surfaces only — so flipping the
      universal --foreground token would break dark ink on cards. Hero /
      lede / meta on the field use explicit text-white utilities. */
@@ -54,14 +75,14 @@
   --popover: oklch(0.94 0.022 var(--brand-h));
   --popover-foreground: var(--foreground);
 
-  /* Teal engine — the brand color in its vivid mid-luminance register
+  /* Emerald engine — the brand color in its vivid mid-luminance register
      (CTA fill). Higher chroma than the deeper field so the button "pops". */
   --primary: oklch(0.52 calc(var(--brand-c) * 1.25) var(--brand-h));
   --primary-foreground: oklch(0.99 0.008 var(--brand-h));
 
   /* Secondary / muted — sub-panels and inactive UI. Tuned LIGHTER than
      the deep field so a `bg-muted` or `bg-secondary` element lifts off
-     the blue/teal canvas. Dark ink on these lighter sub-surfaces. */
+     the emerald canvas. Dark ink on these lighter sub-surfaces. */
   --secondary: oklch(0.78 0.04 var(--brand-h));
   --secondary-foreground: var(--foreground);
   --muted: oklch(0.76 0.038 var(--brand-h));
@@ -72,24 +93,24 @@
 
   --destructive: oklch(0.704 0.191 22.216);
 
-  /* Brand-tinted hairlines that read on the deep blue/teal field. Tightened
+  /* Brand-tinted hairlines that read on the deep emerald field. Tightened
      alpha for crisp reads on the deeper field; an explicit ring offset (vivid
-     teal) keeps focus-visible bright on the dark register. */
+     emerald) keeps focus-visible bright on the dark register. */
   --border: oklch(0.62 0.045 var(--brand-h) / 28%);
   --input: oklch(0.6 0.045 var(--brand-h) / 32%);
   --ring: oklch(0.62 calc(var(--brand-c) * 1.3) var(--brand-h));
 
   /* OUTCOME / "lighter value" surface — used by .glass-card tone="highlight"
      (the hero form shell, pricing CTAs, etc.). A clearly LIGHTER
-     near-white teal-tinted surface that reads as the destination register
-     stacked above the deep blue/teal field. White-on-deep is reserved for
+     near-white emerald-tinted surface that reads as the destination register
+     stacked above the deep emerald field. White-on-deep is reserved for
      hero/body sections; dark ink reads on this lighter surface. */
   --outcome: oklch(0.94 0.018 var(--brand-h));
   --outcome-foreground: oklch(0.18 0.022 var(--brand-h));
 
   /* Re-tuned brand steps so existing classNames (text-brand-700 catalogue
      labels, border-brand-300, bg-brand-500 ranked surfaces) read brightly
-     on the deep blue/teal canvas. brand-700 is the readable teal label
+     on the deep emerald canvas. brand-700 is the readable emerald label
      (eyebrows, ordinals); brand-600 is lifted to read as a vivid CTA fill
      at the same hue. */
   --brand-50: oklch(0.97 calc(var(--brand-c) * 0.25) var(--brand-h));
@@ -99,7 +120,7 @@
   --brand-400: oklch(0.65 var(--brand-c) var(--brand-h));
   --brand-500: oklch(var(--brand-l) var(--brand-c) var(--brand-h));
   --brand-600: oklch(0.5 var(--brand-c) var(--brand-h));
-  /* brand-700 — high-contrast teal label color on the lighter blue canvas
+  /* brand-700 — high-contrast emerald label color on the lighter canvas
      ("№ 01", Stage chips, eyebrows). Step LIFTED to keep text-brand-700
      vivid against either the field OR the destination register. */
   --brand-700: oklch(0.4 var(--brand-c) var(--brand-h));
@@ -111,8 +132,8 @@
   --elevation-3: oklch(0.04 0.03 var(--brand-h) / 0.7);
   --shadow-brand-color: oklch(var(--brand-l) var(--brand-c) var(--brand-h) / 0.45);
 
-  /* Liquid-glass tint tokens — translucent teal reveals over the DEEPER
-     blue/teal field. Border gets the strongest contrast alpha so the
+  /* Liquid-glass tint tokens — translucent emerald reveals over the DEEPER
+     emerald field. Border gets the strongest contrast alpha so the
      hairline reads on the dark field; shadow stays brand-tinted for depth
      without graying out. Blur and saturation are tuned for visible Liquid
      Glass (apple.com-level). */
@@ -123,7 +144,7 @@
   --glass-shadow: oklch(0.16 0.04 var(--brand-h) / 0.32);
   --glass-blur: 18px;
 
-  /* Outcome-shell tokens — the LIGHTER near-white teal-tinted surface that
+  /* Outcome-shell tokens — the LIGHTER near-white emerald-tinted surface that
      .glass-card tone="highlight" composes with. Reads clearly brighter than
      --background so it stands as the destination register above the field.
      Opacity raised so dark ink on it always reads at >= 7:1. */
@@ -136,13 +157,13 @@
 }
 
 @layer base {
-  /* Layered BLUE/TEAL field backdrop with tone-on-tone teal pushes. The
+  /* Layered EMERALD field backdrop with tone-on-tone emerald pushes. The
      deeper field (--background: oklch 0.30) gets two deliberate tone
-     pulls toward a slightly lighter teal in the upper register so the
-     page reads as a Caribbean Sea wash rather than a flat color. The
-     third bottom radial carries a soft outcome tint that anchors the
-     lighter glass surfaces (cards, highlight panels) to the page.
-     background-attachment:fixed keeps the depth field stable as
+     pulls toward a slightly lighter emerald in the upper register so the
+     page reads as a Caribbean rainforest canopy wash rather than a flat
+     color. The third bottom radial carries a soft outcome tint that
+     anchors the lighter glass surfaces (cards, highlight panels) to the
+     page. background-attachment:fixed keeps the depth field stable as
      sections scroll. */
   body {
     background-color: var(--background);
@@ -171,16 +192,16 @@
 
 @layer components {
   /* === LIQUID GLASS UTILITIES ================================================
-   * The system is restrained-but-VISIBLE: translucent teal reveal over the
-     deep blue/teal field with a clearly bright top-edge highlight seam
+   * The system is restrained-but-VISIBLE: translucent emerald reveal over the
+     deep emerald field with a clearly bright top-edge highlight seam
      (the "Liquid Glass" hallmark), a 1px brand-tinted hairline, a
      18px+ backdrop blur + 170% saturation step, and a soft two-layer
      brand-tinted shadow that ties every surface back to CARI Forge's
-     teal engine. Surface opacities kept in the 0.74-0.88 band so the
+     emerald engine. Surface opacities kept in the 0.74-0.88 band so the
      field shows through — the panel "reveals" the field color, the apple
      cue. */
 
-  /* .glass-surface — translucent teal-tinted panel, the default card
+  /* .glass-surface — translucent emerald-tinted panel, the default card
      shell. Reads as a brighter layer above the deep field with a visible
      top-edge highlight seam. */
   .glass-surface {
@@ -195,10 +216,11 @@
   }
 
   /* .glass-card — the default glass card with rounded corners. LIFTED
-     above the deeper Caribbean Sea field: gradient stops are lighter and
-     opacity sits around 0.82 so the card surface is clearly brighter
-     than the page background, the field shows through (visible Liquid
-     Glass reveal), and dark ink (--card-foreground) reads at >= 7:1. */
+     above the deeper Caribbean rainforest field: gradient stops are
+     lighter and opacity sits around 0.82 so the card surface is clearly
+     brighter than the page background, the field shows through (visible
+     Liquid Glass reveal), and dark ink (--card-foreground) reads at
+     >= 7:1. */
   .glass-card {
     background: linear-gradient(
       180deg,
@@ -214,7 +236,7 @@
     -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(170%);
   }
 
-  /* .glass-panel — broader section-level wrapper; lighter teal-tinted
+  /* .glass-panel — broader section-level wrapper; lighter emerald-tinted
      wash, slightly bigger blur step. Same lift as .glass-card so a panel
      and a card compose together above the deeper field. */
   .glass-panel {
@@ -232,7 +254,7 @@
   }
 
   /* .glass-card.tone-highlight / .glass-highlight — the OUTCOME surface.
-     Reads clearly LIGHTER than the blue/teal field. Used by the hero
+     Reads clearly LIGHTER than the emerald field. Used by the hero
      "leave a brief" form shell, pricing CTA shells, and "front-door
      reminder" panel. Near-white, near-opaque; dark ink + brand labels
      always read at high contrast. */
@@ -249,7 +271,7 @@
   }
 
   /* .glass-chip — translucent pill for stance badges and eyebrows.
-     Brand-tinted ink reads on the lighter teal canvas. LIGHTER than the
+     Brand-tinted ink reads on the lighter emerald canvas. LIGHTER than the
      field so chips read as destination labels. */
   .glass-chip {
     background: linear-gradient(
@@ -296,7 +318,7 @@
     );
   }
 
-  /* .glow-text — teal text glow for hero display headlines. Alpha toned
+  /* .glow-text — emerald text glow for hero display headlines. Alpha toned
      down so the headline doesn't bleed on the lighter backplane. */
   .glow-text {
     text-shadow:
@@ -304,7 +326,7 @@
       0 0 10px oklch(var(--brand-l) calc(var(--brand-c) * 0.7) var(--brand-h) / 0.4);
   }
 
-  /* .glass-cta — solid vivid teal primary CTA. Foreground reads as
+  /* .glass-cta — solid vivid emerald primary CTA. Foreground reads as
      near-white for the highest-contrast element on the page. */
   .glass-cta {
     background: linear-gradient(
@@ -320,7 +342,7 @@
       0 4px 12px -4px var(--glass-shadow);
   }
 
-  /* .glass-outline-cta — translucent teal glass with brand hairline. */
+  /* .glass-outline-cta — translucent emerald glass with brand hairline. */
   .glass-outline-cta {
     background: linear-gradient(
       180deg,
@@ -338,9 +360,9 @@
 
   /* === BACKGROUNDS / DEPTH =================================================== */
 
-  /* .hero-aurora — restrained TEAL engine push (top-left). A single
-     radial on the lighter blue field; chroma re-tuned so it pushes
-     lighter teal, not a heavy dark teal aurora. */
+  /* .hero-aurora — restrained EMERALD engine push (top-left). A single
+     radial on the lighter field; chroma re-tuned so it pushes lighter
+     emerald, not a heavy dark emerald aurora. */
   .hero-aurora {
     position: relative;
     isolation: isolate;
@@ -364,7 +386,7 @@
     );
   }
 
-  /* .section-aurora — softer per-section variant. A single teal radial
+  /* .section-aurora — softer per-section variant. A single emerald radial
      pinned top-right of the section; not full-bleed. Chroma re-tuned for
      the lighter register. */
   .section-aurora {
@@ -417,7 +439,7 @@
 
   /* === ANCHOR + LINK TREATMENT =============================================== */
 
-  /* Brand link — vivid teal on the blue/teal canvas, drawn from
+  /* Brand link — vivid emerald on the emerald canvas, drawn from
      brand-700. */
   .link-brand {
     color: var(--brand-700);
@@ -432,11 +454,15 @@
 }
 
 /* === DARK-MODE OVERRIDES =====================================================
-   Light mode is the brand-aligned BLUE/TEAL field. The .dark class deepens
+   Light mode is the brand-aligned EMERALD field. The .dark class deepens
    the register so a theme-toggle still has audible difference, while
-   preserving the same teal brand accent and a lighter outcome surface
-   (still clearly brighter than --background). */
-.dark {
+   preserving the same emerald brand accent and a lighter outcome surface
+   (still clearly brighter than --background). Selector is `.dark.dark`
+   (repeated class -> specificity (0,2,0)) for the same reason the :root
+   block above became `:root:root` — globals.css's later framework-derived
+   .dark{} block redeclares the same properties and would otherwise win by
+   source order alone. */
+.dark.dark {
   --background: oklch(0.2 0.04 var(--brand-h));
   --foreground: oklch(0.94 0.012 var(--brand-h));
   --card: oklch(0.27 0.044 var(--brand-h));

@@ -1,5 +1,5 @@
 // @polsia:user-owned — route error boundary (Client Component). Restyled
-// to match the white-teal Liquid Glass system: aurora backdrop, centered
+// to match the white-emerald Liquid Glass system: aurora backdrop, centered
 // glass card, brand-tinted headline + retry CTA.
 
 'use client';

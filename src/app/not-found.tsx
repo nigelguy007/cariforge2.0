@@ -1,4 +1,4 @@
-// @polsia:user-owned — app 404 page. Restyled to match the white-teal
+// @polsia:user-owned — app 404 page. Restyled to match the white-emerald
 // Liquid Glass system: aurora backdrop, centered glass card, large
 // numeric headline with an eyebrow chip explaining what went wrong, and
 // a primary CTA back to the home page's brief intake.
