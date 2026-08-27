@@ -39,7 +39,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { apiFetch } from '@/lib/api-client';
-import { LeadCreate, LeadItem } from '@/lib/contracts/leads';
+import { friendlyLeadReference, LeadCreate, LeadItem } from '@/lib/contracts/leads';
 import { applyServerErrors } from '@/lib/forms';
 
 // react-hook-form's resolver wants the INPUT shape (before the schema's
@@ -68,18 +68,45 @@ export function BriefIntakeForm() {
   });
 
   if (submitted) {
+    const reference = friendlyLeadReference(submitted.id);
     return (
-      <div className="glass-card flex flex-col gap-3 rounded-2xl p-6 text-card-foreground">
-        <p className="font-display text-h4 tracking-tight">Brief received.</p>
-        <p className="text-small text-card-foreground/80">
-          {submitted.notified
-            ? "Logged and forwarded to the team — we'll reply from a named human within 48 hours."
-            : "Logged. We're still in pilot — expect a slower reply while we set up the inbox."}
-        </p>
-        <p className="text-caption text-muted-foreground">
-          Reference: <span className="font-mono text-card-foreground">{submitted.id}</span>
-          {' · '}captured {submitted.createdAt.slice(0, 10)}.
-        </p>
+      <div className="glass-card flex flex-col gap-4 rounded-2xl p-6 text-card-foreground">
+        <div className="flex flex-col gap-3">
+          <p className="font-display text-h4 tracking-tight">Brief received.</p>
+          <p className="text-small text-card-foreground/80">
+            {submitted.notified
+              ? "Logged and forwarded to the team — we'll reply from a named human within 48 hours."
+              : "Logged. We're still in pilot — expect a slower reply while we set up the inbox."}
+          </p>
+          <p className="text-caption text-muted-foreground">
+            Reference: <span className="font-mono text-card-foreground">{reference}</span>
+            {' · '}captured {submitted.createdAt.slice(0, 10)}. Quote this reference in any
+            follow-up email.
+          </p>
+        </div>
+        <div className="flex flex-col gap-2 rounded-xl border border-border bg-muted/30 p-4">
+          <p className="text-small font-medium text-foreground">What happens next</p>
+          <ol className="flex list-decimal flex-col gap-1.5 pl-4 text-small text-card-foreground/80">
+            <li>A named human reads your brief — not an automated reply.</li>
+            <li>
+              If it looks like a fit for a 21-day proof, we reply
+              {submitted.email ? ' to the email above' : ' and ask how to reach you'} to start
+              Discovery.
+            </li>
+            <li>If it isn&rsquo;t a fit yet, we say so plainly and explain why.</li>
+          </ol>
+        </div>
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-small">
+          <a href="#council" className="font-medium text-primary underline underline-offset-4">
+            See how The Oracles rule on it
+          </a>
+          <span aria-hidden="true" className="text-muted-foreground">
+            ·
+          </span>
+          <a href="/" className="font-medium text-primary underline underline-offset-4">
+            Back to homepage
+          </a>
+        </div>
       </div>
     );
   }

@@ -37,6 +37,20 @@ export const LeadItem = LeadCreate.extend({
 export type LeadCreate = z.infer<typeof LeadCreate>;
 export type LeadItem = z.infer<typeof LeadItem>;
 
+// Cosmetic, buyer-facing reference derived from the lead's cuid — the raw id
+// (e.g. "cmtc51g2u0001js04r455be7k") is a database primary key, not something
+// a regulated buyer should have to read back over email. This is
+// deterministic (same id -> same code every time) and NOT a separate stored
+// value, so no migration is needed and support can always recompute it from
+// the id in the leads table. Not cryptographically unique on its own — for
+// pilot volumes an 8-char slice of a cuid is plenty; revisit if collisions
+// ever matter (e.g. add a dedicated indexed column) at higher volume.
+export function friendlyLeadReference(id: string): string {
+  const clean = id.replace(/[^a-z0-9]/gi, '').toUpperCase();
+  const tail = clean.length >= 8 ? clean.slice(-8) : clean.padStart(8, '0');
+  return `CF-${tail.slice(0, 4)}-${tail.slice(4, 8)}`;
+}
+
 // ────────────────────────────────────────────────────────────────────────────
 // Admin leads dashboard — read-only view used by /admin/leads (server route +
 // client island). Same single-source-of-truth rule: this contract is the
