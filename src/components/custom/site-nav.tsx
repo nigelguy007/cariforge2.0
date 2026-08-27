@@ -33,7 +33,12 @@ function useIsAuthenticated(): boolean {
 
 function visibleItems(group: NavGroup, isAuthenticated: boolean): NavItem[] {
   return navItems
-    .filter((item) => item.group === group && (!item.requiresAuth || isAuthenticated))
+    .filter(
+      (item) =>
+        item.group === group &&
+        (!item.requiresAuth || isAuthenticated) &&
+        (!item.hideWhenAuth || !isAuthenticated),
+    )
     .sort(
       (a, b) =>
         (a.order ?? Number.MAX_SAFE_INTEGER) - (b.order ?? Number.MAX_SAFE_INTEGER) ||

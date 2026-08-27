@@ -6,6 +6,10 @@
 
 import Link from 'next/link';
 import * as React from 'react';
+// Session seam, same pattern as site-nav.tsx — the homepage's header is a
+// separate hardcoded component (not driven by src/lib/nav.ts), so it needs
+// its own auth check to show Log in / Sign up only to signed-out visitors.
+import { useSession } from '@/lib/auth-client';
 
 const NAV_ITEMS = [
   { label: 'How it works', href: '/how-it-works', appear: 'vhome-appear--scale', d: '0.16s' },
@@ -36,6 +40,8 @@ function LogoMark() {
 
 export function VesperHeader() {
   const [open, setOpen] = React.useState(false);
+  const { data: session, isPending } = useSession();
+  const isAuthenticated = !isPending && Boolean(session?.user);
 
   React.useEffect(() => {
     document.body.classList.toggle('vhome-body-menu-open', open);
@@ -97,6 +103,28 @@ export function VesperHeader() {
         </nav>
 
         <div style={{ justifySelf: 'end', display: 'flex', alignItems: 'center', gap: 10 }}>
+          {/* Root cause of a real, user-reported bug: this header (the
+              homepage's own, separate from src/lib/nav.ts) had no path to
+              the signed-in product at all — only "Submit a brief". A
+              visitor with no prior knowledge of /login or /signup had no
+              way to find either. */}
+          {isAuthenticated ? (
+            <Link
+              href="/dashboard"
+              className="vhome-nav-link vhome-appear vhome-appear--soft"
+              style={{ ['--vhome-d' as string]: '0.30s' }}
+            >
+              Dashboard
+            </Link>
+          ) : (
+            <Link
+              href="/login"
+              className="vhome-nav-link vhome-appear vhome-appear--soft"
+              style={{ ['--vhome-d' as string]: '0.30s' }}
+            >
+              Log in
+            </Link>
+          )}
           <Link
             href="/how-it-works#front-door"
             className="vhome-btn vhome-btn-solid vhome-appear vhome-appear--scale"

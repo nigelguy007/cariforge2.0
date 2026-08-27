@@ -17,6 +17,9 @@ export interface NavItem {
   menu?: string;
   /** When true, render only if a session exists (see site-nav.tsx). */
   requiresAuth?: boolean;
+  /** When true, render only if NO session exists — for Log in / Sign up,
+   * so a signed-in user doesn't see a prompt to sign in again. */
+  hideWhenAuth?: boolean;
   /** Sort key within a group (ascending); unordered items fall to the end. */
   order?: number;
 }
@@ -101,4 +104,12 @@ export const navItems: NavItem[] = [
     group: 'secondary',
     order: 0,
   },
+  // Root cause of a real, user-reported bug: there was no discoverable path
+  // from the public site to the signed-in product at all — /missions only
+  // appears once a session already exists (requiresAuth above), and no
+  // secondary nav item pointed at /login or /signup, so a visitor had no
+  // way to find either short of already knowing the URL. hideWhenAuth so a
+  // signed-in user doesn't see a prompt to log in again.
+  { label: 'Log in', href: '/login', group: 'secondary', hideWhenAuth: true, order: 1 },
+  { label: 'Sign up', href: '/signup', group: 'secondary', hideWhenAuth: true, order: 2 },
 ];
