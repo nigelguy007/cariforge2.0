@@ -16,4 +16,12 @@ import { defineConfig } from 'prisma/config';
 
 export default defineConfig({
   schema: path.join('prisma', 'schema'),
+  // Without this, `prisma migrate deploy`/`status` silently report "up to
+  // date" on a completely fresh database with zero migrations applied —
+  // no error at all. Confirmed by hand against a brand-new Supabase
+  // project on 2026-08-27: Prisma doesn't infer `prisma/migrations` on
+  // its own once `schema` points at a folder rather than a single file.
+  migrations: {
+    path: path.join('prisma', 'migrations'),
+  },
 });
