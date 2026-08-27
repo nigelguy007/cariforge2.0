@@ -14,13 +14,14 @@
 // real usage accumulates, not a reason to fake larger ones.
 
 import type { MissionStatus } from '@/lib/contracts/forge';
-
-const TERMINAL_STATUSES: readonly MissionStatus[] = [
-  'Completed',
-  'WalkedAway',
-  'RolledBack',
-  'Rejected',
-];
+// TERMINAL_STATUSES comes from state-machine.ts — the canonical definition,
+// not a hand-duplicated copy. This file previously kept its own list that
+// included 'RolledBack' as terminal; state-machine.ts deliberately excludes
+// it because RolledBack has real forward transitions back to active stages
+// (see ALLOWED_TRANSITIONS there), so a rolled-back-but-resumable mission
+// was being counted the same as a permanently Rejected/WalkedAway one in
+// this file's completionRate calculation.
+import { TERMINAL_STATUSES } from './state-machine';
 
 export interface AdoptionMissionRow {
   status: MissionStatus;
@@ -84,7 +85,7 @@ export function computeAdoptionMetrics(missions: readonly AdoptionMissionRow[]):
     .map(([status, count]) => ({ status, count }))
     .sort((a, b) => b.count - a.count);
 
-  const terminal = missions.filter((m) => TERMINAL_STATUSES.includes(m.status));
+  const terminal = missions.filter((m) => TERMINAL_STATUSES.has(m.status));
   const completedTerminal = terminal.filter((m) => m.status === 'Completed');
   const completionRate = terminal.length > 0 ? completedTerminal.length / terminal.length : null;
 

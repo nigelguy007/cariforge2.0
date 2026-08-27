@@ -197,9 +197,14 @@ export function MissionDetail({ missionSlug }: { missionSlug: string }) {
             {detail.gates.map((g) => (
               <div key={g.gateIndex} className="space-y-3">
                 {/* R7: QA review only makes sense ahead of a decision still
-                    to be made — an already-decided gate has no pending
-                    approval form for it to sit in front of. */}
-                {g.state === 'Awaiting' && (
+                    to be made. `g.state === 'Awaiting'` isn't enough on its
+                    own — every gate the mission hasn't reached yet also
+                    defaults to 'Awaiting' (no approval row exists for it
+                    yet), so that check alone fired a QA-review request, and
+                    an alarming "couldn't run" notice, under gates with no
+                    artefact at all. Only the mission's actual current gate
+                    has a real handoff for the reviewer to look at. */}
+                {g.state === 'Awaiting' && g.gateIndex === detail.mission.currentStageIndex && (
                   <QAReviewCard missionId={detail.mission.id} gateIndex={g.gateIndex} />
                 )}
                 <MissionGatePanel
@@ -289,7 +294,7 @@ export function MissionDetail({ missionSlug }: { missionSlug: string }) {
 // 'SoftwareBuild' here regardless of what GATE_DEFS itself called the gate,
 // so the two could silently drift. Single source of truth now.
 function stageLabelForIndex(idx: number): string {
-  return GATE_DEFS[Math.min(idx, GATE_DEFS.length - 1)]?.stage ?? 'Draft';
+  return GATE_DEFS[Math.min(idx, GATE_DEFS.length - 1)]?.name ?? 'Draft';
 }
 
 function GateCard({ gate }: { gate: GateStateT }) {

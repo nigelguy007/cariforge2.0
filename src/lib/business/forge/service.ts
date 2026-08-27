@@ -1283,8 +1283,13 @@ export async function decideToolAction(args: {
     if (!ta || ta.missionId !== args.missionId) throw new Error('FORGE_TOOL_NOT_FOUND');
     if (ta.decision) throw new Error('FORGE_TOOL_ALREADY_DECIDED');
 
+    // No `decision: 'Approve'` filter here — assertExternalApproved's own
+    // isApproveDecision() check below already treats ApproveWithControls as
+    // approved (R4). Pre-filtering to the literal 'Approve' string here would
+    // silently drop ApproveWithControls rows before that check ever sees
+    // them, wrongly reporting a genuinely-approved gate as ungated.
     const approvals = await tx.approval.findMany({
-      where: { missionId: args.missionId, decision: 'Approve' },
+      where: { missionId: args.missionId },
     });
 
     assertExternalApproved(
