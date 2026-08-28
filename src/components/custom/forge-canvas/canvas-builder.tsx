@@ -341,10 +341,18 @@ export function ForgeCanvasBuilder() {
   const selectedConfig = (selected?.data as { config?: Record<string, unknown> })?.config ?? {};
 
   return (
-    <div className="flex h-[calc(100dvh-8rem)] min-h-[540px] flex-col gap-3">
-      {/* Toolbar */}
+    // Fixed viewport-relative height only applies from md up (where the
+    // 3 panels sit side by side and share that height); stacked on
+    // mobile the page should grow naturally with its content instead of
+    // clipping the inspector/palette off the bottom of a fixed box.
+    <div className="flex min-h-[540px] flex-col gap-3 md:h-[calc(100dvh-8rem)]">
+      {/* Toolbar — real mobile bug found in QA: fixed-width (w-56/w-44)
+          inputs inside a non-wrapping flex row forced ~400px of minimum
+          content width regardless of viewport, causing horizontal scroll
+          on a 390px phone. Full-width + wrapping below sm, fixed width
+          from sm up. */}
       <div className="glass-panel flex flex-wrap items-center gap-3 rounded-xl p-3">
-        <div className="flex items-center gap-2">
+        <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto">
           <Label htmlFor="bp-name" className="sr-only">
             Workflow name
           </Label>
@@ -352,7 +360,7 @@ export function ForgeCanvasBuilder() {
             id="bp-name"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            className="h-9 w-56"
+            className="h-9 w-full sm:w-56"
             aria-label="Workflow name"
           />
           <Label htmlFor="bp-slug" className="sr-only">
@@ -362,7 +370,7 @@ export function ForgeCanvasBuilder() {
             id="bp-slug"
             value={slug}
             onChange={(e) => setSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '-'))}
-            className="h-9 w-44 font-mono text-xs"
+            className="h-9 w-full font-mono text-xs sm:w-44"
             aria-label="Workflow slug"
           />
         </div>
@@ -401,9 +409,14 @@ export function ForgeCanvasBuilder() {
         </div>
       </div>
 
-      <div className="flex min-h-0 flex-1 gap-3">
+      {/* Real mobile bug found in QA: three fixed-width panels side by
+          side (palette 208px + inspector 256px + canvas) has no chance of
+          fitting a phone viewport. Stacks to a single column below md;
+          palette/inspector get a bounded height on mobile so the canvas
+          itself stays usable rather than being squeezed to nothing. */}
+      <div className="flex min-h-0 flex-1 flex-col gap-3 md:flex-row">
         {/* Palette */}
-        <aside className="glass-panel w-52 shrink-0 space-y-2 overflow-y-auto rounded-xl p-3">
+        <aside className="glass-panel max-h-56 w-full shrink-0 space-y-2 overflow-y-auto rounded-xl p-3 md:h-auto md:max-h-none md:w-52">
           <p className="text-eyebrow text-brand-700">Nodes</p>
           {PALETTE.map((p) => (
             <button
@@ -430,8 +443,10 @@ export function ForgeCanvasBuilder() {
           </div>
         </aside>
 
-        {/* Canvas */}
-        <div className="glass-panel min-w-0 flex-1 overflow-hidden rounded-xl">
+        {/* Canvas — explicit min-height on mobile: in a column flex
+            layout, flex-1 alone can collapse toward 0 next to two
+            content-sized siblings. */}
+        <div className="glass-panel min-h-[360px] min-w-0 flex-1 overflow-hidden rounded-xl">
           <ReactFlow
             nodes={nodes}
             edges={edges}
@@ -452,7 +467,7 @@ export function ForgeCanvasBuilder() {
         </div>
 
         {/* Inspector */}
-        <aside className="glass-panel w-64 shrink-0 space-y-3 overflow-y-auto rounded-xl p-3">
+        <aside className="glass-panel max-h-56 w-full shrink-0 space-y-3 overflow-y-auto rounded-xl p-3 md:h-auto md:max-h-none md:w-64">
           <p className="text-eyebrow text-brand-700">Inspector</p>
           {!selected ? (
             <p className="text-xs text-muted-foreground">

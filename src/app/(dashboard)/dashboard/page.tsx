@@ -47,8 +47,14 @@ export default function DashboardPage() {
     router.push(trimmed ? `/missions/new?intake=${encodeURIComponent(trimmed)}` : '/missions/new');
   }
 
+  // Real mobile bug found in QA, root cause of the dashboard's horizontal
+  // scroll: bare `display:grid` with no explicit grid-template-columns
+  // auto-sizes its single implicit column to the content's max-content
+  // width (610px here) instead of the viewport — every child inherited
+  // that width regardless of their own min-w-0. flex-col doesn't have
+  // this failure mode.
   return (
-    <div className="grid gap-6">
+    <div className="flex flex-col gap-6">
       {/* Real gap found via user screenshot: this authenticated area has no
           atmospheric background at all (no layout.tsx, just the flat page
           --background), so .glass-panel's blur/translucency had nothing
@@ -56,8 +62,13 @@ export default function DashboardPage() {
           not "liquid glass". hero-aurora (already proven on the homepage
           and /how-it-works) gives it something to actually blur. */}
       <section className="glass-panel hero-aurora relative overflow-hidden rounded-2xl p-6 md:p-8">
+        {/* Real mobile bug found in QA: a flex row's children default to
+            min-width:auto, so this text block's intrinsic content width
+            (the H1 in particular) was forcing the whole hero section wider
+            than the viewport instead of letting the heading wrap —
+            min-w-0 is the standard fix, lets it shrink and wrap properly. */}
         <div className="flex flex-wrap items-start justify-between gap-4">
-          <div>
+          <div className="min-w-0">
             <p className="text-caption uppercase tracking-wide text-brand-700">
               {isAdmin ? 'Admin dashboard' : 'Mission Control'}
             </p>

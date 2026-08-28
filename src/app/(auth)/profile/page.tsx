@@ -60,7 +60,10 @@ export default function ProfilePage() {
             <CardTitle className="text-h4">Account details</CardTitle>
             <CardDescription>Your profile information</CardDescription>
           </CardHeader>
-          <CardContent className="grid gap-4">
+          {/* flex-col, not bare grid — see dashboard/page.tsx's comment on
+              this same anti-pattern (unconstrained grid auto-sizes to
+              content's max-content width instead of the viewport). */}
+          <CardContent className="flex flex-col gap-4">
             <div className="flex justify-between items-center py-2">
               <span className="text-muted-foreground text-body">Name</span>
               <span className="font-medium text-foreground">{session.user.name}</span>
