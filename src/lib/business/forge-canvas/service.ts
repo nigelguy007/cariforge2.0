@@ -233,8 +233,15 @@ export async function getRunDetail(
   };
 }
 
-export async function listTasks(): Promise<{ items: CanvasTaskItemT[] }> {
+// Scoped per security review: a user sees only tasks from their own runs
+// (their evidence payloads are run data — unscoped listing would disclose
+// other users' run contents); admins see all, matching listRuns.
+export async function listTasks(
+  userId: string,
+  isAdmin: boolean,
+): Promise<{ items: CanvasTaskItemT[] }> {
   const rows = await prisma.canvasTask.findMany({
+    where: isAdmin ? {} : { run: { createdById: userId } },
     orderBy: [{ status: 'asc' }, { createdAt: 'desc' }],
     take: 50,
     include: {
@@ -271,6 +278,7 @@ export async function listTasks(): Promise<{ items: CanvasTaskItemT[] }> {
 export async function decideTask(args: {
   taskId: string;
   userId: string;
+  isAdmin: boolean;
   decision: 'Approved' | 'Rejected';
   reasonText: string;
 }) {
@@ -279,6 +287,10 @@ export async function decideTask(args: {
     include: { run: { include: { blueprint: true, nodeRuns: { orderBy: { ordinal: 'desc' } } } } },
   });
   if (!task) throw new Error('FORGE_NOT_FOUND');
+  // Ownership check per security review (IDOR): only the run's owner or an
+  // admin may decide its approval tasks. Role-based approver scoping
+  // (Trust Centre RBAC) supersedes this in a later release.
+  if (task.run.createdById !== args.userId && !args.isAdmin) throw new Error('FORGE_FORBIDDEN');
   if (task.status !== 'Open') throw new Error('FORGE_ALREADY_DECIDED');
   if (task.run.status !== 'AwaitingApproval') throw new Error('FORGE_NOT_PAUSED');
 

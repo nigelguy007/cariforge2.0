@@ -13,5 +13,5 @@ export const dynamic = 'force-dynamic';
 export async function GET(req: Request) {
   const auth = await requireForgeAuth(req);
   if (auth instanceof Response) return auth;
-  return NextResponse.json(CanvasTaskList.parse(await listTasks()));
+  return NextResponse.json(CanvasTaskList.parse(await listTasks(auth.user.id, auth.isAdmin)));
 }

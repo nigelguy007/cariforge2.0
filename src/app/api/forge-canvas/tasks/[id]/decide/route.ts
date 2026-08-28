@@ -24,6 +24,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     const detail = await decideTask({
       taskId: id,
       userId: auth.user.id,
+      isAdmin: auth.isAdmin,
       decision: parsed.data.decision,
       reasonText: parsed.data.reasonText,
     });
