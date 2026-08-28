@@ -9,20 +9,21 @@
 // 500-char cap -> 4000, see contracts/leads.ts) and the copy throughout
 // stopped describing it as one line.
 //
-// Document attachment: NOT implemented yet, on purpose. This app has no
-// file-storage integration (checked package.json — no Vercel Blob/S3/
-// equivalent dependency), and per this project's marketplace-integration
-// requirement, provisioning one needs the user to run /marketplace
-// themselves — that command can't be invoked from inside a session. The
-// attach control below is a real, honestly-disabled affordance (not a
-// button that silently no-ops when clicked) so the intent is visible in
-// the UI while storage is pending, not a mock pretending to work.
+// Document attachment: stored directly in Postgres (LeadAttachment.data,
+// bytea) via POST /api/leads/[id]/attachment — no Vercel Blob/S3 needed at
+// pilot scale. Uploaded AFTER the lead itself is created (the attachment
+// route needs a real leadId to attach to). This is deliberately plain
+// `fetch`, not apiFetch: apiFetch (framework-owned) hardcodes
+// `content-type: application/json`, which is wrong for a multipart body —
+// the browser needs to set its own boundary. A failed attachment upload
+// never blocks or undoes the brief submission itself; the lead is captured
+// either way and the user sees a clear warning if only the file failed.
 
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Paperclip } from 'lucide-react';
-import { useState } from 'react';
+import { Paperclip, X } from 'lucide-react';
+import { useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { z } from 'zod';
@@ -39,19 +40,62 @@ import {
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { apiFetch } from '@/lib/api-client';
-import { friendlyLeadReference, LeadCreate, LeadItem } from '@/lib/contracts/leads';
+import {
+  ALLOWED_ATTACHMENT_MIME_TYPES,
+  friendlyLeadReference,
+  LeadCreate,
+  LeadItem,
+  MAX_ATTACHMENT_BYTES,
+} from '@/lib/contracts/leads';
 import { applyServerErrors } from '@/lib/forms';
 
 // react-hook-form's resolver wants the INPUT shape (before the schema's
 // transform). `z.input` is the pre-parse shape: brief required, email optional.
 type FormValues = z.input<typeof LeadCreate>;
 
+const MAX_ATTACHMENT_MB = Math.floor(MAX_ATTACHMENT_BYTES / (1024 * 1024));
+
+async function uploadAttachment(leadId: string, file: File): Promise<boolean> {
+  const body = new FormData();
+  body.append('file', file);
+  try {
+    const res = await fetch(`/api/leads/${leadId}/attachment`, { method: 'POST', body });
+    return res.ok;
+  } catch {
+    return false;
+  }
+}
+
 export function BriefIntakeForm() {
   const [submitted, setSubmitted] = useState<LeadItem | null>(null);
+  const [attachedFilename, setAttachedFilename] = useState<string | null>(null);
+  const [file, setFile] = useState<File | null>(null);
+  const [fileError, setFileError] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const form = useForm<FormValues>({
     resolver: zodResolver(LeadCreate),
     defaultValues: { brief: '', email: '' },
   });
+
+  function handleFileChange(event: React.ChangeEvent<HTMLInputElement>) {
+    const picked = event.target.files?.[0];
+    event.target.value = ''; // allow re-picking the same file after removing it
+    if (!picked) return;
+    if (picked.size > MAX_ATTACHMENT_BYTES) {
+      setFileError(`That file is too large — cap is ${MAX_ATTACHMENT_MB} MB.`);
+      return;
+    }
+    if (
+      !ALLOWED_ATTACHMENT_MIME_TYPES.includes(
+        picked.type as (typeof ALLOWED_ATTACHMENT_MIME_TYPES)[number],
+      )
+    ) {
+      setFileError('PDF, Word, text, CSV, PNG, or JPEG only.');
+      return;
+    }
+    setFileError(null);
+    setFile(picked);
+  }
 
   const onSubmit = form.handleSubmit(async (values) => {
     try {
@@ -60,6 +104,16 @@ export function BriefIntakeForm() {
         body: JSON.stringify(values),
         schema: LeadItem,
       });
+      if (file) {
+        const ok = await uploadAttachment(created.id, file);
+        if (ok) {
+          setAttachedFilename(file.name);
+        } else {
+          toast.error(
+            'Your brief was saved, but the attachment failed to upload. You can email it instead.',
+          );
+        }
+      }
       setSubmitted(created);
     } catch (err) {
       const applied = err instanceof Error && applyServerErrors(err.cause, form.setError);
@@ -83,6 +137,12 @@ export function BriefIntakeForm() {
             {' · '}captured {submitted.createdAt.slice(0, 10)}. Quote this reference in any
             follow-up email.
           </p>
+          {attachedFilename ? (
+            <p className="flex items-center gap-1.5 text-caption text-muted-foreground">
+              <Paperclip className="size-3" aria-hidden="true" />
+              Attached: {attachedFilename}
+            </p>
+          ) : null}
         </div>
         <div className="flex flex-col gap-2 rounded-xl border border-border bg-muted/30 p-4">
           <p className="text-small font-medium text-foreground">What happens next</p>
@@ -139,18 +199,43 @@ export function BriefIntakeForm() {
           <span className="text-small font-medium text-foreground">
             Attach a document <span className="font-normal text-muted-foreground">(optional)</span>
           </span>
-          {/* Honestly disabled, not a silent no-op: file storage isn't
-              provisioned yet (see the file header). Runs /marketplace to
-              set up Vercel Blob or equivalent before this can go live. */}
-          <button
-            type="button"
-            disabled
-            title="Document attachment is being set up — for now, paste the key details above."
-            className="flex cursor-not-allowed items-center justify-center gap-2 rounded-md border border-dashed border-border bg-muted/40 px-4 py-3 text-small text-muted-foreground opacity-70"
-          >
-            <Paperclip className="size-4" aria-hidden="true" />
-            Coming soon — for now, paste the key details above
-          </button>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept={ALLOWED_ATTACHMENT_MIME_TYPES.join(',')}
+            className="sr-only"
+            onChange={handleFileChange}
+            aria-label="Attach a document"
+          />
+          {file ? (
+            <div className="flex items-center justify-between gap-2 rounded-md border border-border bg-muted/40 px-4 py-3 text-small">
+              <span className="flex items-center gap-2 truncate text-foreground">
+                <Paperclip className="size-4 shrink-0" aria-hidden="true" />
+                <span className="truncate">{file.name}</span>
+                <span className="shrink-0 text-caption text-muted-foreground">
+                  ({Math.ceil(file.size / 1024)} KB)
+                </span>
+              </span>
+              <button
+                type="button"
+                onClick={() => setFile(null)}
+                className="shrink-0 text-muted-foreground hover:text-foreground"
+                aria-label="Remove attachment"
+              >
+                <X className="size-4" aria-hidden="true" />
+              </button>
+            </div>
+          ) : (
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              className="flex items-center justify-center gap-2 rounded-md border border-dashed border-border bg-muted/40 px-4 py-3 text-small text-muted-foreground transition-colors hover:border-foreground/30 hover:text-foreground"
+            >
+              <Paperclip className="size-4" aria-hidden="true" />
+              Choose a file — PDF, Word, text, CSV, PNG, or JPEG, up to {MAX_ATTACHMENT_MB} MB
+            </button>
+          )}
+          {fileError ? <p className="text-caption text-destructive">{fileError}</p> : null}
         </div>
         <FormField
           control={form.control}

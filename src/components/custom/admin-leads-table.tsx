@@ -211,6 +211,15 @@ function SubmissionBlock({ item }: { item: LeadListItem }) {
       >
         {item.brief}
       </p>
+      {item.hasAttachment ? (
+        <a
+          href={`/api/admin/leads/${item.id}/attachment`}
+          className="inline-flex w-fit items-center gap-1 text-xs font-medium text-brand-700 underline-offset-4 hover:underline"
+        >
+          <Download className="size-3" aria-hidden="true" />
+          Download attachment
+        </a>
+      ) : null}
     </div>
   );
 }

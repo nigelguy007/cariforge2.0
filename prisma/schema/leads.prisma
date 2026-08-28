@@ -4,16 +4,32 @@
 // arrived, and whether the best-effort owner-email notification fired.
 
 model Lead {
-  id         String    @id @default(cuid())
-  brief      String                       // required requirements text (20-4000 chars post-trim, per contracts/leads.ts) — no @db.VarChar cap, Prisma's plain String is Postgres text
-  // attachments: pending real file storage (Vercel Blob or similar) —
-  // not modelled here yet. See brief-intake-form.tsx's TODO before adding
-  // an `attachments` relation/JSON column.
-  email      String?                      // optional — contact email back-channel
-  createdAt  DateTime  @default(now())    // capture timestamp
-  notifiedAt DateTime?                    // when we successfully fired the owner email
-  source     String?                      // funnel discriminator: 'home' for the front-door brief, 'walkthrough' for the procurement-grade form
-  payload    String?                      // JSON-encoded structured fields for non-brief flows (e.g. walkthrough); 'brief' row keeps this null
-  notes      String?                      // free-text operator note (admin-owned); null = no note yet
+  id          String           @id @default(cuid())
+  brief       String                       // required requirements text (20-4000 chars post-trim, per contracts/leads.ts) — no @db.VarChar cap, Prisma's plain String is Postgres text
+  email       String?                      // optional — contact email back-channel
+  createdAt   DateTime         @default(now())    // capture timestamp
+  notifiedAt  DateTime?                    // when we successfully fired the owner email
+  source      String?                      // funnel discriminator: 'home' for the front-door brief, 'walkthrough' for the procurement-grade form
+  payload     String?                      // JSON-encoded structured fields for non-brief flows (e.g. walkthrough); 'brief' row keeps this null
+  notes       String?                      // free-text operator note (admin-owned); null = no note yet
+  attachments LeadAttachment[]
   @@index([createdAt])
+}
+
+// One optional document attached to a brief, stored directly in Postgres
+// (bytea) rather than a separate file-storage provider (Vercel Blob/S3) —
+// no new infrastructure needed for pilot-scale volume. Capped hard at
+// MAX_ATTACHMENT_BYTES (contracts/leads.ts) to stay well under Vercel's
+// serverless request-body limit and keep row size sane; one attachment per
+// lead, enforced app-side in the upload route, not by a DB constraint.
+model LeadAttachment {
+  id         String   @id @default(cuid())
+  leadId     String
+  lead       Lead     @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  filename   String                        // original filename, as uploaded — display only, never used as a path
+  mimeType   String
+  sizeBytes  Int
+  data       Bytes                         // the file itself
+  createdAt  DateTime @default(now())
+  @@index([leadId])
 }

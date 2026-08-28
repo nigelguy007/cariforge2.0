@@ -37,6 +37,41 @@ export const LeadItem = LeadCreate.extend({
 export type LeadCreate = z.infer<typeof LeadCreate>;
 export type LeadItem = z.infer<typeof LeadItem>;
 
+// ────────────────────────────────────────────────────────────────────────────
+// Lead attachment — one optional document per brief, stored directly in
+// Postgres (LeadAttachment.data, bytea) rather than a separate file-storage
+// provider. No new infrastructure needed at pilot scale.
+
+// Hard cap, enforced both client-side (fail fast, no wasted upload) and
+// server-side (the only cap that actually matters). 4 MiB stays safely under
+// Vercel's serverless function request-body limit (4.5 MB) with headroom for
+// multipart overhead and the rest of the form fields.
+export const MAX_ATTACHMENT_BYTES = 4 * 1024 * 1024;
+
+// Deliberately narrow: document formats a regulated buyer would plausibly
+// attach to a requirements brief. No executables, no archives (a zip could
+// smuggle anything past this check), no raw HTML/SVG (XSS if ever rendered
+// inline). Extend this list deliberately, not by widening it to '*/*'.
+export const ALLOWED_ATTACHMENT_MIME_TYPES = [
+  'application/pdf',
+  'application/msword',
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document', // .docx
+  'text/plain',
+  'text/csv',
+  'image/png',
+  'image/jpeg',
+] as const;
+
+export const LeadAttachmentMeta = z.object({
+  id: z.string(),
+  filename: z.string(),
+  mimeType: z.string(),
+  sizeBytes: z.number().int(),
+  createdAt: z.string(),
+});
+
+export type LeadAttachmentMeta = z.infer<typeof LeadAttachmentMeta>;
+
 // Cosmetic, buyer-facing reference derived from the lead's cuid — the raw id
 // (e.g. "cmtc51g2u0001js04r455be7k") is a database primary key, not something
 // a regulated buyer should have to read back over email. This is
@@ -87,6 +122,10 @@ export const LeadListItem = z.object({
   // the admin can see the council's ruling without paging into a separate run.
   councilRunStatus: z.enum(RunStatusValues).nullable(),
   councilRunVerdict: z.enum(VerdictValues).nullable(),
+  // True iff a document was attached via POST /api/leads/[id]/attachment —
+  // existence only, never the bytes. GET /api/admin/leads/[id]/attachment
+  // downloads it.
+  hasAttachment: z.boolean(),
 });
 
 export const LeadList = z.object({
