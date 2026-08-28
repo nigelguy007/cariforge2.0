@@ -27,31 +27,106 @@ import { apiFetch } from '@/lib/api-client';
 import { MissionCreate, MissionDetail, MissionIntakeStructure } from '@/lib/contracts/forge';
 import { applyServerErrors } from '@/lib/forms';
 
-const INTAKE_FIELDS = [
-  { name: 'need', label: 'Need', hint: 'Plain-English statement of what is missing.' },
-  { name: 'intendedOutcome', label: 'Intended outcome', hint: 'What success looks like.' },
-  { name: 'constraints', label: 'Constraints', hint: 'Budget, regulatory, time, staffing limits.' },
+// Field-level content revisited per direct feedback ("does not give
+// instructions of what's needed") using the form-cro skill's guidance on
+// labels vs. placeholders vs. help text — but NOT its field-reduction
+// advice: this isn't a lead-gen form, it's a governance intake that a real
+// pipeline stage reads, so cutting fields down would undermine the
+// product's actual job. Each field now has:
+//   - `description`: what's being asked AND which stage/agent reads it —
+//     ties the field back to the page's actual purpose instead of leaving
+//     it as an abstract label.
+//   - `placeholder`: a genuine worked example (the form-cro rule
+//     "placeholders are examples, not labels" — this repo's own hint text
+//     was being reused as the placeholder, which is a label restated, not
+//     an example of a real answer).
+// Grouped into three sections matching the pipeline stages that actually
+// consume them (see docs/app_spec.md-equivalent domain knowledge from
+// how-it-works: Discovery / Readiness+Governance / the final gate) rather
+// than one undifferentiated 8-field grid.
+const INTAKE_GROUPS = [
   {
-    name: 'authorityBoundary',
-    label: 'Authority boundary',
-    hint: 'Who can decide, who must agree.',
+    id: 'the-ask',
+    title: 'The ask',
+    blurb: 'What Discovery turns into a testable problem statement before anything else runs.',
+    fields: [
+      {
+        name: 'need',
+        label: 'Need',
+        description: "The gap in plain business terms — what's missing today, for whom.",
+        placeholder:
+          'A compliance team of six manually checks each claim against EU AI Act Article 14 disclosure requirements — nothing flags a missing disclosure before it reaches a regulator.',
+      },
+      {
+        name: 'intendedOutcome',
+        label: 'Intended outcome',
+        description:
+          "What 'solved' looks like in terms a human could actually verify happened. Feeds the acceptance criteria below too.",
+        placeholder:
+          'Every incoming claim is automatically checked for required disclosures and routed to the correct reviewer within one business day, with zero missed Article 14 disclosures.',
+      },
+      {
+        name: 'constraints',
+        label: 'Constraints',
+        description:
+          'Hard limits the build must respect — budget, deadline, regulatory regime, headcount available to review it.',
+        placeholder:
+          'Must ship before 2 August 2026 (the Article 14 deadline). No new hires — the existing 6-person team reviews flagged claims. EU-only data residency.',
+      },
+    ],
   },
   {
-    name: 'dataClassification',
-    label: 'Data classification',
-    hint: 'Personal data? regulated data? commercial sensitive?',
+    id: 'governed-by',
+    title: 'What governs it',
+    blurb: 'What Readiness audits and Governance locks into the case file before code is written.',
+    fields: [
+      {
+        name: 'authorityBoundary',
+        label: 'Authority boundary',
+        description: 'Who can approve a gate, and who must be consulted first.',
+        placeholder:
+          'Head of Compliance approves each gate. Legal must sign off before Governance clears. No decision is final without a named human reviewer.',
+      },
+      {
+        name: 'dataClassification',
+        label: 'Data classification',
+        description:
+          'What kind of data this touches. Readiness locks a data-minimisation clause in the case file based on this.',
+        placeholder:
+          'Personal data (claimant names, policy numbers) and regulated financial data. No health data. Subject to GDPR and EU AI Act Article 14.',
+      },
+      {
+        name: 'retentionPolicy',
+        label: 'Retention policy',
+        description:
+          "How long evidence and audit records are kept, and where. Governance's audit trail and hash chain are built around this.",
+        placeholder:
+          'Audit records retained 7 years per regulatory requirement, stored in the EU region only, immutable once written.',
+      },
+    ],
   },
   {
-    name: 'retentionPolicy',
-    label: 'Retention policy',
-    hint: 'How long evidence is retained and where.',
+    id: 'definition-of-done',
+    title: 'Definition of done',
+    blurb: "What the final Software Build gate is actually scored against — not a feeling, a test.",
+    fields: [
+      {
+        name: 'acceptanceCriteria',
+        label: 'Acceptance criteria',
+        description: 'Observable, checkable signals that prove the outcome happened.',
+        placeholder:
+          '100% of test claims correctly flagged for missing disclosures; average routing time under 4 business hours; zero false negatives on a 200-claim regression set.',
+      },
+      {
+        name: 'nonGoals',
+        label: 'Explicit non-goals',
+        description:
+          "What this mission is deliberately NOT doing — the scope boundary that keeps a 21-day proof bounded, not something growing quietly into a bigger build.",
+        placeholder:
+          "Not replacing the claims system of record. Not automating the reviewer's final decision. Not covering non-EU jurisdictions in this proof.",
+      },
+    ],
   },
-  {
-    name: 'acceptanceCriteria',
-    label: 'Acceptance criteria',
-    hint: 'Observable signals that prove the outcome.',
-  },
-  { name: 'nonGoals', label: 'Explicit non-goals', hint: 'What we are NOT doing.' },
 ] as const;
 
 export function MissionIntakeForm({ initialIntake = '' }: { initialIntake?: string }) {
@@ -155,9 +230,13 @@ export function MissionIntakeForm({ initialIntake = '' }: { initialIntake?: stri
                 <Textarea
                   {...field}
                   rows={4}
-                  placeholder="Describe the need as you would to a colleague. One paragraph: what outcome you need and what is blocking it."
+                  placeholder="We need to triage claims documents against EU AI Act Article 14 before 2 August 2026. Today a team of six does this by hand in a shared inbox — we need something that reads each claim, flags the ones missing required disclosures, and routes them to the right reviewer."
                 />
               </FormControl>
+              <FormDescription className="text-caption text-muted-foreground">
+                One paragraph, as you&rsquo;d explain it to a colleague — what outcome you need
+                and what&rsquo;s blocking it today. The nine fields below break this down further.
+              </FormDescription>
               <FormMessage />
             </FormItem>
           )}
@@ -197,40 +276,50 @@ export function MissionIntakeForm({ initialIntake = '' }: { initialIntake?: stri
           )}
         />
 
-        <fieldset className="space-y-4 rounded-xl border border-border/60 p-4">
+        <fieldset className="space-y-6 rounded-xl border border-border/60 p-4">
           <legend>
             <span className="text-eyebrow text-brand-700">Nine attribution fields</span>
           </legend>
           <p className="text-small text-muted-foreground">
-            Each of the following fields is required and bounded to 2000 characters. The forge uses
-            these to surface missing-information for the next stage.
+            Each field below is required and bounded to 2000 characters. This isn&rsquo;t
+            paperwork — it&rsquo;s the testable problem statement Discovery works from, and what
+            Readiness and Governance check before a line of code is written. A thin answer here
+            comes back as a returned gate later, not a shortcut now.
           </p>
-          <div className="grid gap-4 md:grid-cols-2">
-            {INTAKE_FIELDS.map(({ name, label, hint }) => (
-              <FormField
-                key={name}
-                control={form.control}
-                name={`intakeStructured.${name}` as never}
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{label}</FormLabel>
-                    <FormControl>
-                      <Textarea
-                        {...field}
-                        rows={3}
-                        value={(field.value as string | undefined) ?? ''}
-                        placeholder={hint}
-                      />
-                    </FormControl>
-                    <FormDescription className="text-caption text-muted-foreground">
-                      {hint}
-                    </FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            ))}
-          </div>
+          {INTAKE_GROUPS.map((group) => (
+            <div key={group.id} className="space-y-3">
+              <div>
+                <h4 className="text-small font-semibold text-foreground">{group.title}</h4>
+                <p className="text-caption text-muted-foreground">{group.blurb}</p>
+              </div>
+              <div className="grid gap-4 md:grid-cols-2">
+                {group.fields.map(({ name, label, description, placeholder }) => (
+                  <FormField
+                    key={name}
+                    control={form.control}
+                    name={`intakeStructured.${name}` as never}
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>{label}</FormLabel>
+                        <FormControl>
+                          <Textarea
+                            {...field}
+                            rows={3}
+                            value={(field.value as string | undefined) ?? ''}
+                            placeholder={placeholder}
+                          />
+                        </FormControl>
+                        <FormDescription className="text-caption text-muted-foreground">
+                          {description}
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                ))}
+              </div>
+            </div>
+          ))}
           <FormField
             control={form.control}
             name="intakeStructured.missionOwner"
