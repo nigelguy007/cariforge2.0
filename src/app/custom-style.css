@@ -313,51 +313,6 @@
       0 0 10px oklch(var(--brand-l) calc(var(--brand-c) * 0.7) var(--brand-h) / 0.22);
   }
 
-  /* .glass-cta — solid vivid emerald primary CTA, the main accent moment.
-     White foreground for the highest-contrast element on the page.
-
-     Real, user-reported bug: every one of the 7 places this is used
-     (dashboard.tsx's "Start a mission" + 6 mission-flow submit buttons)
-     is a shadcn <Button> with no `variant` override, so it also always
-     carries the `default` variant's own `text-primary-foreground` utility
-     class. `.glass-cta` and `.text-primary-foreground` are both plain
-     single-class selectors — equal specificity — and Tailwind's utility
-     layer compiles `.text-primary-foreground` LATER in the stylesheet
-     than this file's `.glass-cta`, so the utility silently won the
-     cascade and overrode this rule's intended near-white `color` with
-     whatever --primary-foreground resolves to (near-black on this
-     brand's dark button background — invisible text). `.glass-cta
-     .glass-cta` (the selector repeated) doubles this rule's specificity
-     to (0,2,0), reliably beating any single-class utility regardless of
-     source order, without resorting to !important. Same fix applied to
-     .glass-outline-cta below for the identical structural reason, even
-     though it hasn't been reported broken yet. */
-  .glass-cta.glass-cta {
-    /* Lightness stops raised from 0.46/0.36 to 0.58/0.48 per explicit
-       "the dark blue button, make it bright" feedback — still dark enough
-       to keep the near-white text above readable, just meaningfully
-       lighter than the original near-navy gradient. */
-    background: linear-gradient(
-      180deg,
-      oklch(0.58 var(--brand-c) var(--brand-h)) 0%,
-      oklch(0.48 var(--brand-c) var(--brand-h)) 100%
-    );
-    border: 1px solid oklch(0.4 var(--brand-c) var(--brand-h) / 0.5);
-    color: oklch(0.99 0.008 var(--brand-h));
-    box-shadow:
-      0 1px 0 oklch(1 0 0 / 0.18) inset,
-      0 10px 26px -12px oklch(var(--brand-l) var(--brand-c) var(--brand-h) / 0.35);
-  }
-
-  /* .glass-outline-cta — light green-tinted outline button with brand
-     hairline; the secondary-emphasis CTA next to .glass-cta. Specificity
-     doubled for the same reason as .glass-cta above. */
-  .glass-outline-cta.glass-outline-cta {
-    background: var(--secondary);
-    border: 1px solid oklch(0.55 calc(var(--brand-c) * 0.8) var(--brand-h) / 0.5);
-    color: var(--brand-700);
-  }
-
   /* === BACKGROUNDS / DEPTH =================================================== */
 
   /* .hero-aurora — a single soft emerald glow, top-left. Deliberately
@@ -446,6 +401,56 @@
   }
   .link-brand:hover {
     text-decoration-color: var(--brand-400);
+  }
+}
+
+/* Real, user-reported bug, root cause #2 (specificity doubling alone —
+   the first fix attempted — did NOT actually solve this): Tailwind v4
+   declares cascade-layer order as `theme, base, components, properties,
+   utilities`. `.glass-cta`/`.glass-outline-cta` lived inside
+   `@layer components` above; the shadcn Button default variant's
+   `bg-primary text-primary-foreground hover:bg-primary/90` are Tailwind
+   utilities, in `@layer utilities`. CSS layers take priority BEFORE
+   specificity is ever consulted — a later-declared layer always wins
+   over an earlier one, full stop, regardless of how specific the
+   earlier layer's selector is. `.glass-cta.glass-cta` at (0,2,0) inside
+   `components` still lost to `.bg-primary`/`.text-primary-foreground`
+   at (0,1,0) inside `utilities`, on both the background-color AND text
+   color — confirmed by injecting the real button markup into a live
+   page and reading its actual computed style, not just re-reading the
+   source CSS (which only proves the rule exists, not that it wins).
+   Fix: these rules now live directly in `@layer utilities` themselves,
+   where the (0,2,0)/(0,3,0) specificity bump actually does its job
+   against same-layer utilities, including on :hover (added explicitly
+   below — hover:bg-primary/90 is also a utilities-layer, same-specificity
+   class; without an explicit :hover rule here the winner between two
+   equal-specificity same-layer rules would depend on unpredictable
+   build-order, not a chosen behavior). */
+@layer utilities {
+  .glass-cta.glass-cta {
+    background: linear-gradient(
+      180deg,
+      oklch(0.58 var(--brand-c) var(--brand-h)) 0%,
+      oklch(0.48 var(--brand-c) var(--brand-h)) 100%
+    );
+    border: 1px solid oklch(0.4 var(--brand-c) var(--brand-h) / 0.5);
+    color: oklch(0.99 0.008 var(--brand-h));
+    box-shadow:
+      0 1px 0 oklch(1 0 0 / 0.18) inset,
+      0 10px 26px -12px oklch(var(--brand-l) var(--brand-c) var(--brand-h) / 0.35);
+  }
+  .glass-cta.glass-cta:hover {
+    background: linear-gradient(
+      180deg,
+      oklch(0.64 var(--brand-c) var(--brand-h)) 0%,
+      oklch(0.54 var(--brand-c) var(--brand-h)) 100%
+    );
+    color: oklch(0.99 0.008 var(--brand-h));
+  }
+  .glass-outline-cta.glass-outline-cta {
+    background: var(--secondary);
+    border: 1px solid oklch(0.55 calc(var(--brand-c) * 0.8) var(--brand-h) / 0.5);
+    color: var(--brand-700);
   }
 }
 
