@@ -54,7 +54,7 @@ const INTAKE_GROUPS = [
         name: 'need',
         label: 'Need',
         description: "The gap in plain business terms — what's missing today, for whom.",
-        placeholder:
+        example:
           'A compliance team of six manually checks each claim against EU AI Act Article 14 disclosure requirements — nothing flags a missing disclosure before it reaches a regulator.',
       },
       {
@@ -62,7 +62,7 @@ const INTAKE_GROUPS = [
         label: 'Intended outcome',
         description:
           "What 'solved' looks like in terms a human could actually verify happened. Feeds the acceptance criteria below too.",
-        placeholder:
+        example:
           'Every incoming claim is automatically checked for required disclosures and routed to the correct reviewer within one business day, with zero missed Article 14 disclosures.',
       },
       {
@@ -70,7 +70,7 @@ const INTAKE_GROUPS = [
         label: 'Constraints',
         description:
           'Hard limits the build must respect — budget, deadline, regulatory regime, headcount available to review it.',
-        placeholder:
+        example:
           'Must ship before 2 August 2026 (the Article 14 deadline). No new hires — the existing 6-person team reviews flagged claims. EU-only data residency.',
       },
     ],
@@ -84,7 +84,7 @@ const INTAKE_GROUPS = [
         name: 'authorityBoundary',
         label: 'Authority boundary',
         description: 'Who can approve a gate, and who must be consulted first.',
-        placeholder:
+        example:
           'Head of Compliance approves each gate. Legal must sign off before Governance clears. No decision is final without a named human reviewer.',
       },
       {
@@ -92,7 +92,7 @@ const INTAKE_GROUPS = [
         label: 'Data classification',
         description:
           'What kind of data this touches. Readiness locks a data-minimisation clause in the case file based on this.',
-        placeholder:
+        example:
           'Personal data (claimant names, policy numbers) and regulated financial data. No health data. Subject to GDPR and EU AI Act Article 14.',
       },
       {
@@ -100,7 +100,7 @@ const INTAKE_GROUPS = [
         label: 'Retention policy',
         description:
           "How long evidence and audit records are kept, and where. Governance's audit trail and hash chain are built around this.",
-        placeholder:
+        example:
           'Audit records retained 7 years per regulatory requirement, stored in the EU region only, immutable once written.',
       },
     ],
@@ -114,7 +114,7 @@ const INTAKE_GROUPS = [
         name: 'acceptanceCriteria',
         label: 'Acceptance criteria',
         description: 'Observable, checkable signals that prove the outcome happened.',
-        placeholder:
+        example:
           '100% of test claims correctly flagged for missing disclosures; average routing time under 4 business hours; zero false negatives on a 200-claim regression set.',
       },
       {
@@ -122,7 +122,7 @@ const INTAKE_GROUPS = [
         label: 'Explicit non-goals',
         description:
           "What this mission is deliberately NOT doing — the scope boundary that keeps a 21-day proof bounded, not something growing quietly into a bigger build.",
-        placeholder:
+        example:
           "Not replacing the claims system of record. Not automating the reviewer's final decision. Not covering non-EU jurisdictions in this proof.",
       },
     ],
@@ -219,23 +219,26 @@ export function MissionIntakeForm({ initialIntake = '' }: { initialIntake?: stri
 
   return (
     <Form {...form}>
-      <form onSubmit={onSubmit} className="glass-card space-y-6 rounded-2xl p-6">
+      <form onSubmit={onSubmit} className="glass-card space-y-8 rounded-2xl p-6">
         <FormField
           control={form.control}
           name="intake"
           render={({ field }) => (
-            <FormItem>
+            <FormItem className="space-y-3">
               <FormLabel>Plain-English need (lead paragraph)</FormLabel>
               <FormControl>
-                <Textarea
-                  {...field}
-                  rows={4}
-                  placeholder="We need to triage claims documents against EU AI Act Article 14 before 2 August 2026. Today a team of six does this by hand in a shared inbox — we need something that reads each claim, flags the ones missing required disclosures, and routes them to the right reviewer."
-                />
+                <Textarea {...field} rows={4} />
               </FormControl>
               <FormDescription className="text-caption text-muted-foreground">
                 One paragraph, as you&rsquo;d explain it to a colleague — what outcome you need
                 and what&rsquo;s blocking it today. The nine fields below break this down further.
+                <br />
+                <span className="italic">
+                  e.g. &ldquo;We need to triage claims documents against EU AI Act Article 14
+                  before 2 August 2026. Today a team of six does this by hand in a shared inbox —
+                  we need something that reads each claim, flags the ones missing required
+                  disclosures, and routes them to the right reviewer.&rdquo;
+                </span>
               </FormDescription>
               <FormMessage />
             </FormItem>
@@ -245,7 +248,7 @@ export function MissionIntakeForm({ initialIntake = '' }: { initialIntake?: stri
           control={form.control}
           name="name"
           render={({ field }) => (
-            <FormItem>
+            <FormItem className="space-y-3">
               <FormLabel>Mission name (optional)</FormLabel>
               <FormControl>
                 <Input
@@ -262,7 +265,7 @@ export function MissionIntakeForm({ initialIntake = '' }: { initialIntake?: stri
           control={form.control}
           name="normalizedNeed"
           render={({ field }) => (
-            <FormItem>
+            <FormItem className="space-y-3">
               <FormLabel>Normalized need (optional)</FormLabel>
               <FormControl>
                 <Input
@@ -276,7 +279,7 @@ export function MissionIntakeForm({ initialIntake = '' }: { initialIntake?: stri
           )}
         />
 
-        <fieldset className="space-y-6 rounded-xl border border-border/60 p-4">
+        <fieldset className="space-y-8 rounded-xl border border-border/60 p-6">
           <legend>
             <span className="text-eyebrow text-brand-700">Nine attribution fields</span>
           </legend>
@@ -287,30 +290,37 @@ export function MissionIntakeForm({ initialIntake = '' }: { initialIntake?: stri
             comes back as a returned gate later, not a shortcut now.
           </p>
           {INTAKE_GROUPS.map((group) => (
-            <div key={group.id} className="space-y-3">
+            <div key={group.id} className="space-y-4">
               <div>
                 <h4 className="text-small font-semibold text-foreground">{group.title}</h4>
                 <p className="text-caption text-muted-foreground">{group.blurb}</p>
               </div>
-              <div className="grid gap-4 md:grid-cols-2">
-                {group.fields.map(({ name, label, description, placeholder }) => (
+              <div className="grid gap-x-6 gap-y-8 md:grid-cols-2">
+                {group.fields.map(({ name, label, description, example }) => (
                   <FormField
                     key={name}
                     control={form.control}
                     name={`intakeStructured.${name}` as never}
                     render={({ field }) => (
-                      <FormItem>
+                      // Real feedback: pre-filling every box with a full example
+                      // paragraph as placeholder text read as messy — 8 boxes of
+                      // grey example text at once. Left genuinely blank now; the
+                      // example moved into the description below instead of
+                      // inside the input, per "leave it blank where writing is
+                      // expected."
+                      <FormItem className="space-y-3">
                         <FormLabel>{label}</FormLabel>
                         <FormControl>
                           <Textarea
                             {...field}
                             rows={3}
                             value={(field.value as string | undefined) ?? ''}
-                            placeholder={placeholder}
                           />
                         </FormControl>
                         <FormDescription className="text-caption text-muted-foreground">
                           {description}
+                          <br />
+                          <span className="italic">e.g. &ldquo;{example}&rdquo;</span>
                         </FormDescription>
                         <FormMessage />
                       </FormItem>
@@ -324,7 +334,7 @@ export function MissionIntakeForm({ initialIntake = '' }: { initialIntake?: stri
             control={form.control}
             name="intakeStructured.missionOwner"
             render={({ field }) => (
-              <FormItem>
+              <FormItem className="space-y-3">
                 <FormLabel>Mission owner (optional)</FormLabel>
                 <FormControl>
                   <Input
@@ -346,17 +356,22 @@ export function MissionIntakeForm({ initialIntake = '' }: { initialIntake?: stri
           <p className="text-small text-muted-foreground">
             Note anything still unknown that the forge should surface to you before work proceeds.
           </p>
-          <Label htmlFor="missing">Unknown facts (one per line)</Label>
-          <Textarea
-            id="missing"
-            rows={3}
-            value={missingRaw}
-            onChange={(e) => setMissingRaw(e.target.value)}
-            placeholder={'Realistic per-claim volume\nRegulator named contact\nVendor shortlist'}
-          />
+          <div className="space-y-3">
+            <Label htmlFor="missing">Unknown facts (one per line)</Label>
+            <Textarea
+              id="missing"
+              rows={3}
+              value={missingRaw}
+              onChange={(e) => setMissingRaw(e.target.value)}
+            />
+            <p className="text-caption italic text-muted-foreground">
+              e.g. &ldquo;Realistic per-claim volume&rdquo;, &ldquo;Regulator named
+              contact&rdquo;, &ldquo;Vendor shortlist&rdquo;
+            </p>
+          </div>
         </fieldset>
 
-        <div>
+        <div className="space-y-3">
           <Label htmlFor="tags">Domain tags (comma-separated)</Label>
           <Input
             id="tags"
@@ -369,7 +384,7 @@ export function MissionIntakeForm({ initialIntake = '' }: { initialIntake?: stri
           control={form.control}
           name="email"
           render={({ field }) => (
-            <FormItem>
+            <FormItem className="space-y-3">
               <FormLabel>Contact email (optional)</FormLabel>
               <FormControl>
                 <Input
