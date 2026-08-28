@@ -27,6 +27,12 @@ import { apiFetch } from '@/lib/api-client';
 import { MissionCreate, MissionDetail, MissionIntakeStructure } from '@/lib/contracts/forge';
 import { applyServerErrors } from '@/lib/forms';
 
+// Light blue banner around every field where writing is expected, per
+// explicit request. Reuses the site's own brand-50/200 tint tokens (the
+// same blue hue used everywhere else, just at a pale tint + light border)
+// rather than introducing an unrelated new color.
+const INPUT_HIGHLIGHT = 'border-brand-200 bg-brand-50 focus-visible:ring-brand-400';
+
 // Field-level content revisited per direct feedback ("does not give
 // instructions of what's needed") using the form-cro skill's guidance on
 // labels vs. placeholders vs. help text — but NOT its field-reduction
@@ -227,7 +233,7 @@ export function MissionIntakeForm({ initialIntake = '' }: { initialIntake?: stri
             <FormItem className="space-y-3">
               <FormLabel>Plain-English need (lead paragraph)</FormLabel>
               <FormControl>
-                <Textarea {...field} rows={4} />
+                <Textarea {...field} rows={4} className={INPUT_HIGHLIGHT} />
               </FormControl>
               <FormDescription className="text-caption text-muted-foreground">
                 One paragraph, as you&rsquo;d explain it to a colleague — what outcome you need
@@ -255,6 +261,7 @@ export function MissionIntakeForm({ initialIntake = '' }: { initialIntake?: stri
                   {...field}
                   value={field.value ?? ''}
                   placeholder="e.g. Replace legacy CRM with regulatory reporting support"
+                  className={INPUT_HIGHLIGHT}
                 />
               </FormControl>
               <FormMessage />
@@ -272,6 +279,7 @@ export function MissionIntakeForm({ initialIntake = '' }: { initialIntake?: stri
                   {...field}
                   value={field.value ?? ''}
                   placeholder="Replace CRM v3 with a regulated multi-jurisdiction system"
+                  className={INPUT_HIGHLIGHT}
                 />
               </FormControl>
               <FormMessage />
@@ -315,6 +323,7 @@ export function MissionIntakeForm({ initialIntake = '' }: { initialIntake?: stri
                             {...field}
                             rows={3}
                             value={(field.value as string | undefined) ?? ''}
+                            className={INPUT_HIGHLIGHT}
                           />
                         </FormControl>
                         <FormDescription className="text-caption text-muted-foreground">
@@ -341,6 +350,7 @@ export function MissionIntakeForm({ initialIntake = '' }: { initialIntake?: stri
                     {...field}
                     value={(field.value as string | undefined) ?? ''}
                     placeholder="Name or role of the mission owner"
+                    className={INPUT_HIGHLIGHT}
                   />
                 </FormControl>
                 <FormMessage />
@@ -363,6 +373,7 @@ export function MissionIntakeForm({ initialIntake = '' }: { initialIntake?: stri
               rows={3}
               value={missingRaw}
               onChange={(e) => setMissingRaw(e.target.value)}
+              className={INPUT_HIGHLIGHT}
             />
             <p className="text-caption italic text-muted-foreground">
               e.g. &ldquo;Realistic per-claim volume&rdquo;, &ldquo;Regulator named
@@ -378,6 +389,7 @@ export function MissionIntakeForm({ initialIntake = '' }: { initialIntake?: stri
             value={tagsRaw}
             onChange={(e) => setTagsRaw(e.target.value)}
             placeholder="financial-services, compliance, procurement"
+            className={INPUT_HIGHLIGHT}
           />
         </div>
         <FormField
@@ -392,6 +404,7 @@ export function MissionIntakeForm({ initialIntake = '' }: { initialIntake?: stri
                   value={field.value ?? ''}
                   type="email"
                   placeholder="you@company.com"
+                  className={INPUT_HIGHLIGHT}
                 />
               </FormControl>
               <FormMessage />
