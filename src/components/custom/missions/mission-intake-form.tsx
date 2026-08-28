@@ -27,11 +27,15 @@ import { apiFetch } from '@/lib/api-client';
 import { MissionCreate, MissionDetail, MissionIntakeStructure } from '@/lib/contracts/forge';
 import { applyServerErrors } from '@/lib/forms';
 
-// Light blue banner around every field where writing is expected, per
-// explicit request. Reuses the site's own brand-50/200 tint tokens (the
-// same blue hue used everywhere else, just at a pale tint + light border)
-// rather than introducing an unrelated new color.
-const INPUT_HIGHLIGHT = 'border-brand-200 bg-brand-50 focus-visible:ring-brand-400';
+// Revisited per explicit feedback: a permanent pale-blue background read
+// as messy with 8+ boxes tinted at once, and wasn't a "standard" pattern.
+// Consulted the ui-ux-pro-max skill's guidance (semantic tokens over
+// ad-hoc color; forms §8) and used the actual standard convention instead
+// — a neutral input at rest, with a clear colored ring only on focus
+// (the same pattern Linear/Stripe/GitHub use, and the base Input/Textarea
+// already do faintly via focus-visible:ring-ring — this just makes it
+// unmistakable rather than inventing a new resting-state color).
+const INPUT_HIGHLIGHT = 'focus-visible:ring-2 focus-visible:border-ring';
 
 // Field-level content revisited per direct feedback ("does not give
 // instructions of what's needed") using the form-cro skill's guidance on
