@@ -314,14 +314,35 @@
   }
 
   /* .glass-cta — solid vivid emerald primary CTA, the main accent moment.
-     White foreground for the highest-contrast element on the page. */
-  .glass-cta {
+     White foreground for the highest-contrast element on the page.
+
+     Real, user-reported bug: every one of the 7 places this is used
+     (dashboard.tsx's "Start a mission" + 6 mission-flow submit buttons)
+     is a shadcn <Button> with no `variant` override, so it also always
+     carries the `default` variant's own `text-primary-foreground` utility
+     class. `.glass-cta` and `.text-primary-foreground` are both plain
+     single-class selectors — equal specificity — and Tailwind's utility
+     layer compiles `.text-primary-foreground` LATER in the stylesheet
+     than this file's `.glass-cta`, so the utility silently won the
+     cascade and overrode this rule's intended near-white `color` with
+     whatever --primary-foreground resolves to (near-black on this
+     brand's dark button background — invisible text). `.glass-cta
+     .glass-cta` (the selector repeated) doubles this rule's specificity
+     to (0,2,0), reliably beating any single-class utility regardless of
+     source order, without resorting to !important. Same fix applied to
+     .glass-outline-cta below for the identical structural reason, even
+     though it hasn't been reported broken yet. */
+  .glass-cta.glass-cta {
+    /* Lightness stops raised from 0.46/0.36 to 0.58/0.48 per explicit
+       "the dark blue button, make it bright" feedback — still dark enough
+       to keep the near-white text above readable, just meaningfully
+       lighter than the original near-navy gradient. */
     background: linear-gradient(
       180deg,
-      oklch(0.46 var(--brand-c) var(--brand-h)) 0%,
-      oklch(0.36 var(--brand-c) var(--brand-h)) 100%
+      oklch(0.58 var(--brand-c) var(--brand-h)) 0%,
+      oklch(0.48 var(--brand-c) var(--brand-h)) 100%
     );
-    border: 1px solid oklch(0.3 var(--brand-c) var(--brand-h) / 0.5);
+    border: 1px solid oklch(0.4 var(--brand-c) var(--brand-h) / 0.5);
     color: oklch(0.99 0.008 var(--brand-h));
     box-shadow:
       0 1px 0 oklch(1 0 0 / 0.18) inset,
@@ -329,8 +350,9 @@
   }
 
   /* .glass-outline-cta — light green-tinted outline button with brand
-     hairline; the secondary-emphasis CTA next to .glass-cta. */
-  .glass-outline-cta {
+     hairline; the secondary-emphasis CTA next to .glass-cta. Specificity
+     doubled for the same reason as .glass-cta above. */
+  .glass-outline-cta.glass-outline-cta {
     background: var(--secondary);
     border: 1px solid oklch(0.55 calc(var(--brand-c) * 0.8) var(--brand-h) / 0.5);
     color: var(--brand-700);
