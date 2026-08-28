@@ -49,7 +49,13 @@ export default function DashboardPage() {
 
   return (
     <div className="grid gap-6">
-      <section className="glass-panel rounded-2xl p-6 md:p-8">
+      {/* Real gap found via user screenshot: this authenticated area has no
+          atmospheric background at all (no layout.tsx, just the flat page
+          --background), so .glass-panel's blur/translucency had nothing
+          textured behind it to reveal — it just looked like a flat box,
+          not "liquid glass". hero-aurora (already proven on the homepage
+          and /how-it-works) gives it something to actually blur. */}
+      <section className="glass-panel hero-aurora relative overflow-hidden rounded-2xl p-6 md:p-8">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
             <p className="text-caption uppercase tracking-wide text-brand-700">
