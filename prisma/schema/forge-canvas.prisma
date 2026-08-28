@@ -1,0 +1,90 @@
+// @polsia:user-owned — Release 1 vertical slice of the CARI Forge Agent
+// Builder (docs/HANDOVER: CARI_Forge_Agent_Builder_Reverse_Engineering —
+// Forge Canvas + Agent registry + CARI Blueprint + safe test runtime +
+// Approval Desk pause/resume + run trace). Deliberately minimal: only the
+// entities the slice needs, named Canvas* to stay clearly distinct from
+// the existing Mission/StageHandoff/Approval pipeline models.
+
+// A versioned, installable agent template ("Agent Foundry" seed). The
+// Forge Crew (existing 7 agents) plus initial operational templates are
+// seeded idempotently in src/lib/seed.ts. `config` is the agent's
+// blueprint payload (role, instructions, IO description) — JSON so the
+// slice doesn't over-commit a schema the later releases will evolve.
+model CanvasAgentDefinition {
+  id          String   @id @default(cuid())
+  slug        String   @unique
+  name        String
+  version     Int      @default(1)
+  category    String                     // 'forge-crew' | 'operations' | ...
+  description String
+  riskClass   String                     // 'low' | 'medium' | 'high'
+  config      Json
+  status      String   @default("Published") // Draft|Internal|Verified|Published|Deprecated|Archived
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+// One saved version of a CARI Blueprint (the canonical workflow
+// definition — nodes + edges + metadata as validated JSON). Each save
+// writes a NEW row with version+1; (slug, version) is the stable address.
+model CanvasBlueprint {
+  id          String   @id @default(cuid())
+  slug        String
+  name        String
+  version     Int
+  definition  Json                        // CariBlueprintDefinition (zod-validated at the API boundary)
+  createdById String
+  createdAt   DateTime @default(now())
+  runs        CanvasRun[]
+  @@unique([slug, version])
+  @@index([slug])
+}
+
+// One execution of a blueprint version in the safe test runtime.
+model CanvasRun {
+  id            String    @id @default(cuid())
+  blueprintId   String
+  blueprint     CanvasBlueprint @relation(fields: [blueprintId], references: [id])
+  status        String    // Running | AwaitingApproval | Succeeded | Failed | Rejected
+  state         Json      // accumulated run state (node outputs by node id)
+  currentNodeId String?
+  createdById   String
+  startedAt     DateTime  @default(now())
+  finishedAt    DateTime?
+  nodeRuns      CanvasNodeRun[]
+  tasks         CanvasTask[]
+  @@index([createdById, startedAt])
+}
+
+// Node-by-node execution evidence — the run trace.
+model CanvasNodeRun {
+  id         String    @id @default(cuid())
+  runId      String
+  run        CanvasRun @relation(fields: [runId], references: [id], onDelete: Cascade)
+  ordinal    Int       // execution order within the run
+  nodeId     String
+  nodeType   String
+  status     String    // Succeeded | Failed | AwaitingApproval | Approved | Rejected
+  input      Json
+  output     Json?
+  error      String?
+  startedAt  DateTime  @default(now())
+  finishedAt DateTime?
+  @@index([runId, ordinal])
+}
+
+// Approval Desk task — created when a run reaches an approval node; the
+// run pauses (AwaitingApproval) until a human decides, then resumes.
+model CanvasTask {
+  id          String    @id @default(cuid())
+  runId       String
+  run         CanvasRun @relation(fields: [runId], references: [id], onDelete: Cascade)
+  nodeId      String
+  title       String
+  status      String    @default("Open") // Open | Approved | Rejected
+  reasonText  String?
+  decidedById String?
+  createdAt   DateTime  @default(now())
+  decidedAt   DateTime?
+  @@index([status, createdAt])
+}

@@ -39,6 +39,23 @@ export const navItems: NavItem[] = [
   { label: 'Blog', href: '/blog', group: 'primary', order: 5 },
   // Mission Control — signed-in users see this; the page itself enforces auth.
   { label: 'Missions', href: '/missions', group: 'primary', requiresAuth: true, order: 5 },
+  // Agent Builder (Release 1 slice) — grouped so the bar stays short.
+  {
+    label: 'Forge Canvas',
+    href: '/forge',
+    group: 'primary',
+    requiresAuth: true,
+    menu: 'Forge',
+    order: 5,
+  },
+  {
+    label: 'Approval Desk',
+    href: '/forge/approvals',
+    group: 'primary',
+    requiresAuth: true,
+    menu: 'Forge',
+    order: 6,
+  },
   // Admin-only — visible when signed in; the page itself gates with role === 'admin'
   // server-side, so a non-admin who reaches the link is redirected to /. Grouped
   // under `menu: 'Admin'` so the top bar stays short (SiteNav collapses these

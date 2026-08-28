@@ -1,30 +1,77 @@
 // @polsia:user-owned — deploy-time database seed. You OWN this file.
 //
 // seed() runs once when the server boots (via the framework-owned
-// src/instrumentation.ts), on the Node server, AFTER the schema is applied. Use it
-// for reference/lookup data your app needs to exist BEFORE the first request:
-// plans, categories, feature defaults, a first admin row, etc. Read/write the DB
-// through the Prisma singleton in @/lib/db (server startup — there is no request,
-// so this does NOT go through /api).
+// src/instrumentation.ts), on the Node server, AFTER the schema is applied.
+// Every write here is IDEMPOTENT (upsert), per the framework's rules: it
+// may run on every deploy/boot, possibly concurrently on more than one
+// instance.
 //
-// RULES — this runs on EVERY deploy/boot, possibly more than once, possibly on more
-// than one instance at the same time:
-//   1. Make every write IDEMPOTENT — upsert (`where` + `create` + `update`) or
-//      `createMany({ ..., skipDuplicates: true })`, NEVER a bare `create`/`insert`.
-//   2. Keep it fast and small — it runs before the server serves traffic.
-//   3. NOT for recurring work (that's polsia.toml `[[crons]]`) or per-user/
-//      request-time logic (that's an /api route handler). There is no request here.
-//
-// The template ships an empty seed (a no-op). Fill in the body when your app needs
-// it; leave it empty to keep seeding off. Don't delete the file — instrumentation.ts
-// imports it.
+// Seeds the Forge Canvas agent registry (Agent Builder Release 1: "Agent
+// registry with five initial agent templates"). Three Forge Crew agents
+// (mirroring the existing seven-agent core's Discovery/Readiness/
+// Governance mandates) plus two operational templates, so the canvas has
+// both governance-flavoured and business-flavoured agents to compose.
+
 export async function seed(): Promise<void> {
-  // Example — delete this and write your own idempotent seed:
-  //
-  // const { prisma } = await import('@/lib/db');
-  // await prisma.plan.upsert({
-  //   where: { slug: 'free' },
-  //   create: { slug: 'free', name: 'Free', priceCents: 0 },
-  //   update: {},
-  // });
+  const { prisma } = await import('@/lib/db');
+
+  const templates = [
+    {
+      slug: 'forge-discovery',
+      name: 'Discovery Agent',
+      category: 'forge-crew',
+      riskClass: 'low',
+      description:
+        'Translates an inbound need into a testable problem statement with named must-not-happen clauses.',
+    },
+    {
+      slug: 'forge-readiness',
+      name: 'Readiness Agent',
+      category: 'forge-crew',
+      riskClass: 'medium',
+      description:
+        'Audits data sources, integrations and the regulatory regime before code; drafts the build-versus-buy comparison.',
+    },
+    {
+      slug: 'forge-governance',
+      name: 'Governance Agent',
+      category: 'forge-crew',
+      riskClass: 'high',
+      description:
+        'Checks that logging, oversight and stop-the-line controls hold; flags policy gaps before approval.',
+    },
+    {
+      slug: 'ops-customer-triage',
+      name: 'Customer Triage Agent',
+      category: 'customer-service',
+      riskClass: 'low',
+      description:
+        'Reads an inbound customer message, classifies intent and urgency, and drafts a routing recommendation.',
+    },
+    {
+      slug: 'ops-invoice-extraction',
+      name: 'Invoice Extraction Agent',
+      category: 'finance',
+      riskClass: 'medium',
+      description:
+        'Extracts structured fields (supplier, amount, dates, line items) from an invoice document for review.',
+    },
+  ] as const;
+
+  for (const t of templates) {
+    await prisma.canvasAgentDefinition.upsert({
+      where: { slug: t.slug },
+      create: {
+        slug: t.slug,
+        name: t.name,
+        category: t.category,
+        riskClass: t.riskClass,
+        description: t.description,
+        config: { role: t.name, instructions: t.description },
+        status: 'Published',
+      },
+      // Keep description/name current on redeploy; never touch user data.
+      update: { name: t.name, description: t.description, category: t.category },
+    });
+  }
 }
