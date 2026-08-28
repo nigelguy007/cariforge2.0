@@ -102,8 +102,15 @@ export function AgentTeamPanel() {
   const rows = computeAgentRows(agents, missions);
 
   return (
-    <div className="glass-card overflow-x-auto rounded-2xl p-6">
-      <table className="w-full min-w-[560px] text-left text-body">
+    <div className="glass-card rounded-2xl p-6">
+      {/* Real mobile bug found via user screenshot: a 560px-min table inside
+          overflow-x-auto is technically scrollable, but a rounded-2xl card
+          with no scroll hint reads as broken — the row just gets cut off at
+          the screen edge with no affordance to swipe. Below md: this data
+          renders as stacked cards instead (each field is a labeled row, so
+          nothing needs a wide table to stay legible); the real table comes
+          back at md: and up where 560px comfortably fits. */}
+      <table className="hidden w-full text-left text-body md:table">
         <thead>
           <tr className="border-b border-border/60 text-caption uppercase tracking-wide text-muted-foreground">
             <th scope="col" className="py-2 pr-4 font-medium">
@@ -145,6 +152,41 @@ export function AgentTeamPanel() {
           ))}
         </tbody>
       </table>
+
+      <ul className="flex flex-col divide-y divide-border/40 md:hidden">
+        {rows.map((row) => (
+          <li key={row.id} className="py-4 first:pt-0 last:pb-0">
+            <p className="font-medium text-foreground">{row.role}</p>
+            <p className="mt-1 text-small text-muted-foreground">{row.mandate}</p>
+            <div className="mt-3 flex gap-6">
+              <div>
+                <p className="text-caption uppercase tracking-wide text-muted-foreground">
+                  Active now
+                </p>
+                <p className="mt-0.5 text-h4 text-foreground">
+                  {row.activeNow === null ? (
+                    <span className="text-small text-muted-foreground">Not tracked yet</span>
+                  ) : (
+                    row.activeNow
+                  )}
+                </p>
+              </div>
+              <div>
+                <p className="text-caption uppercase tracking-wide text-muted-foreground">
+                  Completed
+                </p>
+                <p className="mt-0.5 text-h4 text-foreground">
+                  {row.completed === null ? (
+                    <span className="text-small text-muted-foreground">Not tracked yet</span>
+                  ) : (
+                    row.completed
+                  )}
+                </p>
+              </div>
+            </div>
+          </li>
+        ))}
+      </ul>
     </div>
   );
 }

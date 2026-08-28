@@ -103,7 +103,11 @@ export default function DashboardPage() {
       <section>
         <h2 className="text-h3 text-foreground">Your missions</h2>
         <div className="mt-4">
-          <MissionList />
+          {/* The hero above already has its own "Start a mission" CTA —
+              real user report: a second identical button here was
+              confusing ("start a mission and your missions start a
+              mission"). */}
+          <MissionList showEmptyCta={false} />
         </div>
       </section>
 

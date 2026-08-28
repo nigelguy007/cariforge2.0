@@ -10,7 +10,18 @@ import { apiFetch } from '@/lib/api-client';
 import { type MissionListItemT, MissionList as MissionListSchema } from '@/lib/contracts/forge';
 import { MissionStatusBadge } from './mission-status-badge';
 
-export function MissionList() {
+interface MissionListProps {
+  // The dashboard embeds this list directly under its own "What would you
+  // like to achieve?" hero, which already has a "Start a mission" button —
+  // showing a second, identical CTA in the empty state below it read as two
+  // unexplained buttons doing the same thing (real user report: "I don't
+  // understand what's the difference between... start a mission and your
+  // missions start a mission"). The standalone /missions and
+  // /admin/missions pages have no such hero, so they keep the CTA.
+  showEmptyCta?: boolean;
+}
+
+export function MissionList({ showEmptyCta = true }: MissionListProps = {}) {
   const [items, setItems] = React.useState<MissionListItemT[] | null>(null);
   const [error, setError] = React.useState<string | null>(null);
 
@@ -45,14 +56,20 @@ export function MissionList() {
   if (items.length === 0) {
     return (
       <div className="glass-card rounded-2xl p-8 text-body">
-        <h3 className="text-h4">No missions yet</h3>
+        {/* Real bug found in QA: this heading had no explicit text color,
+            relying on plain inheritance instead of the --foreground token —
+            same pattern already fixed for Textarea/Input this session. */}
+        <h3 className="text-h4 text-foreground">No missions yet</h3>
         <p className="mt-2 text-muted-foreground">
-          Capture a plain-English need and the forge will turn it into a governed, testable
-          software-delivery mission.
+          {showEmptyCta
+            ? 'Capture a plain-English need and the forge will turn it into a governed, testable software-delivery mission.'
+            : 'Missions you start above will show up here, each moving through five governed human gates.'}
         </p>
-        <Button asChild className="glass-cta mt-4">
-          <Link href="/missions/new">Start a mission</Link>
-        </Button>
+        {showEmptyCta ? (
+          <Button asChild className="glass-cta mt-4">
+            <Link href="/missions/new">Start a mission</Link>
+          </Button>
+        ) : null}
       </div>
     );
   }
