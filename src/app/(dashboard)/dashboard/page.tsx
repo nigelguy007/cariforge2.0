@@ -124,8 +124,13 @@ export default function DashboardPage() {
 
       <section>
         <h2 className="text-h3 text-foreground">Your AI team</h2>
+        {/* UX review: real user confusion — "what's the difference between
+            the 5 agents and 7 specialised agents?" Spelled out here, plus a
+            per-agent "Runs gate N" / "Wraps delivery" pill below. */}
         <p className="mt-1 text-small text-muted-foreground">
-          Seven specialists work every mission — you never have to manage them directly.
+          Five of these seven agents each run one of your mission&rsquo;s five gates; Partner and
+          Impact wrap around delivery rather than owning a gate — you never have to manage any of
+          them directly.
         </p>
         <div className="mt-4">
           <AgentTeamPanel />

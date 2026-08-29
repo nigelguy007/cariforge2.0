@@ -339,6 +339,19 @@
       oklch(0.86 calc(var(--brand-c) * 0.9) var(--brand-h) / 0.3) 0%,
       transparent 72%
     );
+    /* Real user report (iOS, real device): heading text over this glow
+       rendered as a pale, washed-out ghost in several screenshots — not
+       reproducible here (computed color/background verified correct in
+       both themes; Chromium mobile emulation renders it correctly). The
+       leading candidate is a known WebKit bug class: a blurred, negative-
+       z-index pseudo-element inside an `isolation: isolate` context can
+       leave a stale/incorrectly-composited tile over the content above it
+       until a repaint is triggered. This forces the blur onto its own GPU
+       layer up front — the standard mitigation — rather than leaving
+       Safari to decide compositing on its own. Flagged as a hedge, not a
+       confirmed fix: please reload and re-check on the actual device. */
+    transform: translateZ(0);
+    will-change: transform;
   }
 
   /* .section-aurora — softer per-section variant, top-right. */
@@ -362,6 +375,9 @@
       transparent 75%
     );
     filter: blur(80px);
+    /* Same WebKit stale-composited-tile hedge as .hero-aurora::before above. */
+    transform: translateZ(0);
+    will-change: transform;
   }
 
   /* === MOTION =================================================================

@@ -30,6 +30,12 @@ interface AgentRow {
   mandate: string;
   activeNow: number | null;
   completed: number | null;
+  // UX review: real user confusion ("what's the difference between the 5
+  // agents and 7 specialised agents?") — this table had no visible mapping
+  // at all. Mirrors the marketing page's per-card stage pill
+  // (core-agents-section.tsx) so the same 5-run-the-gates / 2-wrap-delivery
+  // distinction is legible in the authenticated product, not just on /how-it-works.
+  stageLabel: string;
 }
 
 function computeAgentRows(agents: CoreAgents, missions: MissionListItemT[]): AgentRow[] {
@@ -43,6 +49,7 @@ function computeAgentRows(agents: CoreAgents, missions: MissionListItemT[]): Age
         mandate: agent.mandate,
         activeNow: null,
         completed: null,
+        stageLabel: 'Wraps delivery',
       };
     }
     const gateIndex = agent.ordinal - 1;
@@ -56,7 +63,14 @@ function computeAgentRows(agents: CoreAgents, missions: MissionListItemT[]): Age
         else activeNow += 1;
       }
     }
-    return { id: agent.id, role: agent.role, mandate: agent.mandate, activeNow, completed };
+    return {
+      id: agent.id,
+      role: agent.role,
+      mandate: agent.mandate,
+      activeNow,
+      completed,
+      stageLabel: `Runs gate ${agent.ordinal} · ${agent.relatesToStage}`,
+    };
   });
 }
 
@@ -130,7 +144,12 @@ export function AgentTeamPanel() {
         <tbody>
           {rows.map((row) => (
             <tr key={row.id} className="border-b border-border/40 last:border-0">
-              <td className="py-3 pr-4 align-top font-medium text-foreground">{row.role}</td>
+              <td className="py-3 pr-4 align-top">
+                <p className="font-medium text-foreground">{row.role}</p>
+                <span className="glass-chip mt-1 inline-block rounded-full px-2 py-0.5 text-caption">
+                  {row.stageLabel}
+                </span>
+              </td>
               <td className="max-w-md py-3 pr-4 align-top text-small text-muted-foreground">
                 {row.mandate}
               </td>
@@ -156,7 +175,12 @@ export function AgentTeamPanel() {
       <ul className="flex flex-col divide-y divide-border/40 md:hidden">
         {rows.map((row) => (
           <li key={row.id} className="py-4 first:pt-0 last:pb-0">
-            <p className="font-medium text-foreground">{row.role}</p>
+            <div className="flex flex-wrap items-center gap-2">
+              <p className="font-medium text-foreground">{row.role}</p>
+              <span className="glass-chip rounded-full px-2 py-0.5 text-caption">
+                {row.stageLabel}
+              </span>
+            </div>
             <p className="mt-1 text-small text-muted-foreground">{row.mandate}</p>
             <div className="mt-3 flex gap-6">
               <div>

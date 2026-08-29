@@ -40,6 +40,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { apiFetch } from '@/lib/api-client';
+import { useSession } from '@/lib/auth-client';
 import {
   ALLOWED_ATTACHMENT_MIME_TYPES,
   friendlyLeadReference,
@@ -64,6 +65,50 @@ async function uploadAttachment(leadId: string, file: File): Promise<boolean> {
   } catch {
     return false;
   }
+}
+
+// UX review C1: real user report — "does it have a section to register and
+// log into the dashboard? this needs to be on the workflow." Signed-out
+// visitors get a sign-up/log-in prompt naming the dashboard payoff
+// (converting this exact brief once they're in); an already-signed-in
+// visitor gets a direct link instead of a redundant sign-up pitch — the
+// dashboard's own conversion card (BriefConversionCard) will show the
+// brief there already.
+function BriefDashboardCta() {
+  const { data: session, isPending } = useSession();
+  if (isPending) return null;
+  if (session?.user) {
+    return (
+      <a
+        href="/dashboard"
+        className="glass-cta inline-flex w-fit items-center justify-center rounded-full px-4 py-2 text-small"
+      >
+        Track it in your dashboard
+      </a>
+    );
+  }
+  return (
+    <div className="flex flex-col gap-2 rounded-xl border border-brand-300/60 bg-brand-50 p-4">
+      <p className="text-small text-foreground">
+        Create an account to track this brief and convert it into a governed mission the moment
+        we reply.
+      </p>
+      <div className="flex flex-wrap gap-2">
+        <a
+          href="/signup"
+          className="glass-cta inline-flex items-center justify-center rounded-full px-4 py-2 text-small"
+        >
+          Sign up
+        </a>
+        <a
+          href="/login"
+          className="glass-outline-cta inline-flex items-center justify-center rounded-full px-4 py-2 text-small"
+        >
+          Log in
+        </a>
+      </div>
+    </div>
+  );
 }
 
 export function BriefIntakeForm() {
@@ -127,10 +172,16 @@ export function BriefIntakeForm() {
       <div className="glass-card flex flex-col gap-4 rounded-2xl p-6 text-card-foreground">
         <div className="flex flex-col gap-3">
           <p className="font-display text-h4 tracking-tight">Brief received.</p>
+          {/* UX review: this line used to branch on `notified` — whether
+              our INTERNAL owner-notification email happened to send —
+              and told the visitor "we're still in pilot, expect a slower
+              reply" whenever that internal send failed. That's an
+              operational detail, not a fact about the visitor's request,
+              and it read as a false claim about the product's maturity.
+              One confident message regardless of that internal signal. */}
           <p className="text-small text-card-foreground/80">
-            {submitted.notified
-              ? "Logged and forwarded to the team — we'll reply from a named human within 48 hours."
-              : "Logged. We're still in pilot — expect a slower reply while we set up the inbox."}
+            Logged and forwarded to the team — we&rsquo;ll reply from a named human within 48
+            hours.
           </p>
           <p className="text-caption text-muted-foreground">
             Reference: <span className="font-mono text-card-foreground">{reference}</span>
@@ -156,6 +207,11 @@ export function BriefIntakeForm() {
             <li>If it isn&rsquo;t a fit yet, we say so plainly and explain why.</li>
           </ol>
         </div>
+        {/* UX review C1: close the loop the reference number used to leave
+            open — an account is how this brief actually gets tracked and
+            converted into a governed mission, so the workflow says so here,
+            not just after the visitor happens to find /signup on their own. */}
+        <BriefDashboardCta />
         <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-small">
           <a href="#council" className="font-medium text-primary underline underline-offset-4">
             See how The Oracles rule on it
