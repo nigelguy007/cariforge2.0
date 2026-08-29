@@ -102,13 +102,6 @@ than inventing detail that wasn't given.`;
 
 export async function getConfiguratorResult(description: string): Promise<ConfiguratorResponseT> {
   const client = getClient();
-  // TEMP DIAGNOSTIC (2026-08-29) — remove once the AI Gateway routing fix
-  // is confirmed live. The catch below intentionally swallows every
-  // failure into {status:'unavailable'} with no detail, which is exactly
-  // why the pre-fix bug went unnoticed; this one console.error is the only
-  // way to see the real exception without reproducing locally (the
-  // Gateway key is a Vercel-sensitive/write-only env var).
-  console.error('[configurator diag] client=', !!client, 'keySource=', process.env.AI_GATEWAY_API_KEY ? 'AI_GATEWAY_API_KEY' : process.env.ANTHROPIC_API_KEY ? 'ANTHROPIC_API_KEY' : 'none');
   if (!client) return { status: 'unavailable' };
 
   try {
@@ -125,23 +118,11 @@ export async function getConfiguratorResult(description: string): Promise<Config
       system: SYSTEM_PROMPT,
       messages: [{ role: 'user', content: description }],
     });
-    if (!response.parsed_output) {
-      console.error('[configurator diag] no parsed_output; raw=', JSON.stringify(response).slice(0, 800));
-      return { status: 'unavailable' };
-    }
+    if (!response.parsed_output) return { status: 'unavailable' };
     const parsed = ConfiguratorResult.safeParse(response.parsed_output);
-    if (!parsed.success) {
-      console.error('[configurator diag] zod parse failed:', JSON.stringify(parsed.error.issues).slice(0, 800));
-      return { status: 'unavailable' };
-    }
+    if (!parsed.success) return { status: 'unavailable' };
     return { status: 'ok', result: parsed.data };
-  } catch (err) {
-    // TEMP DIAGNOSTIC — see note above; remove alongside it.
-    console.error(
-      '[configurator diag] threw:',
-      err instanceof Error ? `${err.name}: ${err.message}` : String(err),
-      err && typeof err === 'object' && 'status' in err ? `status=${(err as { status?: unknown }).status}` : '',
-    );
+  } catch {
     // Network error, rate limit, invalid key, refusal, parse failure — all
     // degrade the same way. Never the reason a prospect can't reach the
     // real form.
