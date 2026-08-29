@@ -13,6 +13,16 @@ model Lead {
   payload     String?                      // JSON-encoded structured fields for non-brief flows (e.g. walkthrough); 'brief' row keeps this null
   notes       String?                      // free-text operator note (admin-owned); null = no note yet
   attachments LeadAttachment[]
+  // Explicit product decision (2026-08-29): the front-door brief's first
+  // response is a real, fully-automated Discovery-agent read — no human in
+  // the loop before the visitor sees it (contracts/leads.ts's LeadTriage /
+  // business/business/configurator.ts's getConfiguratorResult, same call
+  // already live behind the pre-signup workflow configurator). Stores the
+  // full ConfiguratorResultT JSON; null means triage never ran or the
+  // ANTHROPIC_API_KEY-gated call was unavailable — the confirmation UI
+  // degrades to the human-review copy in that case, same convention as
+  // qa-review.ts's 'unavailable' status.
+  triage      Json?
   @@index([createdAt])
 }
 

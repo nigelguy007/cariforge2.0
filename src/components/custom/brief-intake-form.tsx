@@ -41,6 +41,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { apiFetch } from '@/lib/api-client';
 import { useSession } from '@/lib/auth-client';
+import type { ConfiguratorResultT } from '@/lib/contracts/configurator';
 import {
   ALLOWED_ATTACHMENT_MIME_TYPES,
   friendlyLeadReference,
@@ -111,6 +112,86 @@ function BriefDashboardCta() {
   );
 }
 
+const FIT_STYLE: Record<
+  ConfiguratorResultT['fit'],
+  { label: string; className: string }
+> = {
+  strong: { label: 'Strong fit', className: 'bg-emerald-500/15 text-emerald-800' },
+  possible: { label: 'Possible fit', className: 'bg-amber-500/15 text-amber-800' },
+  unlikely: { label: 'Unlikely fit — for now', className: 'bg-rose-500/15 text-rose-800' },
+};
+
+// Product decision (2026-08-29): the front-door brief's first response is
+// this — a fully-automated Discovery-agent read, no human in the loop
+// before the visitor sees it. Reuses ConfiguratorResultT verbatim (same
+// call the pre-signup workflow configurator already makes), so this is
+// deliberately labeled the same honest way that contract already commits
+// to: indicative and automated, not a binding gate ruling — the real
+// Discovery gate still happens with a named human once this brief is
+// converted into an actual governed mission (BriefDashboardCta below).
+function DiscoveryTriageCard({ result }: { result: ConfiguratorResultT }) {
+  const fit = FIT_STYLE[result.fit];
+  return (
+    <div className="flex flex-col gap-3 rounded-xl border border-border bg-muted/30 p-4">
+      <div className="flex flex-wrap items-center gap-2">
+        <span className="text-small font-medium text-foreground">Discovery&rsquo;s read</span>
+        <span className={`rounded-full px-2 py-0.5 text-caption font-medium ${fit.className}`}>
+          {fit.label}
+        </span>
+      </div>
+      <p className="text-small text-card-foreground/80">{result.summary}</p>
+
+      {result.agentFocus.length > 0 ? (
+        <div className="flex flex-col gap-1">
+          <p className="text-caption font-medium uppercase tracking-wide text-muted-foreground">
+            Where the seven agents would focus
+          </p>
+          <ul className="flex flex-col gap-1 text-small text-card-foreground/80">
+            {result.agentFocus.map((f) => (
+              <li key={f.agent}>
+                <span className="font-medium text-foreground">{f.agent}:</span> {f.why}
+              </li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
+
+      {result.riskFlags.length > 0 ? (
+        <div className="flex flex-col gap-1">
+          <p className="text-caption font-medium uppercase tracking-wide text-muted-foreground">
+            Worth flagging
+          </p>
+          <ul className="flex list-disc flex-col gap-1 pl-4 text-small text-card-foreground/80">
+            {result.riskFlags.map((r, i) => (
+              // Free-text agent output, no stable id — index key is safe:
+              // this list is never reordered or edited client-side.
+              <li key={i}>{r}</li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
+
+      {result.clarifyingQuestions.length > 0 ? (
+        <div className="flex flex-col gap-1">
+          <p className="text-caption font-medium uppercase tracking-wide text-muted-foreground">
+            Questions before Discovery could rule on this for real
+          </p>
+          <ul className="flex list-disc flex-col gap-1 pl-4 text-small text-card-foreground/80">
+            {result.clarifyingQuestions.map((q, i) => (
+              <li key={i}>{q}</li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
+
+      <p className="text-caption text-muted-foreground">
+        Automated and indicative — not a binding ruling. Sign up to convert this brief into a
+        real mission, where a named human gates every stage.
+      </p>
+    </div>
+  );
+}
+
 export function BriefIntakeForm() {
   const [submitted, setSubmitted] = useState<LeadItem | null>(null);
   const [attachedFilename, setAttachedFilename] = useState<string | null>(null);
@@ -168,20 +249,15 @@ export function BriefIntakeForm() {
 
   if (submitted) {
     const reference = friendlyLeadReference(submitted.id);
+    const triage = submitted.triage;
     return (
       <div className="glass-card flex flex-col gap-4 rounded-2xl p-6 text-card-foreground">
         <div className="flex flex-col gap-3">
           <p className="font-display text-h4 tracking-tight">Brief received.</p>
-          {/* UX review: this line used to branch on `notified` — whether
-              our INTERNAL owner-notification email happened to send —
-              and told the visitor "we're still in pilot, expect a slower
-              reply" whenever that internal send failed. That's an
-              operational detail, not a fact about the visitor's request,
-              and it read as a false claim about the product's maturity.
-              One confident message regardless of that internal signal. */}
           <p className="text-small text-card-foreground/80">
-            Logged and forwarded to the team — we&rsquo;ll reply from a named human within 48
-            hours.
+            {triage?.status === 'ok'
+              ? 'Logged, and the Discovery agent has already read it — its take is below.'
+              : "Logged. We couldn't run Discovery's automated read just now — a named human will follow up within 48 hours instead."}
           </p>
           <p className="text-caption text-muted-foreground">
             Reference: <span className="font-mono text-card-foreground">{reference}</span>
@@ -195,18 +271,24 @@ export function BriefIntakeForm() {
             </p>
           ) : null}
         </div>
-        <div className="flex flex-col gap-2 rounded-xl border border-border bg-muted/30 p-4">
-          <p className="text-small font-medium text-foreground">What happens next</p>
-          <ol className="flex list-decimal flex-col gap-1.5 pl-4 text-small text-card-foreground/80">
-            <li>A named human reads your brief — not an automated reply.</li>
-            <li>
-              If it looks like a fit for a 21-day proof, we reply
-              {submitted.email ? ' to the email above' : ' and ask how to reach you'} to start
-              Discovery.
-            </li>
-            <li>If it isn&rsquo;t a fit yet, we say so plainly and explain why.</li>
-          </ol>
-        </div>
+
+        {triage?.status === 'ok' ? (
+          <DiscoveryTriageCard result={triage.result} />
+        ) : (
+          <div className="flex flex-col gap-2 rounded-xl border border-border bg-muted/30 p-4">
+            <p className="text-small font-medium text-foreground">What happens next</p>
+            <ol className="flex list-decimal flex-col gap-1.5 pl-4 text-small text-card-foreground/80">
+              <li>A named human reads your brief.</li>
+              <li>
+                If it looks like a fit for a 21-day proof, we reply
+                {submitted.email ? ' to the email above' : ' and ask how to reach you'} to start
+                Discovery.
+              </li>
+              <li>If it isn&rsquo;t a fit yet, we say so plainly and explain why.</li>
+            </ol>
+          </div>
+        )}
+
         {/* UX review C1: close the loop the reference number used to leave
             open — an account is how this brief actually gets tracked and
             converted into a governed mission, so the workflow says so here,

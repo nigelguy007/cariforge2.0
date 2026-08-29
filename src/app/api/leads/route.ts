@@ -9,6 +9,7 @@
 import 'server-only';
 import { NextResponse } from 'next/server';
 import type { z } from 'zod';
+import { getConfiguratorResult } from '@/lib/business/configurator';
 import { LeadCreate, LeadItem } from '@/lib/contracts/leads';
 import { WalkthroughAck, WalkthroughCreate } from '@/lib/contracts/walkthrough';
 import { prisma } from '@/lib/db';
@@ -144,6 +145,18 @@ export async function POST(req: Request) {
       }
     }
 
+    // Product decision (2026-08-29): the front-door brief's first response
+    // is a fully-automated Discovery-agent read — no human in the loop
+    // before the visitor sees it. Reuses the exact call already live behind
+    // the pre-signup workflow configurator (never throws; degrades to
+    // {status:'unavailable'} on any failure, which the UI shows as a plain
+    // "a named human will follow up" fallback — the brief is captured
+    // either way regardless of this call's outcome).
+    const triage = await getConfiguratorResult(parsed.data.brief);
+    if (triage.status === 'ok') {
+      await prisma.lead.update({ where: { id: lead.id }, data: { triage: triage.result } });
+    }
+
     return NextResponse.json(
       LeadItem.parse({
         id: lead.id,
@@ -151,6 +164,7 @@ export async function POST(req: Request) {
         email: parsed.data.email,
         createdAt: lead.createdAt.toISOString(),
         notified,
+        triage,
       }),
       { status: 201 },
     );

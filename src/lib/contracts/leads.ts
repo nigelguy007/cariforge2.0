@@ -4,6 +4,17 @@
 // zod only, no server-only imports.
 
 import { z } from 'zod';
+import { ConfiguratorResponse } from './configurator';
+
+// Product decision (2026-08-29): the front-door brief's first response is a
+// fully-automated Discovery-agent read — reuses the exact same call and
+// shape as the pre-signup workflow configurator (contracts/configurator.ts,
+// business/configurator.ts's getConfiguratorResult) rather than a second,
+// diverging agent persona. 'unavailable' (no ANTHROPIC_API_KEY, or the call
+// failed) is a real, expected case the UI must degrade gracefully from —
+// never the reason a brief submission fails.
+export const LeadTriage = ConfiguratorResponse;
+export type LeadTriage = z.infer<typeof LeadTriage>;
 
 export const LeadCreate = z.object({
   // Was capped at 500 chars when this field was framed as a literal
@@ -32,6 +43,10 @@ export const LeadItem = LeadCreate.extend({
   id: z.string(),
   createdAt: z.string(), // ISO-8601 from the server; client parses as a string
   notified: z.boolean(), // true iff owner-email send succeeded
+  // Present only on the front-door brief path (source='home'); absent
+  // (undefined) rather than null so the walkthrough path's response shape
+  // doesn't have to carry a field it never sets.
+  triage: LeadTriage.optional(),
 });
 
 export type LeadCreate = z.infer<typeof LeadCreate>;
