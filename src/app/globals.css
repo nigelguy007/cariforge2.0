@@ -125,9 +125,9 @@
    border role + dark mode from these (see the derived block below), so editing
    --brand-h ALONE recolors the entire site. Keep values in range. */
 :root {
-  --brand-h: 288; /* brand hue, 0–360 — vivid violet/purple, hand-converted from #753bfe (OKLCH L0.551 C0.263 H287.9), pixel-sampled from the glow accent on 21st.dev's "Remark" template (kinfe123) per explicit request to match that site's colours (was 261, cobalt blue — see .impeccable.md's Aesthetic Direction for that prior choice) */
-  --brand-c: 0.22; /* brand chroma (saturation), 0–0.3 — pulled in from the source's own 0.263 for everyday UI legibility, same ~15% restraint margin the prior blue seed used */
-  --brand-l: 0.55; /* lightness of the brand-500 step, 0.40–0.70 — matches the source colour's own derived lightness (0.551) closely; a faithful reading of the sampled swatch, not an artificial brightening pass */
+  --brand-h: 169; /* brand hue, 0–360 — vivid aquamarine, the CSS-named-color anchor (#7FFFD4 = OKLCH H169.0), landing between spring-green (H157) and turquoise (H185) so it reads unambiguously as aquamarine rather than tipping green or teal. Explicit correction (2026-08-29): first pass matched 21st.dev's "Remark" template (kinfe123) using ITS violet glow (H288) — the actual request was to match Remark's dark-mode STRUCTURE with aquamarine swapped in for its purple, not the purple itself (was 261, cobalt blue, before that) */
+  --brand-c: 0.19; /* brand chroma (saturation), 0–0.3 — vivid but not neon; cyan/green hues hold chroma more gracefully than violet did, so this sits close to the punchy "vivid aqua glow" reference sample (C0.151 at L0.837) once re-expressed at brand-500's own lightness step */
+  --brand-l: 0.55; /* lightness of the brand-500 step, 0.40–0.70 — kept at the same mid-tone the last two seeds used, so brand-500 keeps working as body-safe text/icon colour on light surfaces */
   --radius: 0.75rem; /* corner roundness — cascades to every primitive */
 
   /* Display = Sora (geometric humanist); Body = Manrope (open sans).

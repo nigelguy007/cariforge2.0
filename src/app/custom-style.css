@@ -486,19 +486,25 @@
    later framework-derived .dark{} block redeclares the same properties
    and would otherwise win by source order alone. */
 .dark.dark {
-  --background: oklch(0.17 0.012 var(--brand-h));
+  /* Deepened + more saturated than the previous dark palette (2026-08-29):
+     the prior L0.17/C0.012 background was a subtle neutral-grey dark mode
+     — real, but nowhere near the reference's own near-black, visibly
+     colour-cast canvas (#030014 sampled at OKLCH L0.096 C0.056). This
+     block now reads at a comparable weight, with the hue following
+     --brand-h (aquamarine) as everywhere else. */
+  --background: oklch(0.1 0.045 var(--brand-h));
   --foreground: oklch(0.96 0.006 var(--brand-h));
-  --card: oklch(0.22 0.014 var(--brand-h));
+  --card: oklch(0.16 0.05 var(--brand-h));
   --card-foreground: var(--foreground);
   --popover: var(--card);
   --popover-foreground: var(--foreground);
   --primary: #f5f5f7;
   --primary-foreground: #1d1d1f;
-  --secondary: oklch(0.27 0.02 var(--brand-h));
+  --secondary: oklch(0.2 0.045 var(--brand-h));
   --secondary-foreground: var(--foreground);
-  --muted: oklch(0.27 0.02 var(--brand-h));
+  --muted: oklch(0.2 0.045 var(--brand-h));
   --muted-foreground: oklch(0.68 0.02 var(--brand-h));
-  --accent: oklch(0.29 0.03 var(--brand-h));
+  --accent: oklch(0.22 0.06 var(--brand-h));
   --accent-foreground: var(--foreground);
   --border: oklch(1 0 0 / 12%);
   --input: oklch(1 0 0 / 14%);

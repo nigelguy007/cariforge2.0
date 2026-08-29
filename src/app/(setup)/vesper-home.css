@@ -11,37 +11,34 @@
    route so the two don't fight, and this page renders its own header/nav/
    footer entirely.
 
-   This route's own background is now a near-white Apple-style field
-   (oklch(0.985 0.003 261)), a complete reversal from every previous pass
-   on this file (dark near-black, then a vivid bright aquamarine wash) —
-   per an explicit new instruction: "the texture and contrast of
-   apple.com... keeping a caribbean sea colour." Apple's actual product
-   pages are overwhelmingly light/white with huge whitespace and soft
-   depth cues, not colour washes — the Caribbean-sea aquamarine now shows
-   up as a restrained ACCENT (the "AI" emphasis word, the badge, button
-   glows) rather than the field itself. IMPORTANT: this route completely
-   ignores the app's light/dark toggle (it force-sets its own background
-   here regardless of theme) — so it needed its own dedicated edit here,
-   the same way past "still dark"/"still too dark" complaints about /
-   were never fixed by changing the rest of the app's theme tokens alone.
-   Every text/border colour in this file flipped from light-on-dark to
-   dark-on-light alongside this background change — search for
-   "#1d1d1f" (near-black text, Apple's actual text colour, not pure
-   #000) and "#6e6e73" (Apple's actual secondary-text grey) below. */
+   This route's own background is dark again (2026-08-29), matching
+   21st.dev's "Remark" template reference with aquamarine swapped in for
+   its purple — reversing the previous Apple-style near-white pass
+   (oklch(0.985 0.003 261)), which itself had reversed an earlier dark
+   phase. IMPORTANT: this route completely ignores the app's light/dark
+   toggle (it force-sets its own background here regardless of theme) —
+   so it needed its own dedicated edit here, the same way every previous
+   colour-direction change on this route was never fixed by changing the
+   rest of the app's theme tokens alone. Every text/border/glass colour in
+   this file flipped from dark-on-light back to light-on-dark alongside
+   this background change — search for "var(--vhome-text)" (near-white,
+   Apple's actual dark-mode text colour, not pure #fff) below; the field
+   itself and the accent both derive from --brand-h so neither needed a
+   literal hex here. */
 
 html,
 body {
   /* biome-ignore lint/complexity/noImportantStyles: deliberate defensive rule, not an accident — guarantees no unstyled flash regardless of load order, before any other rule (including the var()-based one right below) has a chance to apply. oklch() needs no custom-property fallback: every engine that parses oklch() also supports custom properties, so this literal is just belt-and-braces against cascade-order races, not a compatibility fallback. */
-  background: oklch(0.985 0.003 261) !important;
-  color: #1d1d1f;
+  background: oklch(0.1 0.045 var(--brand-h, 169)) !important;
+  color: #f5f5f7;
 }
 html,
 body {
-  background: oklch(0.985 0.003 261);
+  background: oklch(0.1 0.045 var(--brand-h, 169));
   /* biome-ignore lint/suspicious/noDuplicateProperties: intentional fallback — the plain value above holds if custom properties aren't supported, var(--vhome-bg) wins where they are. */
-  background: var(--vhome-bg, oklch(0.985 0.003 261));
-  color: #1d1d1f;
-  color: var(--vhome-text, #1d1d1f);
+  background: var(--vhome-bg, oklch(0.1 0.045 var(--brand-h, 169)));
+  color: #f5f5f7;
+  color: var(--vhome-text, #f5f5f7);
 }
 
 .vhome-root {
@@ -51,34 +48,32 @@ body {
      @font-face needed here). A second family (Instrument Serif) used to
      load here too, for the italic "AI" emphasis word — removed along
      with that treatment, see .vhome-h1 em below. */
-  --vhome-bg: oklch(0.985 0.003 261);
-  --vhome-text: #1d1d1f;
-  --vhome-muted: #6e6e73;
-  --vhome-stat: #424245;
-  --vhome-border: rgba(0, 0, 0, 0.1);
-  --vhome-border-soft: rgba(0, 0, 0, 0.07);
+  --vhome-bg: oklch(0.1 0.045 var(--brand-h, 169));
+  --vhome-text: #f5f5f7;
+  --vhome-muted: #9a9a9f;
+  --vhome-stat: #c7c7cc;
+  --vhome-border: rgba(255, 255, 255, 0.14);
+  --vhome-border-soft: rgba(255, 255, 255, 0.08);
 
   /* Colour pass: reads var(--brand-h) — the site-wide seed in globals.css's
-     brand_tokens slot, currently 261 (a vivid royal/cobalt blue sourced
-     from icolorpalette.com's Caribbean palette collection, see
-     .impeccable.md) — so this page's accent moments (badge, "AI"
-     emphasis, button glows) stay in lockstep with the rest of the app
-     automatically whenever that seed changes, without editing this file.
-     (188 = aquamarine, 222 = ocean blue, 152 = emerald green, earlier in
-     this project's history; see custom-style.css's top-of-file comment.)
-     --vhome-accent is tuned to a moderate lightness
-     (0.56, not the 0.85 this held during the "bright wash" phase)
-     specifically because it now needs to read clearly as a SATURATED
-     COLOUR against a near-white page — a pale/light accent would wash
-     out against white the way it never did against a dark or vivid
-     field. --vhome-muted/--vhome-stat are Apple's actual documented
-     secondary-text greys (#6e6e73/#424245), not a tinted improvisation —
-     this page's "restraint" now comes from neutral greys doing most of
+     brand_tokens slot, currently 169 (vivid aquamarine, matching 21st.dev's
+     "Remark" template reference with aquamarine swapped for its purple —
+     see .impeccable.md / custom-style.css's top-of-file comment for the
+     full hue history: 261 cobalt blue, 288 violet, before that) — so this
+     page's accent moments (badge, "AI" emphasis, button glows) stay in
+     lockstep with the rest of the app automatically whenever that seed
+     changes, without editing this file. --vhome-accent is tuned brighter
+     again (0.72, not the 0.56 the near-white-field phase used) because a
+     glowing accent needs real lightness to read against a near-black
+     field — the inverse of why it was pulled down for the white-field
+     pass. --vhome-muted/--vhome-stat are Apple's actual documented
+     dark-mode secondary/tertiary text greys, not a tinted improvisation —
+     this page's "restraint" still comes from neutral greys doing most of
      the work, with colour appearing only where --vhome-accent is used
      directly. */
-  --vhome-accent: oklch(0.56 0.14 var(--brand-h, 261));
-  --vhome-accent-soft: oklch(0.56 0.14 var(--brand-h, 261) / 0.35);
-  --vhome-accent-dim: oklch(0.9 0.03 var(--brand-h, 261) / 0.6);
+  --vhome-accent: oklch(0.72 0.15 var(--brand-h, 169));
+  --vhome-accent-soft: oklch(0.72 0.15 var(--brand-h, 169) / 0.35);
+  --vhome-accent-dim: oklch(0.3 0.05 var(--brand-h, 169) / 0.6);
 
   --vhome-logo: 15.5px;
   --vhome-logo-mark: 22px;
@@ -162,11 +157,11 @@ body {
   background:
     radial-gradient(
       54% 60% at 38% 64%,
-      oklch(0.8 0.11 calc(var(--brand-h, 261) - 55) / 0.34),
+      oklch(0.8 0.11 calc(var(--brand-h, 169) - 55) / 0.34),
       transparent 76%
     ),
-    radial-gradient(50% 56% at 72% 72%, oklch(0.72 0.15 var(--brand-h, 261) / 0.3), transparent 76%),
-    radial-gradient(55% 50% at 14% 0%, oklch(0.75 0.13 var(--brand-h, 261) / 0.3), transparent 62%);
+    radial-gradient(50% 56% at 72% 72%, oklch(0.72 0.15 var(--brand-h, 169) / 0.3), transparent 76%),
+    radial-gradient(55% 50% at 14% 0%, oklch(0.75 0.13 var(--brand-h, 169) / 0.3), transparent 62%);
 }
 .vhome-page {
   position: relative;
@@ -195,7 +190,7 @@ body {
   font-size: var(--vhome-logo);
   font-weight: 600;
   letter-spacing: -0.03em;
-  color: #1d1d1f;
+  color: var(--vhome-text);
 }
 .vhome-logo-suffix {
   font-weight: 400;
@@ -214,21 +209,20 @@ body {
   position: relative;
   display: inline-flex;
   align-items: center;
-  /* Apple's actual nav-pill treatment: a soft, mostly-transparent white
-     frosted glass over the page, dark text, no colour tint at rest — the
-     opposite of the previous dark-tinted "liquid-metal" glass this held
-     across two earlier colour phases. A resting shadow + inset top
-     highlight added so the pill reads as a lifted glass surface even in
-     page regions where the hero glow behind it is faint — backdrop-blur
-     alone is easy to miss on a mostly-flat field. */
+  /* Dark-field glass nav pill: a soft, mostly-transparent dark frost over
+     the page, light text — matching Remark's own dark nav treatment. The
+     white shine-sweep on hover and the thin top inset highlight still
+     read as "lit glass edge" against a dark surface, so both are kept,
+     just at lower alpha than the white-field pass so they read as a
+     highlight rather than a wash. */
   border: 1px solid var(--vhome-border);
-  background: rgba(255, 255, 255, 0.55);
+  background: rgba(0, 0, 0, 0.28);
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.8),
-    0 4px 14px -6px oklch(0.2 0.02 var(--brand-h, 261) / 0.18);
+    inset 0 1px 0 rgba(255, 255, 255, 0.12),
+    0 4px 14px -6px oklch(0.05 0.02 var(--brand-h, 169) / 0.4);
   backdrop-filter: blur(14px) saturate(160%);
   -webkit-backdrop-filter: blur(14px) saturate(160%);
-  color: #1d1d1f;
+  color: var(--vhome-text);
   font-size: var(--vhome-nav);
   font-weight: 400;
   letter-spacing: -0.01em;
@@ -245,7 +239,7 @@ body {
   background: linear-gradient(
     115deg,
     transparent 30%,
-    rgba(255, 255, 255, 0.5) 50%,
+    rgba(255, 255, 255, 0.16) 50%,
     transparent 70%
   );
   transform: translateX(-120%);
@@ -253,8 +247,8 @@ body {
 }
 .vhome-nav-link:hover {
   border-color: var(--vhome-accent-soft);
-  background: oklch(0.56 0.14 var(--brand-h, 261) / 0.1);
-  box-shadow: 0 0 18px oklch(0.65 0.13 var(--brand-h, 261) / 0.14);
+  background: oklch(0.72 0.15 var(--brand-h, 169) / 0.14);
+  box-shadow: 0 0 18px oklch(0.72 0.15 var(--brand-h, 169) / 0.2);
 }
 .vhome-nav-link:hover::before {
   transform: translateX(120%);
@@ -265,14 +259,14 @@ body {
   height: 42px;
   border-radius: 6px;
   border: 1px solid var(--vhome-border);
-  background: rgba(255, 255, 255, 0.65);
+  background: rgba(0, 0, 0, 0.3);
   z-index: 60;
   place-items: center;
   cursor: pointer;
 }
 .vhome-burger:hover {
-  border-color: rgba(0, 0, 0, 0.18);
-  background: rgba(255, 255, 255, 0.85);
+  border-color: rgba(255, 255, 255, 0.24);
+  background: rgba(0, 0, 0, 0.45);
 }
 .vhome-burger-bars {
   display: flex;
@@ -283,7 +277,7 @@ body {
   width: 16px;
   height: 1.5px;
   border-radius: 1px;
-  background: #1d1d1f;
+  background: var(--vhome-text);
   transition:
     transform 0.25s ease,
     opacity 0.2s ease;
@@ -329,7 +323,7 @@ body.vhome-body-menu-open .vhome-burger-bar:nth-child(3) {
   background: linear-gradient(
     115deg,
     transparent 20%,
-    rgba(255, 255, 255, 0.45) 48%,
+    rgba(255, 255, 255, 0.16) 48%,
     transparent 76%
   );
   transform: translateX(-130%);
@@ -338,58 +332,57 @@ body.vhome-body-menu-open .vhome-burger-bar:nth-child(3) {
 .vhome-btn:hover::after {
   transform: translateX(130%);
 }
-/* Apple's actual primary-CTA pattern: a solid near-black pill, white
-   text — not the white-on-colour button this held during every previous
-   colour phase (that only worked because the page itself was dark or
-   vivid; on a near-white page a white button would have no contrast
-   against its own field). The Caribbean-sea accent now shows up in the
-   hover glow instead of the resting fill. */
+/* Apple's actual primary-CTA pattern, inverted for a dark field: a solid
+   near-white pill, dark text (a near-black button would have no contrast
+   against a near-black page) — same inversion custom-style.css's
+   .dark.dark block already applies to --primary/--primary-foreground.
+   The aquamarine accent still shows up in the hover glow, not the resting
+   fill. */
 .vhome-btn-solid {
-  background: linear-gradient(180deg, #2c2c2e 0%, #1d1d1f 100%);
-  color: #f5f5f7;
-  border: 1px solid #1d1d1f;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  background: linear-gradient(180deg, #ffffff 0%, #f0f0f2 100%);
+  color: #1d1d1f;
+  border: 1px solid #ffffff;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5);
 }
 .vhome-btn-solid:hover {
-  background: linear-gradient(180deg, #3a3a3c 0%, #232325 100%);
-  border-color: #000;
+  background: linear-gradient(180deg, #ffffff 0%, #e5e5e8 100%);
+  border-color: #fff;
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.1),
-    0 0 22px oklch(0.65 0.13 var(--brand-h, 261) / 0.3),
-    0 8px 18px rgba(0, 0, 0, 0.18);
+    inset 0 1px 0 rgba(255, 255, 255, 0.6),
+    0 0 22px oklch(0.72 0.15 var(--brand-h, 169) / 0.4),
+    0 8px 18px rgba(0, 0, 0, 0.35);
 }
 .vhome-hero-btn-solid:hover {
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.1),
-    0 0 26px oklch(0.65 0.13 var(--brand-h, 261) / 0.35),
-    0 8px 18px rgba(0, 0, 0, 0.2);
+    inset 0 1px 0 rgba(255, 255, 255, 0.6),
+    0 0 26px oklch(0.72 0.15 var(--brand-h, 169) / 0.45),
+    0 8px 18px rgba(0, 0, 0, 0.4);
 }
-/* .vhome-btn-ghost — the secondary CTA: a light, barely-there frosted
-   pill with dark text and a hairline border, matching the nav pills
-   above rather than the previous white-on-dark-glass treatment. */
+/* .vhome-btn-ghost — the secondary CTA: a dark, barely-there frosted pill
+   with light text and a hairline border, matching the nav pills above. */
 .vhome-btn-ghost {
-  background: rgba(255, 255, 255, 0.6);
-  color: #1d1d1f;
+  background: rgba(0, 0, 0, 0.3);
+  color: var(--vhome-text);
   border: 1px solid var(--vhome-border);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.4);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12);
 }
 .vhome-btn-ghost:hover {
-  background: oklch(0.56 0.14 var(--brand-h, 261) / 0.08);
+  background: oklch(0.72 0.15 var(--brand-h, 169) / 0.12);
   border-color: var(--vhome-accent-soft);
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.5),
-    0 0 20px oklch(0.65 0.13 var(--brand-h, 261) / 0.16);
+    inset 0 1px 0 rgba(255, 255, 255, 0.16),
+    0 0 20px oklch(0.72 0.15 var(--brand-h, 169) / 0.22);
 }
 .vhome-hero-btn-ghost {
-  background: rgba(255, 255, 255, 0.65);
+  background: rgba(0, 0, 0, 0.32);
   border: 1px solid var(--vhome-border);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
 }
 .vhome-hero-btn-ghost:hover {
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.5),
-    0 0 24px oklch(0.65 0.13 var(--brand-h, 261) / 0.18);
+    inset 0 1px 0 rgba(255, 255, 255, 0.16),
+    0 0 24px oklch(0.72 0.15 var(--brand-h, 169) / 0.24);
   border-color: var(--vhome-accent-soft);
 }
 .vhome-hero-btn {
@@ -423,22 +416,21 @@ body.vhome-body-menu-open .vhome-burger-bar:nth-child(3) {
   padding: 9px 15px;
   border: 1px solid var(--vhome-accent-soft);
   border-radius: 5px;
-  /* A soft Caribbean-sea tint, not the dark-glass gradient this held
-     during earlier phases — Apple's own small pill badges are typically
-     a flat, quiet tint like this rather than a gradient. Alpha bumped
-     (0.1 -> 0.16) and given an inset top highlight so the tint/glass
-     reads clearly rather than as a near-invisible whisper. */
-  background: oklch(0.56 0.14 var(--brand-h, 261) / 0.16);
-  box-shadow: inset 0 1px 0 oklch(1 0 0 / 0.5);
+  /* A soft aquamarine tint — Apple's own small pill badges are typically
+     a flat, quiet tint rather than a gradient. Badge text lightened back
+     up (0.4 -> 0.85) for the dark field: a dark accent colour that read
+     fine on near-white would nearly vanish on near-black. */
+  background: oklch(0.72 0.15 var(--brand-h, 169) / 0.16);
+  box-shadow: inset 0 1px 0 oklch(1 0 0 / 0.14);
   backdrop-filter: blur(10px) saturate(150%);
   -webkit-backdrop-filter: blur(10px) saturate(140%);
-  color: oklch(0.4 0.1 var(--brand-h, 261));
+  color: oklch(0.85 0.1 var(--brand-h, 169));
   font-size: var(--vhome-badge);
   font-weight: 500;
   letter-spacing: -0.01em;
 }
 .vhome-badge-star {
-  filter: drop-shadow(0 0 2px oklch(0.56 0.14 var(--brand-h, 261) / 0.3));
+  filter: drop-shadow(0 0 2px oklch(0.72 0.15 var(--brand-h, 169) / 0.3));
 }
 .vhome-h1 {
   font-family:
@@ -448,7 +440,7 @@ body.vhome-body-menu-open .vhome-burger-bar:nth-child(3) {
   font-size: var(--vhome-h1);
   letter-spacing: -0.045em;
   line-height: 1.1;
-  color: #1d1d1f;
+  color: var(--vhome-text);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -478,9 +470,9 @@ body.vhome-body-menu-open .vhome-burger-bar:nth-child(3) {
   margin: 0 0.02em;
   border-radius: 0.28em;
   color: var(--vhome-accent);
-  background: oklch(0.56 0.14 var(--brand-h, 261) / 0.14);
-  border: 1.5px solid oklch(0.56 0.14 var(--brand-h, 261) / 0.4);
-  box-shadow: 0 0 24px oklch(0.56 0.14 var(--brand-h, 261) / 0.22);
+  background: oklch(0.72 0.15 var(--brand-h, 169) / 0.14);
+  border: 1.5px solid oklch(0.72 0.15 var(--brand-h, 169) / 0.4);
+  box-shadow: 0 0 24px oklch(0.72 0.15 var(--brand-h, 169) / 0.22);
   backdrop-filter: blur(10px) saturate(160%);
   -webkit-backdrop-filter: blur(10px) saturate(160%);
 }
@@ -520,7 +512,7 @@ body.vhome-body-menu-open .vhome-burger-bar:nth-child(3) {
   white-space: nowrap;
 }
 .vhome-stat-icon {
-  color: #86868b;
+  color: #98989d;
   flex: none;
 }
 
@@ -891,7 +883,7 @@ body.vhome-body-menu-open .vhome-burger-bar:nth-child(3) {
     position: fixed;
     inset: 0;
     z-index: 40;
-    background: rgba(255, 255, 255, 0.72);
+    background: rgba(3, 3, 6, 0.86);
     opacity: 0;
     visibility: hidden;
     transition:
