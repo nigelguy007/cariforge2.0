@@ -50,10 +50,22 @@ const ConfiguratorResultV4 = z4.object({
 
 let cachedClient: Anthropic | null | undefined;
 
+// Confirmed root cause (2026-08-29): this deploy's key is issued by Vercel's
+// AI Gateway (its wrapped-JSON value shape gave it away — a real Anthropic
+// secret starts `sk-ant-...`), not a raw Anthropic secret, but this code was
+// pointing the SDK straight at api.anthropic.com — every call failed
+// silently (swallowed by the catch below into 'unavailable') until this fix.
+// Gateway docs: https://vercel.com/docs/ai-gateway/sdks-and-apis/anthropic-messages-api
+// — same Anthropic SDK, but routed via baseURL with model ids prefixed
+// `anthropic/`. AI_GATEWAY_API_KEY is the semantically-correct env var name
+// going forward; ANTHROPIC_API_KEY is what's actually set today, so it's
+// the fallback, not the primary.
 function getClient(): Anthropic | null {
   if (cachedClient !== undefined) return cachedClient;
-  const apiKey = process.env.ANTHROPIC_API_KEY;
-  cachedClient = apiKey ? new Anthropic({ apiKey }) : null;
+  const apiKey = process.env.AI_GATEWAY_API_KEY ?? process.env.ANTHROPIC_API_KEY;
+  cachedClient = apiKey
+    ? new Anthropic({ apiKey, baseURL: 'https://ai-gateway.vercel.sh' })
+    : null;
   return cachedClient;
 }
 
@@ -94,7 +106,7 @@ export async function getConfiguratorResult(description: string): Promise<Config
 
   try {
     const response = await client.messages.parse({
-      model: 'claude-opus-5',
+      model: 'anthropic/claude-opus-5',
       max_tokens: 2048,
       // Medium effort, not the SDK's default high: this is a bounded
       // classification-and-mapping task against fixed, spelled-out

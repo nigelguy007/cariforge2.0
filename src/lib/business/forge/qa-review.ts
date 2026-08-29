@@ -53,10 +53,19 @@ export interface QAReviewInput {
 
 let cachedClient: Anthropic | null | undefined;
 
+// Confirmed root cause (2026-08-29, same fix as business/configurator.ts):
+// this deploy's key is issued by Vercel's AI Gateway (its wrapped-JSON
+// value shape gave it away — a real Anthropic secret starts `sk-ant-...`),
+// not a raw Anthropic secret, but this code was pointing the SDK straight
+// at api.anthropic.com — every call failed silently (swallowed by the
+// catch below into 'unavailable') until this fix.
+// Gateway docs: https://vercel.com/docs/ai-gateway/sdks-and-apis/anthropic-messages-api
 function getClient(): Anthropic | null {
   if (cachedClient !== undefined) return cachedClient;
-  const apiKey = process.env.ANTHROPIC_API_KEY;
-  cachedClient = apiKey ? new Anthropic({ apiKey }) : null;
+  const apiKey = process.env.AI_GATEWAY_API_KEY ?? process.env.ANTHROPIC_API_KEY;
+  cachedClient = apiKey
+    ? new Anthropic({ apiKey, baseURL: 'https://ai-gateway.vercel.sh' })
+    : null;
   return cachedClient;
 }
 
@@ -80,7 +89,7 @@ export async function getQAReview(input: QAReviewInput): Promise<QAReviewT> {
 
   try {
     const response = await client.messages.parse({
-      model: 'claude-opus-5',
+      model: 'anthropic/claude-opus-5',
       max_tokens: 2048,
       system: SYSTEM_PROMPT,
       messages: [
