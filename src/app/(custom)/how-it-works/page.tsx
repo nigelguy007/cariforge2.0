@@ -308,8 +308,8 @@ export default function HowItWorksPage() {
         <div className="container-page flex flex-col gap-10">
           <GlassSectionHeader
             eyebrow="The stages"
-            title="Five agents. Five named approvals. No hidden steps."
-            lede="Every agent advances only after a human authorises it by name, with a typed reason attached and recorded. Return is cheap; stopping is free. Nothing jumps a gate."
+            title="Five stages. Five named approvals. No hidden steps."
+            lede="Every stage advances only after a human authorises it by name, with a typed reason attached and recorded. Return is cheap; stopping is free. Nothing jumps a gate."
           />
 
           <ol className="grid gap-4 md:grid-cols-5">
