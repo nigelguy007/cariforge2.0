@@ -122,11 +122,7 @@ export async function getConfiguratorResult(description: string): Promise<Config
     const parsed = ConfiguratorResult.safeParse(response.parsed_output);
     if (!parsed.success) return { status: 'unavailable' };
     return { status: 'ok', result: parsed.data };
-  } catch (err) {
-    // TEMP: diagnostic logging to identify why AI_GATEWAY_API_KEY is still
-    // failing after being set 2026-08-29 (follow-up to 600ba59/9b7bf4d).
-    // Will be reverted once the real error is captured from prod logs.
-    console.error('[configurator diag 2]', err);
+  } catch {
     // Network error, rate limit, invalid key, refusal, parse failure — all
     // degrade the same way. Never the reason a prospect can't reach the
     // real form.
