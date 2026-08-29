@@ -50,7 +50,14 @@ export const cspExtraSources: CspExtraSources = {
 };
 
 /** Package-level Next options (transpilePackages, experimental.optimizePackageImports, …). */
-export const userNextConfig: NextConfig = {};
+export const userNextConfig: NextConfig = {
+  // UX review C3 (wireframe v2): the run-only Approval Desk merged into the
+  // unified /approvals inbox. Config-level redirect so old bookmarks get a
+  // real 308 instead of a streamed page-level redirect.
+  async redirects() {
+    return [{ source: '/forge/approvals', destination: '/approvals', permanent: true }];
+  },
+};
 
 export type ConfigPlugin = (config: NextConfig) => NextConfig;
 

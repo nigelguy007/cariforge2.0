@@ -118,8 +118,22 @@ export const BlueprintItem = z.object({
   version: z.number().int(),
   definition: CariBlueprintDefinition,
   createdAt: z.string(),
+  // UX review C2: mission this blueprint was created from (null when built
+  // free-standing). missionSlug/missionName are enriched server-side so
+  // the canvas toolbar can link back without a second fetch. All optional
+  // so pre-enrichment payloads still parse.
+  missionId: z.string().nullable().optional(),
+  missionSlug: z.string().nullable().optional(),
+  missionName: z.string().nullable().optional(),
 });
 export type BlueprintItemT = z.infer<typeof BlueprintItem>;
+
+// UX review C2: request body for POST /api/forge-canvas/blueprints/from-mission —
+// creates (or returns) the blueprint linked to a mission's Software Build gate.
+export const BlueprintFromMission = z.object({
+  missionId: z.string().min(1).max(64),
+});
+export type BlueprintFromMissionT = z.infer<typeof BlueprintFromMission>;
 
 export const BlueprintList = z.object({
   // Latest version per slug.

@@ -1,0 +1,513 @@
+<title>CARI Forge Wireframes</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700&family=Public+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+  :root {
+    --paper: #F6F6F3;
+    --surface: #FFFFFF;
+    --ink: #20242B;
+    --muted: #6A7079;
+    --stroke: #C7CBD2;
+    --stroke-soft: #DDE0E5;
+    --accent: #3B5BDB;
+    --accent-soft: #E8ECFB;
+    --note: #A16A1B;
+    --note-soft: #FBF3E4;
+    --hatch: repeating-linear-gradient(45deg, transparent, transparent 6px, var(--stroke-soft) 6px, var(--stroke-soft) 7px);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper: #191C22;
+      --surface: #22262E;
+      --ink: #E6E8EC;
+      --muted: #9AA1AB;
+      --stroke: #4A505B;
+      --stroke-soft: #343A44;
+      --accent: #7C95F0;
+      --accent-soft: #2A3350;
+      --note: #D9A85B;
+      --note-soft: #33291A;
+      --hatch: repeating-linear-gradient(45deg, transparent, transparent 6px, var(--stroke-soft) 6px, var(--stroke-soft) 7px);
+    }
+  }
+  :root[data-theme="dark"] {
+    --paper: #191C22;
+    --surface: #22262E;
+    --ink: #E6E8EC;
+    --muted: #9AA1AB;
+    --stroke: #4A505B;
+    --stroke-soft: #343A44;
+    --accent: #7C95F0;
+    --accent-soft: #2A3350;
+    --note: #D9A85B;
+    --note-soft: #33291A;
+    --hatch: repeating-linear-gradient(45deg, transparent, transparent 6px, var(--stroke-soft) 6px, var(--stroke-soft) 7px);
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: 'Public Sans', system-ui, sans-serif;
+    font-size: 16px;
+    line-height: 1.6;
+  }
+  .page { max-width: 980px; margin: 0 auto; padding: 3rem 1.25rem 5rem; }
+
+  h1, h2, h3 { font-family: 'Archivo', system-ui, sans-serif; line-height: 1.2; text-wrap: balance; }
+  h1 { font-size: 2.2rem; font-weight: 700; margin: 0 0 .4rem; }
+  h2 { font-size: 1.35rem; font-weight: 600; margin: 0; }
+  h3 { font-size: 1rem; font-weight: 600; margin: 0 0 .5rem; }
+  .sub { color: var(--muted); max-width: 62ch; margin: 0 0 .75rem; }
+  .meta { font-family: 'IBM Plex Mono', monospace; font-size: .75rem; color: var(--muted); letter-spacing: .04em; }
+
+  .legend {
+    display: flex; flex-wrap: wrap; gap: 1rem 1.75rem; align-items: center;
+    border: 1px solid var(--stroke-soft); background: var(--surface);
+    padding: .8rem 1.1rem; margin: 1.5rem 0 0;
+    font-family: 'IBM Plex Mono', monospace; font-size: .72rem;
+  }
+  .legend .item { display: flex; align-items: center; gap: .5rem; color: var(--muted); }
+  .sw { width: 26px; height: 15px; flex: none; }
+  .sw.solid { border: 1.5px solid var(--stroke); background: var(--surface); }
+  .sw.dashed { border: 1.5px dashed var(--stroke); background: var(--hatch); }
+  .sw.cta { background: var(--accent); }
+  .sw.callout { border-radius: 50%; width: 15px; background: var(--accent); color: #fff; display:flex; align-items:center; justify-content:center; font-size:.6rem; }
+
+  section.screen { margin-top: 4rem; }
+  .screen-head {
+    display: flex; align-items: baseline; justify-content: space-between; gap: 1rem;
+    border-bottom: 2px solid var(--ink); padding-bottom: .5rem; margin-bottom: .5rem;
+    flex-wrap: wrap;
+  }
+  .route { font-family: 'IBM Plex Mono', monospace; font-size: .78rem; color: var(--accent); font-weight: 600; }
+  .screen > .sub { margin-top: .35rem; }
+
+  /* ---------- device frames ---------- */
+  .frames { display: flex; gap: 1.5rem; align-items: flex-start; flex-wrap: wrap; margin-top: 1.25rem; }
+  .frame {
+    background: var(--surface);
+    border: 1.5px solid var(--ink);
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 4px 4px 0 var(--stroke-soft);
+  }
+  .frame .titlebar {
+    display: flex; align-items: center; gap: .4rem;
+    border-bottom: 1.5px solid var(--ink);
+    padding: .4rem .6rem;
+    font-family: 'IBM Plex Mono', monospace; font-size: .65rem; color: var(--muted);
+  }
+  .titlebar .dot { width: 8px; height: 8px; border-radius: 50%; border: 1.5px solid var(--stroke); flex: none; }
+  .frame-desktop { flex: 1 1 560px; min-width: 0; }
+  .frame-mobile { flex: 0 0 270px; max-width: 100%; }
+  .frame-mobile .titlebar { justify-content: center; }
+  .frame-mobile .titlebar .notch { width: 60px; height: 8px; border-radius: 4px; background: var(--stroke-soft); }
+  .canvas { padding: .8rem; display: flex; flex-direction: column; gap: .6rem; }
+
+  /* ---------- wireframe atoms ---------- */
+  .wf { font-family: 'IBM Plex Mono', monospace; font-size: .68rem; line-height: 1.35; color: var(--muted); }
+  .box { border: 1.5px solid var(--stroke); padding: .5rem .6rem; background: var(--surface); }
+  .ph { border: 1.5px dashed var(--stroke); background: var(--hatch); padding: .5rem .6rem; color: var(--muted); }
+  .row { display: flex; gap: .6rem; }
+  .row > * { flex: 1; min-width: 0; }
+  .row .n2 { flex: 2; }
+  .row .n3 { flex: 3; }
+  .grow { flex: 1; }
+  .stack { display: flex; flex-direction: column; gap: .6rem; }
+  .tight { gap: .35rem; }
+  .btn-wf {
+    background: var(--accent); color: #fff; border: 1.5px solid var(--accent);
+    padding: .4rem .7rem; text-align: center; font-weight: 600; align-self: flex-start;
+  }
+  .btn-ghost { border: 1.5px solid var(--accent); color: var(--accent); padding: .4rem .7rem; text-align: center; font-weight: 600; align-self: flex-start; background: var(--surface); }
+  .pill { border: 1.5px solid var(--stroke); border-radius: 99px; padding: .1rem .55rem; display: inline-block; }
+  .pill.on { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
+  .navbar { display: flex; align-items: center; gap: .8rem; border: 1.5px solid var(--stroke); padding: .45rem .6rem; }
+  .navbar .logo { font-weight: 600; color: var(--ink); }
+  .navbar .sp { flex: 1; }
+  .h-lg { color: var(--ink); font-weight: 600; font-size: .82rem; }
+  .h-md { color: var(--ink); font-weight: 600; }
+  .lines { display: flex; flex-direction: column; gap: .3rem; }
+  .line { height: 6px; background: var(--stroke-soft); }
+  .line.w60 { width: 60%; } .line.w80 { width: 80%; } .line.w40 { width: 40%; }
+  .input-wf { border: 1.5px solid var(--stroke); background: var(--surface); padding: .45rem .6rem; color: var(--stroke); }
+  .area-wf { border: 1.5px solid var(--stroke); background: var(--surface); padding: .45rem .6rem .45rem; color: var(--stroke); min-height: 52px; }
+
+  /* callouts */
+  .co {
+    display: inline-flex; width: 17px; height: 17px; border-radius: 50%;
+    background: var(--accent); color: #fff; font-family: 'IBM Plex Mono', monospace;
+    font-size: .62rem; font-weight: 600; align-items: center; justify-content: center;
+    flex: none; vertical-align: middle;
+  }
+  .notes { margin: 1rem 0 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: .45rem; }
+  .notes li { display: flex; gap: .6rem; align-items: baseline; font-size: .85rem; color: var(--muted); max-width: 70ch; }
+  .notes li .co { transform: translateY(2px); }
+  .notes li strong { color: var(--ink); font-weight: 600; }
+
+  .annot {
+    border-left: 3px solid var(--note); background: var(--note-soft);
+    padding: .55rem .8rem; font-size: .82rem; color: var(--ink);
+    font-family: 'IBM Plex Mono', monospace; margin-top: 1rem; max-width: 74ch;
+  }
+  .annot::before { content: "NOTE — "; color: var(--note); font-weight: 600; }
+
+  /* sitemap */
+  .sitemap { margin-top: 1.5rem; overflow-x: auto; }
+  .sitemap-inner { min-width: 640px; display: flex; flex-direction: column; align-items: stretch; gap: 0; }
+  .tier { display: flex; gap: .8rem; justify-content: center; }
+  .tier + .tier { margin-top: 1.6rem; position: relative; }
+  .tier + .tier::before {
+    content: ""; position: absolute; top: -1.6rem; left: 15%; right: 15%; height: 1.6rem;
+    background:
+      linear-gradient(var(--stroke), var(--stroke)) center / 1.5px 100% no-repeat;
+  }
+  .node {
+    border: 1.5px solid var(--ink); background: var(--surface);
+    padding: .45rem .7rem; font-family: 'IBM Plex Mono', monospace; font-size: .7rem;
+    text-align: center; box-shadow: 3px 3px 0 var(--stroke-soft); flex: 1;
+  }
+  .node b { display: block; font-size: .78rem; color: var(--ink); }
+  .node span { color: var(--muted); }
+  .node.auth { border-style: dashed; box-shadow: none; }
+  .node.gate { border-color: var(--accent); }
+  .tierlabel { font-family: 'IBM Plex Mono', monospace; font-size: .65rem; color: var(--note); letter-spacing: .08em; text-transform: uppercase; margin: 1.4rem 0 .5rem; text-align: left; }
+
+  /* gate rail */
+  .gates { display: flex; gap: .4rem; align-items: stretch; }
+  .gate { flex: 1; border: 1.5px solid var(--stroke); padding: .35rem .3rem; text-align: center; position: relative; }
+  .gate.done { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); }
+  .gate.cur { border-color: var(--accent); border-width: 2px; color: var(--ink); font-weight: 600; }
+  .gate small { display: block; font-size: .58rem; color: var(--muted); font-weight: 400; }
+
+  /* canvas nodes for forge */
+  .flownode { border: 1.5px solid var(--ink); background: var(--surface); padding: .3rem .5rem; text-align: center; box-shadow: 2px 2px 0 var(--stroke-soft); }
+  .flownode.startend { border-radius: 99px; }
+  .flownode.branch { border-color: var(--note); }
+  .flownode.human { border-color: var(--accent); background: var(--accent-soft); color: var(--accent); }
+  .edge { display:flex; align-items:center; justify-content:center; color: var(--stroke); font-size:.8rem; }
+
+  a { color: var(--accent); }
+  @media (max-width: 640px) {
+    h1 { font-size: 1.7rem; }
+    .frames { flex-direction: column; }
+    .frame-mobile { flex-basis: auto; width: 270px; }
+  }
+</style>
+
+<div class="page">
+  <header>
+    <p class="meta">CARI FORGE · cariforge2-0.vercel.app · WIREFRAME SET v1 · 2026-08-29</p>
+    <h1>CARI Forge Wireframes</h1>
+    <p class="sub">Structural blueprint of the platform as shipped: the public front door, the signed-in Mission Control, the nine-field mission intake, the five-gate governed pipeline, and the Forge Canvas agent builder with its Approval Desk. Solid boxes are chrome that always renders; dashed boxes are data-driven content.</p>
+    <div class="legend wf">
+      <span class="item"><span class="sw solid"></span> chrome / static</span>
+      <span class="item"><span class="sw dashed"></span> data placeholder</span>
+      <span class="item"><span class="sw cta"></span> primary action</span>
+      <span class="item"><span class="sw callout">n</span> callout → notes</span>
+    </div>
+  </header>
+
+  <!-- ============ SITEMAP ============ -->
+  <section class="screen">
+    <div class="screen-head">
+      <h2>Information architecture</h2>
+      <span class="route">route map</span>
+    </div>
+    <p class="sub">Three zones: a public marketing shell with one conversion path (the brief), an authenticated Mission Control zone, and the Forge Canvas builder zone. Auth is the only doorway between the first and the other two.</p>
+    <div class="sitemap"><div class="sitemap-inner">
+      <p class="tierlabel">Public</p>
+      <div class="tier">
+        <div class="node"><b>Home</b><span>/ — hero, oracles, brief intake</span></div>
+        <div class="node"><b>How it works</b><span>/how-it-works</span></div>
+        <div class="node"><b>Pricing · Compare · Blog</b><span>marketing pages</span></div>
+        <div class="node auth"><b>Log in / Sign up</b><span>/login · /signup</span></div>
+      </div>
+      <p class="tierlabel">Mission Control (auth)</p>
+      <div class="tier">
+        <div class="node"><b>Dashboard</b><span>/dashboard</span></div>
+        <div class="node"><b>Missions</b><span>/missions → /missions/[slug]</span></div>
+        <div class="node"><b>New mission</b><span>/missions/new</span></div>
+        <div class="node"><b>Profile</b><span>/profile</span></div>
+      </div>
+      <p class="tierlabel">Forge Canvas (auth)</p>
+      <div class="tier">
+        <div class="node gate"><b>Canvas builder</b><span>/forge</span></div>
+        <div class="node gate"><b>Run trace</b><span>/forge/runs/[id]</span></div>
+        <div class="node gate"><b>Approval Desk</b><span>/forge/approvals</span></div>
+      </div>
+    </div></div>
+    <p class="annot">Admin mirrors of Missions and Leads exist under /admin/* with the same layouts, scoped by role — not drawn separately.</p>
+  </section>
+
+  <!-- ============ FRONT DOOR ============ -->
+  <section class="screen">
+    <div class="screen-head">
+      <h2>Public front door</h2>
+      <span class="route">/</span>
+    </div>
+    <p class="sub">One job: turn a visitor's plain-English need into a captured brief with a reference number. Everything above the form is persuasion; the form is the conversion.</p>
+    <div class="frames">
+      <div class="frame frame-desktop"><div class="titlebar"><span class="dot"></span><span class="dot"></span><span class="dot"></span>&nbsp;cariforge — home</div>
+        <div class="canvas wf">
+          <div class="navbar"><span class="logo">CARI Forge</span><span class="sp"></span><span>How it works</span><span>Pricing</span><span class="pill">Log in</span><span class="pill on">Sign up</span> <span class="co">1</span></div>
+          <div class="box stack tight">
+            <span class="h-lg">What do you want to build using AI?</span>
+            <div class="lines"><span class="line w80"></span><span class="line w60"></span></div>
+            <div class="row"><div class="btn-wf grow">Request a walkthrough</div><div class="btn-ghost grow">See a sample brief</div></div>
+          </div>
+          <div class="row">
+            <div class="ph stack tight"><span class="h-md">The Oracles argue it</span><div class="lines"><span class="line"></span><span class="line w80"></span></div></div>
+            <div class="ph stack tight"><span class="h-md">Five named humans gate it</span><div class="lines"><span class="line"></span><span class="line w80"></span></div></div>
+            <div class="ph stack tight"><span class="h-md">Evidence trail exports</span><div class="lines"><span class="line"></span><span class="line w80"></span></div></div>
+          </div>
+          <div class="box stack tight">
+            <span class="h-md">Send us the brief <span class="co">2</span></span>
+            <div class="row"><div class="input-wf">name</div><div class="input-wf">work email</div></div>
+            <div class="area-wf">what do you want to build…</div>
+            <div class="row"><div class="ph grow">attach a document · ≤4 MB · pdf/docx/txt <span class="co">3</span></div></div>
+            <div class="btn-wf">Send the brief</div>
+          </div>
+          <div class="box stack tight"><span class="h-md">✓ Brief received</span><span>Reference: CF-XXXX-XXXX · what happens next (3 steps) <span class="co">4</span></span></div>
+        </div>
+      </div>
+    </div>
+    <ul class="notes">
+      <li><span class="co">1</span><span><strong>Log in / Sign up always visible</strong> for signed-out visitors; both swap to a single “Dashboard” link once a session exists.</span></li>
+      <li><span class="co">2</span><span><strong>Brief intake form</strong> — minimum viable fields; the free-text need is the product, not a formality.</span></li>
+      <li><span class="co">3</span><span><strong>Attachment</strong> is a real upload (stored per-lead, one file, replaced on re-upload), validated by size and type inline.</span></li>
+      <li><span class="co">4</span><span><strong>Confirmation card</strong> replaces the form in place: human-readable reference, the attached filename, and explicit next steps — never a dead end.</span></li>
+    </ul>
+  </section>
+
+  <!-- ============ DASHBOARD ============ -->
+  <section class="screen">
+    <div class="screen-head">
+      <h2>Dashboard — Mission Control</h2>
+      <span class="route">/dashboard</span>
+    </div>
+    <p class="sub">Prompt-first: the page opens with the question, not a stats grid. One primary CTA on the whole screen. Below it, the user's real missions, then the seven-agent team computed from live mission data.</p>
+    <div class="frames">
+      <div class="frame frame-desktop"><div class="titlebar"><span class="dot"></span><span class="dot"></span><span class="dot"></span>&nbsp;dashboard — desktop</div>
+        <div class="canvas wf">
+          <div class="navbar"><span class="logo">CARI Forge</span><span class="sp"></span><span>Overview</span><span>Missions</span><span class="pill">Sign out</span></div>
+          <div class="box stack tight">
+            <span>MISSION CONTROL · <span class="pill">User role</span></span>
+            <span class="h-lg">What would you like to achieve? <span class="co">1</span></span>
+            <div class="area-wf">describe the need as you would to a colleague…</div>
+            <div class="row"><div class="btn-wf">Start a mission</div><span style="align-self:center">or open the full intake form →</span></div>
+          </div>
+          <span class="h-md">Your missions <span class="co">2</span></span>
+          <div class="ph stack tight"><span class="h-md">No missions yet</span><span>Missions you start above will show up here — no second CTA</span></div>
+          <span class="h-md">Your AI team <span class="co">3</span></span>
+          <div class="box">
+            <div class="row wf" style="border-bottom:1.5px solid var(--stroke-soft); padding-bottom:.3rem"><span>AGENT</span><span class="n2">DOES</span><span>ACTIVE NOW</span><span>COMPLETED</span></div>
+            <div class="row wf" style="padding-top:.3rem"><span>Discovery</span><span class="n2"><span class="line w80"></span></span><span>0</span><span>0</span></div>
+            <div class="row wf"><span>Readiness</span><span class="n2"><span class="line w60"></span></span><span>0</span><span>0</span></div>
+            <div class="row wf"><span>… ×5 more</span><span class="n2"></span><span></span><span></span></div>
+          </div>
+        </div>
+      </div>
+      <div class="frame frame-mobile"><div class="titlebar"><span class="notch"></span></div>
+        <div class="canvas wf">
+          <div class="navbar"><span class="logo">CARI Forge</span><span class="sp"></span><span>☰</span></div>
+          <div class="box stack tight"><span class="h-md">What would you like to achieve?</span><div class="area-wf"></div><div class="btn-wf">Start a mission</div></div>
+          <div class="ph stack tight"><span class="h-md">No missions yet</span><div class="lines"><span class="line"></span><span class="line w60"></span></div></div>
+          <div class="box stack tight"><span class="h-md">Discovery <span class="co">4</span></span><div class="lines"><span class="line"></span><span class="line w80"></span></div>
+            <div class="row"><span>ACTIVE NOW<br><b style="color:var(--ink)">0</b></span><span>COMPLETED<br><b style="color:var(--ink)">0</b></span></div>
+          </div>
+          <div class="box stack tight"><span class="h-md">Readiness</span><div class="row"><span>ACTIVE NOW<br><b style="color:var(--ink)">0</b></span><span>COMPLETED<br><b style="color:var(--ink)">0</b></span></div></div>
+        </div>
+      </div>
+    </div>
+    <ul class="notes">
+      <li><span class="co">1</span><span><strong>Quick-capture box</strong> hands the typed need to /missions/new pre-filled — one step from thought to structured intake.</span></li>
+      <li><span class="co">2</span><span><strong>Empty state carries no CTA here</strong> — the hero above is the single “Start a mission” action; the copy points back up at it.</span></li>
+      <li><span class="co">3</span><span><strong>Agent table</strong> — real counts computed from the mission list; wraparound agents (Partner, Impact) show “Not tracked yet”, never a fabricated zero.</span></li>
+      <li><span class="co">4</span><span><strong>Below md the table becomes stacked cards</strong> — same rows, no horizontal scroll, nothing cut off at the screen edge.</span></li>
+    </ul>
+  </section>
+
+  <!-- ============ MISSION INTAKE ============ -->
+  <section class="screen">
+    <div class="screen-head">
+      <h2>Mission intake</h2>
+      <span class="route">/missions/new</span>
+    </div>
+    <p class="sub">The nine attribution fields, grouped into three sections so the form reads as a conversation, not an interrogation. Every field: visible label, one-line description, example below the input — never placeholder-only.</p>
+    <div class="frames">
+      <div class="frame frame-desktop"><div class="titlebar"><span class="dot"></span><span class="dot"></span><span class="dot"></span>&nbsp;new mission</div>
+        <div class="canvas wf">
+          <span class="h-lg">Start a mission</span>
+          <div class="box stack tight">
+            <span class="h-md">1 · What &amp; why <span class="co">1</span></span>
+            <span>Need — plain-English statement of what is missing</span>
+            <div class="area-wf"></div>
+            <span style="font-size:.6rem">e.g. “Claims handlers re-key the same data into three systems”</span>
+            <span>Intended outcome</span><div class="area-wf"></div>
+            <span>Who benefits</span><div class="input-wf"></div>
+          </div>
+          <div class="box stack tight">
+            <span class="h-md">2 · Boundaries</span>
+            <span>Constraints</span><div class="area-wf"></div>
+            <span>Authority boundary — what the system may never do alone</span><div class="area-wf"></div>
+            <span>Data touched</span><div class="input-wf"></div>
+          </div>
+          <div class="box stack tight">
+            <span class="h-md">3 · Proof</span>
+            <span>Success measure</span><div class="input-wf"></div>
+            <span>Walk-away condition</span><div class="input-wf"></div>
+            <span>Named approver</span><div class="input-wf"></div>
+          </div>
+          <div class="btn-wf">Create mission <span class="co">2</span></div>
+        </div>
+      </div>
+    </div>
+    <ul class="notes">
+      <li><span class="co">1</span><span><strong>Grouped sections</strong> (what &amp; why → boundaries → proof) — sequence is real: easy fields first, sensitive commitments last.</span></li>
+      <li><span class="co">2</span><span><strong>On submit</strong> the mission is created in Discovery, and the user lands on the mission detail page below.</span></li>
+    </ul>
+  </section>
+
+  <!-- ============ MISSION DETAIL ============ -->
+  <section class="screen">
+    <div class="screen-head">
+      <h2>Mission detail — the five gates</h2>
+      <span class="route">/missions/[slug]</span>
+    </div>
+    <p class="sub">The pipeline is the page. A mission advances left to right only when a named human approves the gate with a typed reason; everything below the rail is the evidence for the current gate.</p>
+    <div class="frames">
+      <div class="frame frame-desktop"><div class="titlebar"><span class="dot"></span><span class="dot"></span><span class="dot"></span>&nbsp;mission — claims intake copilot</div>
+        <div class="canvas wf">
+          <div class="row"><span class="h-lg grow">Claims intake copilot</span><span class="pill on">In review</span></div>
+          <div class="gates wf">
+            <div class="gate done">1 Discovery<small>approved</small></div>
+            <div class="gate done">2 Readiness<small>approved</small></div>
+            <div class="gate cur">3 Workflow<small>← current <span class="co">1</span></small></div>
+            <div class="gate">4 Governance<small>—</small></div>
+            <div class="gate">5 Software Build<small>—</small></div>
+          </div>
+          <div class="row">
+            <div class="box stack tight n2">
+              <span class="h-md">Gate evidence <span class="co">2</span></span>
+              <div class="ph"><div class="lines"><span class="line"></span><span class="line"></span><span class="line w80"></span></div></div>
+              <span class="h-md">Discussion</span>
+              <div class="ph"><div class="lines"><span class="line w80"></span><span class="line w60"></span></div></div>
+            </div>
+            <div class="stack">
+              <div class="box stack tight"><span class="h-md">Decide this gate <span class="co">3</span></span>
+                <div class="btn-wf">Approve → Governance</div>
+                <div class="btn-ghost">Send back</div>
+                <span>reason code + typed note required</span>
+              </div>
+              <div class="box stack tight"><span class="h-md">Attribution</span><div class="lines"><span class="line"></span><span class="line w60"></span></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <ul class="notes">
+      <li><span class="co">1</span><span><strong>Gate rail</strong> — Discovery → Readiness → Workflow → Governance → Software Build; the numbers are the actual sequence, filled = human-approved.</span></li>
+      <li><span class="co">2</span><span><strong>Evidence panel</strong> shows what the current gate's agent produced; the exportable trail accumulates gate by gate.</span></li>
+      <li><span class="co">3</span><span><strong>Decisions demand a reason</strong> — typed reason codes, no silent approvals; walk-away and rollback are first-class outcomes, not errors.</span></li>
+    </ul>
+  </section>
+
+  <!-- ============ FORGE CANVAS ============ -->
+  <section class="screen">
+    <div class="screen-head">
+      <h2>Forge Canvas builder</h2>
+      <span class="route">/forge</span>
+    </div>
+    <p class="sub">Node-based blueprint editor (Kore.ai-style): drag agents from the palette, wire the flow on the canvas, tune the selected node in the inspector. Save is versioned and immutable; Validate runs the semantic graph checks; Safe test executes the deterministic simulator.</p>
+    <div class="frames">
+      <div class="frame frame-desktop"><div class="titlebar"><span class="dot"></span><span class="dot"></span><span class="dot"></span>&nbsp;forge canvas</div>
+        <div class="canvas wf">
+          <div class="navbar"><span class="input-wf grow">blueprint name</span><span class="input-wf grow">slug</span><span class="btn-ghost">Validate</span><span class="btn-wf">Save version <span class="co">1</span></span><span class="btn-ghost">Safe test</span></div>
+          <div class="row">
+            <div class="box stack tight"><span class="h-md">Palette <span class="co">2</span></span>
+              <div class="ph">agent · researcher</div><div class="ph">agent · drafter</div><div class="ph">branch</div><div class="ph">human approval</div><div class="ph">end</div>
+            </div>
+            <div class="box n3 stack tight" style="align-items:center; padding:1rem .6rem">
+              <span class="h-md" style="align-self:flex-start">Canvas <span class="co">3</span></span>
+              <div class="flownode startend">● start</div>
+              <div class="edge">│</div>
+              <div class="flownode">agent: research the brief</div>
+              <div class="edge">│</div>
+              <div class="flownode branch">branch: confidence ≥ 0.8 ?</div>
+              <div class="edge">┌───┴───┐</div>
+              <div class="row" style="width:100%">
+                <div class="flownode human">human approval <span class="co">4</span></div>
+                <div class="flownode">agent: revise draft</div>
+              </div>
+              <div class="edge">└───┬───┘</div>
+              <div class="flownode startend">◉ end</div>
+            </div>
+            <div class="box stack tight"><span class="h-md">Inspector</span>
+              <span>node label</span><div class="input-wf"></div>
+              <span>agent</span><div class="input-wf">▾ researcher</div>
+              <span>objective</span><div class="area-wf"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="frame frame-mobile"><div class="titlebar"><span class="notch"></span></div>
+        <div class="canvas wf">
+          <div class="stack tight"><div class="input-wf">blueprint name</div><div class="row"><div class="btn-ghost grow">Validate</div><div class="btn-wf grow">Save</div></div></div>
+          <div class="box stack tight" style="max-height:70px; overflow:hidden"><span class="h-md">Palette (scrolls)</span><div class="ph">agent · researcher</div></div>
+          <div class="box stack tight" style="align-items:center"><span class="h-md" style="align-self:flex-start">Canvas <span class="co">5</span></span><div class="flownode startend">● start</div><div class="edge">│</div><div class="flownode">agent</div></div>
+          <div class="box stack tight"><span class="h-md">Inspector</span><div class="input-wf"></div></div>
+        </div>
+      </div>
+    </div>
+    <ul class="notes">
+      <li><span class="co">1</span><span><strong>Save is append-only</strong> — every save creates (slug, version); published versions are never mutated.</span></li>
+      <li><span class="co">2</span><span><strong>Palette</strong> lists the five seeded agent templates plus structural nodes (start/end, branch, human approval).</span></li>
+      <li><span class="co">3</span><span><strong>Validation is semantic</strong>, not just visual: one start, reachable end, complete branches, known agents, no orphan cycles.</span></li>
+      <li><span class="co">4</span><span><strong>Human-approval nodes</strong> pause the run and create a task in the Approval Desk — the governance primitive of the whole builder.</span></li>
+      <li><span class="co">5</span><span><strong>Mobile stacks the three panels</strong> vertically (palette capped and scrollable, canvas keeps a 360px minimum) — no horizontal overflow.</span></li>
+    </ul>
+  </section>
+
+  <!-- ============ APPROVAL DESK + RUN TRACE ============ -->
+  <section class="screen">
+    <div class="screen-head">
+      <h2>Approval Desk &amp; run trace</h2>
+      <span class="route">/forge/approvals · /forge/runs/[id]</span>
+    </div>
+    <p class="sub">Two read-mostly views closing the loop: the Desk is the human inbox for paused runs; the trace is the step-by-step record of what a run actually did.</p>
+    <div class="frames">
+      <div class="frame frame-desktop"><div class="titlebar"><span class="dot"></span><span class="dot"></span><span class="dot"></span>&nbsp;approval desk</div>
+        <div class="canvas wf">
+          <span class="h-lg">Approval Desk</span>
+          <div class="box stack tight">
+            <div class="row"><span class="h-md grow">Approve draft for send-out <span class="pill on">open</span></span><span>run #a1f4</span></div>
+            <div class="ph">upstream evidence — what the agent produced before this pause <span class="co">1</span></div>
+            <div class="row"><div class="btn-wf">Approve</div><div class="btn-ghost">Reject</div><div class="input-wf n2">reason (required) <span class="co">2</span></div></div>
+          </div>
+          <div class="ph stack tight"><span class="h-md">Recently decided</span><div class="lines"><span class="line w80"></span><span class="line w60"></span></div></div>
+        </div>
+      </div>
+      <div class="frame frame-mobile"><div class="titlebar"><span class="notch"></span></div>
+        <div class="canvas wf">
+          <span class="h-md">Run trace · #a1f4</span>
+          <div class="box">● start — 21:04:11</div>
+          <div class="box">agent: research — simulated ✓ <span class="co">3</span></div>
+          <div class="box" style="border-color:var(--accent); color:var(--accent)">⏸ human approval — waiting</div>
+          <div class="ph">…continues after decision</div>
+        </div>
+      </div>
+    </div>
+    <ul class="notes">
+      <li><span class="co">1</span><span><strong>Evidence travels with the task</strong> — the approver sees what the run produced upstream without leaving the Desk.</span></li>
+      <li><span class="co">2</span><span><strong>Reason is enforced</strong>, and tasks are scoped: only the run's owner (or an admin) can decide.</span></li>
+      <li><span class="co">3</span><span><strong>Safe-test steps are labeled simulated</strong> — the deterministic engine never performs a real action.</span></li>
+    </ul>
+  </section>
+
+  <footer style="margin-top:4rem; border-top:1px solid var(--stroke-soft); padding-top:1rem">
+    <p class="meta">Generated from the shipped codebase (mission-pipeline-rebuild @ fee5e99). Solid = always renders · dashed = data-driven · blue = interactive.</p>
+  </footer>
+</div>

@@ -54,6 +54,7 @@ function missionListItem(row: {
   updatedAt: Date;
   domainTags: string[];
   elderOracleUserId?: string | null;
+  sourceLeadId?: string | null;
 }): MissionListItemT {
   return {
     id: row.id,
@@ -66,6 +67,7 @@ function missionListItem(row: {
     updatedAt: row.updatedAt.toISOString(),
     domainTags: row.domainTags,
     elderOracleUserId: row.elderOracleUserId ?? null,
+    sourceLeadId: row.sourceLeadId ?? null,
   };
 }
 
@@ -99,6 +101,7 @@ async function enrichMissionsWithElderOracle(
     createdAt: Date;
     updatedAt: Date;
     domainTags: string[];
+    sourceLeadId?: string | null;
   }>,
 ): Promise<MissionListItemT[]> {
   if (rows.length === 0) return [];
@@ -163,10 +166,25 @@ export async function getMissionDetail(
 
   const gateStates = computeGateStates(mission.id, handoffs, approvals);
 
+  // UX review H1: resolve approver display names once so the gate rail can
+  // stamp "who · when" without a per-approval lookup client-side.
+  const approverIds = [
+    ...new Set(approvals.map((a) => a.approverUserId).filter((id): id is string => !!id)),
+  ];
+  const approverUsers =
+    approverIds.length === 0
+      ? []
+      : await prisma.user.findMany({
+          where: { id: { in: approverIds } },
+          select: { id: true, name: true },
+        });
+  const approverNameById = new Map(approverUsers.map((u) => [u.id, u.name] as const));
+
   const missionShape = mission as typeof mission & {
     previousStatus?: MissionStatus | null;
     intakeStructured?: unknown;
     releaseReadoutAt?: Date | null;
+    sourceLeadId?: string | null;
   };
   return {
     mission: {
@@ -188,6 +206,7 @@ export async function getMissionDetail(
       updatedAt: mission.updatedAt.toISOString(),
       domainTags: mission.domainTags,
       elderOracleUserId,
+      sourceLeadId: missionShape.sourceLeadId ?? null,
       releaseReadoutAt: missionShape.releaseReadoutAt
         ? (missionShape.releaseReadoutAt as Date).toISOString()
         : null,
@@ -218,6 +237,7 @@ export async function getMissionDetail(
         gateIndex: a.gateIndex,
         stageHandoffId: a.stageHandoffId,
         approverUserId: a.approverUserId,
+        approverName: a.approverUserId ? (approverNameById.get(a.approverUserId) ?? null) : null,
         decision: a.decision,
         controls: a.controls,
         reasonCode: a.reasonCode as ReasonCode,
@@ -484,6 +504,9 @@ export async function createMission(args: {
   normalizedNeed?: string;
   intakeStructured?: Record<string, unknown>;
   domainTags: string[];
+  // UX review C1: Lead id this mission converts — caller (route) has
+  // already verified the lead belongs to this user's email.
+  sourceLeadId?: string;
 }): Promise<MissionDetailT> {
   const slug = slugify(args.name ?? args.intake);
   const mission = await prisma.mission.create({
@@ -495,6 +518,7 @@ export async function createMission(args: {
       domainTags: args.domainTags,
       createdById: args.userId,
       intakeStructured: (args.intakeStructured ?? null) as Prisma.InputJsonValue,
+      sourceLeadId: args.sourceLeadId ?? null,
     },
   });
   await prisma.missionAudit.create({
@@ -504,6 +528,7 @@ export async function createMission(args: {
       payload: missionAuditPayload({
         intake: args.intake,
         hasStructuredIntake: !!args.intakeStructured,
+        sourceLeadId: args.sourceLeadId ?? null,
       }),
       actorId: args.userId,
       missionVersionAtEvent: 0,

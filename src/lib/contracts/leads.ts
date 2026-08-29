@@ -196,3 +196,20 @@ export type LeadNotesUpdateResponse = z.infer<typeof LeadNotesUpdateResponse>;
 // procurement-grade form copy can't drift. The keys match what walkthrough
 // rows store in Lead.payload.segment verbatim.
 export const LEAD_SEGMENT_LABELS = LEAD_SEGMENT_VALUES;
+
+// === Open briefs (UX review C1, wireframe v2) ===============================
+// A signed-in user's own submitted briefs that haven't been converted into a
+// mission yet — matched by the session email server-side, surfaced on the
+// dashboard as a conversion card so the CF reference finally goes somewhere.
+
+export const OpenBriefItem = z.object({
+  id: z.string(),
+  reference: z.string(), // friendlyLeadReference(id) — the CF-XXXX-XXXX shown at submission
+  brief: z.string(),
+  createdAt: z.string(),
+  hasAttachment: z.boolean(),
+});
+export type OpenBriefItem = z.infer<typeof OpenBriefItem>;
+
+export const OpenBriefList = z.object({ items: z.array(OpenBriefItem) });
+export type OpenBriefList = z.infer<typeof OpenBriefList>;

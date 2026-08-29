@@ -14,6 +14,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import * as React from 'react';
 import { AgentTeamPanel } from '@/components/custom/dashboard/agent-team-panel';
+import { BriefConversionCard } from '@/components/custom/dashboard/brief-conversion-card';
 import { MissionList } from '@/components/custom/missions/mission-list';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -55,6 +56,10 @@ export default function DashboardPage() {
   // this failure mode.
   return (
     <div className="flex flex-col gap-6">
+      {/* UX review C1 (wireframe v2, 2c): the front door's CF reference
+          finally goes somewhere — an open brief matched by email surfaces
+          here as a one-click conversion into the governed pipeline. */}
+      <BriefConversionCard />
       {/* Real gap found via user screenshot: this authenticated area has no
           atmospheric background at all (no layout.tsx, just the flat page
           --background), so .glass-panel's blur/translucency had nothing
@@ -90,12 +95,18 @@ export default function DashboardPage() {
             <Button type="submit" className="glass-cta">
               Start a mission
             </Button>
-            <Link
-              href="/missions/new"
-              className="text-small text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
-            >
-              or open the full intake form
-            </Link>
+            {/* UX review M2: name what this box actually does — it
+                pre-fills the one intake flow, it isn't a second one. */}
+            <span className="text-small text-muted-foreground">
+              Pre-fills the{' '}
+              <Link
+                href="/missions/new"
+                className="underline underline-offset-4 hover:text-foreground"
+              >
+                full intake form
+              </Link>{' '}
+              — same flow, fewer keystrokes.
+            </span>
           </div>
         </form>
       </section>

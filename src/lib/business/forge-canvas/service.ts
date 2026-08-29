@@ -50,7 +50,15 @@ export async function validateForSave(
 
 // Each save writes a NEW immutable version row (slug, version) — never a
 // mutation of a prior version. Runs reference the exact version they ran.
-export async function saveBlueprint(userId: string, save: BlueprintSaveT) {
+export async function saveBlueprint(
+  userId: string,
+  save: BlueprintSaveT,
+  // UX review C2: mission link. Explicit when creating from a mission's
+  // Software Build gate; omitted on ordinary saves, where it's carried
+  // forward from the prior version so a mission-linked blueprint never
+  // silently loses its mission on re-save.
+  missionId?: string,
+) {
   const validation = await validateForSave(save.definition);
   if (!validation.ok) {
     const err = new Error('CANVAS_INVALID');
@@ -60,8 +68,9 @@ export async function saveBlueprint(userId: string, save: BlueprintSaveT) {
   const latest = await prisma.canvasBlueprint.findFirst({
     where: { slug: save.slug },
     orderBy: { version: 'desc' },
-    select: { version: true },
+    select: { version: true, missionId: true },
   });
+  const linkedMissionId = missionId ?? latest?.missionId ?? null;
   const row = await prisma.canvasBlueprint.create({
     data: {
       slug: save.slug,
@@ -69,6 +78,7 @@ export async function saveBlueprint(userId: string, save: BlueprintSaveT) {
       version: (latest?.version ?? 0) + 1,
       definition: save.definition,
       createdById: userId,
+      missionId: linkedMissionId,
     },
   });
   return {
@@ -78,6 +88,21 @@ export async function saveBlueprint(userId: string, save: BlueprintSaveT) {
     version: row.version,
     definition: save.definition,
     createdAt: row.createdAt.toISOString(),
+    ...(await missionLinkFields(linkedMissionId)),
+  };
+}
+
+// Resolve the {missionId, missionSlug, missionName} trio for one blueprint.
+async function missionLinkFields(missionId: string | null) {
+  if (!missionId) return { missionId: null, missionSlug: null, missionName: null };
+  const mission = await prisma.mission.findUnique({
+    where: { id: missionId },
+    select: { slug: true, name: true },
+  });
+  return {
+    missionId,
+    missionSlug: mission?.slug ?? null,
+    missionName: mission?.name ?? null,
   };
 }
 
@@ -86,15 +111,36 @@ export async function listBlueprints() {
   // business/leads.ts (revisit if blueprint count grows past thousands).
   const rows = await prisma.canvasBlueprint.findMany({
     orderBy: [{ slug: 'asc' }, { version: 'desc' }],
-    select: { id: true, slug: true, name: true, version: true, createdAt: true },
+    select: { id: true, slug: true, name: true, version: true, createdAt: true, missionId: true },
   });
   const seen = new Set<string>();
-  const items = [];
+  const latest = [];
   for (const r of rows) {
     if (seen.has(r.slug)) continue;
     seen.add(r.slug);
-    items.push({ ...r, createdAt: r.createdAt.toISOString() });
+    latest.push(r);
   }
+  // UX review C2: one batched mission lookup enriches slug/name for every
+  // mission-linked blueprint so list consumers can link back to /missions/*.
+  const missionIds = [...new Set(latest.map((r) => r.missionId).filter((v): v is string => !!v))];
+  const missions =
+    missionIds.length === 0
+      ? []
+      : await prisma.mission.findMany({
+          where: { id: { in: missionIds } },
+          select: { id: true, slug: true, name: true },
+        });
+  const missionById = new Map(missions.map((m) => [m.id, m] as const));
+  const items = latest.map((r) => ({
+    id: r.id,
+    slug: r.slug,
+    name: r.name,
+    version: r.version,
+    createdAt: r.createdAt.toISOString(),
+    missionId: r.missionId ?? null,
+    missionSlug: r.missionId ? (missionById.get(r.missionId)?.slug ?? null) : null,
+    missionName: r.missionId ? (missionById.get(r.missionId)?.name ?? null) : null,
+  }));
   return { items };
 }
 
@@ -110,7 +156,95 @@ export async function getBlueprint(slug: string, version?: number) {
     version: row.version,
     definition: CariBlueprintDefinition.parse(row.definition),
     createdAt: row.createdAt.toISOString(),
+    ...(await missionLinkFields(row.missionId ?? null)),
   };
+}
+
+// UX review C2 (wireframe v2, screen 2d): create — or return — the blueprint
+// linked to a mission's Software Build gate. Guarded: only the mission's
+// owner (or an admin) may call it, and only once the mission has actually
+// reached gate 5 (Governance approved). The seeded workflow is deliberately
+// minimal but VALID and honest: the mission's intake as the start input and
+// its authority boundary as a mandatory human-approval node — the governance
+// constraint carries into the builder instead of being retyped.
+export async function createBlueprintFromMission(args: {
+  userId: string;
+  isAdmin: boolean;
+  missionId: string;
+}) {
+  const mission = await prisma.mission.findUnique({ where: { id: args.missionId } });
+  if (!mission) throw new Error('FORGE_NOT_FOUND');
+  if (!args.isAdmin && mission.createdById !== args.userId) throw new Error('FORGE_FORBIDDEN');
+  if (mission.currentStageIndex < 4) throw new Error('FORGE_CONFLICT');
+
+  // Already linked → hand back the latest version, idempotently.
+  const existing = await prisma.canvasBlueprint.findFirst({
+    where: { missionId: mission.id },
+    orderBy: { version: 'desc' },
+  });
+  if (existing) {
+    return {
+      id: existing.id,
+      slug: existing.slug,
+      name: existing.name,
+      version: existing.version,
+      definition: CariBlueprintDefinition.parse(existing.definition),
+      createdAt: existing.createdAt.toISOString(),
+      ...(await missionLinkFields(mission.id)),
+    };
+  }
+
+  const intakeStructured = (mission.intakeStructured ?? {}) as Record<string, unknown>;
+  const authorityBoundary =
+    typeof intakeStructured.authorityBoundary === 'string' &&
+    intakeStructured.authorityBoundary.trim().length > 0
+      ? intakeStructured.authorityBoundary.trim()
+      : 'A named human must approve before any real action.';
+
+  const slug = `mission-${mission.slug}`
+    .toLowerCase()
+    .replace(/[^a-z0-9-]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 80);
+
+  const definition: CariBlueprintDefinitionT = {
+    apiVersion: 'cariforge.ai/v1alpha1',
+    kind: 'AgentWorkflow',
+    objective: mission.name.slice(0, 500),
+    nodes: [
+      {
+        id: 'start',
+        type: 'start',
+        position: { x: 0, y: 0 },
+        label: 'Mission input',
+        config: { inputDescription: mission.intake.slice(0, 500) },
+      },
+      {
+        id: 'authority-gate',
+        type: 'approval',
+        position: { x: 0, y: 140 },
+        label: 'Authority boundary',
+        config: { title: authorityBoundary.slice(0, 200) },
+      },
+      {
+        id: 'end',
+        type: 'end',
+        position: { x: 0, y: 280 },
+        label: 'Done',
+        config: {},
+      },
+    ],
+    edges: [
+      { id: 'e-start-gate', from: 'start', to: 'authority-gate' },
+      { id: 'e-gate-end', from: 'authority-gate', to: 'end' },
+    ],
+  };
+
+  return saveBlueprint(
+    args.userId,
+    { slug, name: mission.name.slice(0, 120), definition },
+    mission.id,
+  );
 }
 
 export async function startRun(args: {

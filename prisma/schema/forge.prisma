@@ -87,9 +87,14 @@ model Mission {
   createdAt           DateTime      @default(now())
   updatedAt           DateTime      @updatedAt
   domainTags          String[]
+  // UX review C1 (wireframe v2): a mission converted from a public brief
+  // keeps its Lead id forever, so the CF-XXXX reference survives into the
+  // governed pipeline. Scalar FK by module convention (see header).
+  sourceLeadId        String?
 
   @@index([createdById])
   @@index([status])
+  @@index([sourceLeadId])
 }
 
 model StageHandoff {

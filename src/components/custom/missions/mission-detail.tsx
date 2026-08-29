@@ -8,11 +8,14 @@ import * as React from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { apiFetch } from '@/lib/api-client';
 import {
+  type ApprovalItemT,
   GATE_DEFS,
   type GateStateT,
   MissionDetail as MissionDetailSchema,
   type MissionDetailT,
 } from '@/lib/contracts/forge';
+import { friendlyLeadReference } from '@/lib/contracts/leads';
+import { MissionBuildPanel } from './mission-build-panel';
 import { AssurancePackCard } from './assurance-pack-card';
 import { GapListCard } from './gap-list-card';
 import { MissionAuditTimeline } from './mission-audit-timeline';
@@ -102,6 +105,13 @@ export function MissionDetail({ missionSlug }: { missionSlug: string }) {
   return (
     <div className="space-y-6">
       <MissionNextActionPanel missionId={detail.mission.id} />
+      {/* UX review C2 (wireframe v2, 2d): once Governance is approved,
+          Software Build stops being a dead-end label — this panel hands
+          the mission off into the Forge Canvas. */}
+      <MissionBuildPanel
+        missionId={detail.mission.id}
+        currentStageIndex={detail.mission.currentStageIndex}
+      />
       <MissionBlockersPanel missionSlug={missionSlug} />
       <OracleCouncilCard detail={detail} onWritten={handleWritten} />
       <MissionReleasePanel missionId={detail.mission.id} />
@@ -113,6 +123,16 @@ export function MissionDetail({ missionSlug }: { missionSlug: string }) {
             <p className="mt-1 text-small text-muted-foreground">
               Mission ID: <code className="text-caption">{detail.mission.id}</code>
             </p>
+            {/* UX review C1: the CF reference from the public brief stays
+                visible on the mission it became. */}
+            {detail.mission.sourceLeadId ? (
+              <p className="mt-1 text-small text-brand-700">
+                From brief{' '}
+                <span className="font-mono">
+                  {friendlyLeadReference(detail.mission.sourceLeadId)}
+                </span>
+              </p>
+            ) : null}
           </div>
           <MissionStatusBadge status={detail.mission.status} />
         </div>
@@ -176,7 +196,14 @@ export function MissionDetail({ missionSlug }: { missionSlug: string }) {
               <h2 className="text-h3">Gate panel</h2>
               <div className="mt-3 grid gap-3 md:grid-cols-5">
                 {detail.gates.map((g) => (
-                  <GateCard key={g.gateIndex} gate={g} />
+                  <GateCard
+                    key={g.gateIndex}
+                    gate={g}
+                    approval={
+                      detail.approvals.find((a) => a.gateIndex === g.gateIndex) ?? null
+                    }
+                    isCurrent={g.gateIndex === detail.mission.currentStageIndex}
+                  />
                 ))}
               </div>
             </section>
@@ -297,7 +324,17 @@ function stageLabelForIndex(idx: number): string {
   return GATE_DEFS[Math.min(idx, GATE_DEFS.length - 1)]?.name ?? 'Draft';
 }
 
-function GateCard({ gate }: { gate: GateStateT }) {
+function GateCard({
+  gate,
+  approval,
+  isCurrent,
+}: {
+  gate: GateStateT;
+  // UX review H1: the latest approval on this gate — who decided and when,
+  // stamped on the rail itself instead of buried in the approvals list.
+  approval: ApprovalItemT | null;
+  isCurrent: boolean;
+}) {
   const tone =
     gate.state === 'Approved'
       ? 'bg-emerald-500/15 text-emerald-800'
@@ -306,16 +343,41 @@ function GateCard({ gate }: { gate: GateStateT }) {
         : gate.state === 'Returned'
           ? 'bg-amber-500/15 text-amber-800'
           : 'glass-chip';
+  // UX review H3: state must not rely on color alone — ✓ approved,
+  // ● current, ○ not reached, ↩ returned, ✕ refused.
+  const icon =
+    gate.state === 'Approved'
+      ? '✓'
+      : gate.state === 'Refused'
+        ? '✕'
+        : gate.state === 'Returned'
+          ? '↩'
+          : isCurrent
+            ? '●'
+            : '○';
   // R5: show the gate's actual title (GATE_DEFS[i].name — e.g. "Prototype
   // spec approved") rather than the raw internal stage identifier. This was
   // previously rendering gate.stage verbatim for all 5 cards, which is how
   // "SoftwareBuild" ended up on-screen with no honest gate-5 label at all.
   const def = GATE_DEFS[gate.gateIndex];
   return (
-    <div className={`rounded-2xl p-4 ${tone}`}>
-      <p className="text-caption uppercase tracking-wide">Gate {gate.gateIndex}</p>
+    <div className={`rounded-2xl p-4 ${tone} ${isCurrent ? 'ring-2 ring-brand-500/50' : ''}`}>
+      <p className="text-caption uppercase tracking-wide">
+        <span aria-hidden="true">{icon}</span> Gate {gate.gateIndex}
+      </p>
       <p className="text-h4">{def?.name ?? gate.stage}</p>
-      <p className="mt-1 text-small">State: {gate.state}</p>
+      <p className="mt-1 text-small">
+        {gate.state === 'Awaiting' && isCurrent ? 'Current — awaiting decision' : gate.state}
+      </p>
+      {approval ? (
+        <p className="mt-1 text-caption text-muted-foreground">
+          {approval.approverName ?? 'Approver'} ·{' '}
+          {new Date(approval.at).toLocaleDateString(undefined, {
+            day: 'numeric',
+            month: 'short',
+          })}
+        </p>
+      ) : null}
     </div>
   );
 }

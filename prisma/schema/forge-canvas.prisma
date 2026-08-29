@@ -35,9 +35,15 @@ model CanvasBlueprint {
   definition  Json                        // CariBlueprintDefinition (zod-validated at the API boundary)
   createdById String
   createdAt   DateTime @default(now())
+  // UX review C2 (wireframe v2): a blueprint created from a mission's
+  // Software Build gate stays linked to that mission — Gate 5 hands off
+  // into the Forge instead of dead-ending. Scalar FK (Mission lives in
+  // forge.prisma; cross-module cascade semantics stay in app code).
+  missionId   String?
   runs        CanvasRun[]
   @@unique([slug, version])
   @@index([slug])
+  @@index([missionId])
 }
 
 // One execution of a blueprint version in the safe test runtime.

@@ -289,6 +289,11 @@ export const MissionCreate = z.object({
     .union([z.string().email('That email looks off.'), z.literal('')])
     .optional()
     .transform((v) => (v ? v : undefined)),
+  // UX review C1: when the mission is a conversion of a public brief, the
+  // Lead id travels with it. The route verifies the lead's email matches
+  // the session user before storing — a client can't claim someone else's
+  // brief just by knowing its id.
+  sourceLeadId: z.string().trim().min(1).max(64).optional(),
 });
 
 export const MissionIntakeUpdate = z.object({
@@ -442,6 +447,9 @@ export const MissionListItem = z.object({
   updatedAt: z.string(),
   domainTags: z.array(z.string()),
   elderOracleUserId: z.string().nullable(),
+  // UX review C1: Lead id this mission was converted from (null for
+  // missions started directly). Optional so older cached payloads parse.
+  sourceLeadId: z.string().nullable().optional(),
 });
 
 export const MissionList = z.object({ items: z.array(MissionListItem) });
@@ -470,6 +478,10 @@ export const ApprovalItem = z.object({
   gateIndex: z.number().int(),
   stageHandoffId: z.string(),
   approverUserId: z.string().nullable(),
+  // UX review H1: the gate rail shows who approved and when — the audit
+  // trail the product sells. Enriched server-side from the user table;
+  // optional so pre-enrichment payloads still parse.
+  approverName: z.string().nullable().optional(),
   decision: z.enum(APPROVAL_DECISION_VALUES),
   controls: z.string().nullable(),
   reasonCode: z.enum(GATE_REASON_CODES),

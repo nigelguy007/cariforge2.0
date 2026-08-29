@@ -143,6 +143,12 @@ export function ForgeCanvasBuilder() {
   const [issues, setIssues] = React.useState<BlueprintValidationT['issues']>([]);
   const [runInput, setRunInput] = React.useState('');
   const [busy, setBusy] = React.useState<'save' | 'run' | 'validate' | null>(null);
+  // UX review C2: when the loaded blueprint was created from a mission,
+  // the toolbar links back to it — the canvas stops floating disconnected
+  // from the pipeline that spawned it.
+  const [missionLink, setMissionLink] = React.useState<{ slug: string; name: string } | null>(
+    null,
+  );
   const counter = React.useRef(1);
 
   // Bounded undo/redo history (acceptance: "Undo, redo and keyboard
@@ -175,6 +181,17 @@ export function ForgeCanvasBuilder() {
     apiFetch('/api/forge-canvas/blueprints', { schema: BlueprintList })
       .then((r) => setSaved(r.items.map((i) => ({ slug: i.slug, version: i.version }))))
       .catch(() => {});
+  }, []);
+
+  // UX review C2: /forge?slug=<x> deep-links straight into a blueprint —
+  // this is how "Open in Forge Canvas" on a mission's Build panel lands
+  // here with the right workflow already loaded. window.location (not
+  // useSearchParams) keeps this client island prerender-safe.
+  React.useEffect(() => {
+    const wanted = new URLSearchParams(window.location.search).get('slug');
+    if (wanted) void load(wanted);
+    // load is a stable closure over setters — run once on mount only.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const addNode = (type: CanvasNodeType) => {
@@ -300,6 +317,9 @@ export function ForgeCanvasBuilder() {
       setEdges(flow.edges);
       setName(bp.name);
       setSlug(bp.slug);
+      setMissionLink(
+        bp.missionSlug ? { slug: bp.missionSlug, name: bp.missionName ?? bp.missionSlug } : null,
+      );
       applyIssues([]);
       past.current = [];
       future.current = [];
@@ -373,6 +393,17 @@ export function ForgeCanvasBuilder() {
             className="h-9 w-full font-mono text-xs sm:w-44"
             aria-label="Workflow slug"
           />
+          {/* UX review C2: mission-linked blueprints carry a way back to
+              the mission that spawned them. */}
+          {missionLink ? (
+            <a
+              href={`/missions/${missionLink.slug}`}
+              className="inline-flex h-9 items-center gap-1 rounded-full border border-brand-300/60 bg-brand-50 px-3 text-xs text-brand-700 hover:underline"
+              title={`This blueprint belongs to mission "${missionLink.name}"`}
+            >
+              Mission: {missionLink.name} →
+            </a>
+          ) : null}
         </div>
         <div className="flex items-center gap-1">
           <Button type="button" variant="ghost" size="icon" onClick={undo} aria-label="Undo">

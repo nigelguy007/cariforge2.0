@@ -48,9 +48,11 @@ export const navItems: NavItem[] = [
     menu: 'Forge',
     order: 5,
   },
+  // UX review C3 (wireframe v2): one unified Approvals inbox — gate
+  // decisions + run pauses. /forge/approvals redirects here.
   {
-    label: 'Approval Desk',
-    href: '/forge/approvals',
+    label: 'Approvals',
+    href: '/approvals',
     group: 'primary',
     requiresAuth: true,
     menu: 'Forge',

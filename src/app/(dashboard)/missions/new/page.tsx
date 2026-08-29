@@ -1,6 +1,7 @@
 // @polsia:user-owned — New-mission intake page.
 import type { Metadata } from 'next';
 import { MissionIntakeForm } from '@/components/custom/missions/mission-intake-form';
+import { friendlyLeadReference } from '@/lib/contracts/leads';
 
 export const metadata: Metadata = {
   title: 'Start a mission',
@@ -11,14 +12,17 @@ export const metadata: Metadata = {
 export default async function NewMissionPage({
   searchParams,
 }: {
-  searchParams: Promise<{ intake?: string }>;
+  searchParams: Promise<{ intake?: string; lead?: string }>;
 }) {
   // R1 (mission pipeline rebuild): the dashboard's quick-capture textarea
   // hands its text off here via ?intake= rather than creating a mission
   // directly — /api/forge/missions' MissionCreate schema requires nine
   // structured attribution fields a single textarea can't satisfy, so this
   // stays a real page composition change, not a loosening of that schema.
-  const { intake } = await searchParams;
+  // UX review C1: ?lead= carries the Lead id when this intake converts a
+  // public brief, so the CF reference follows the work into the pipeline.
+  const { intake, lead } = await searchParams;
+  const reference = lead ? friendlyLeadReference(lead) : null;
   return (
     <section className="container-page py-section">
       <header className="glass-panel rounded-2xl p-6">
@@ -29,9 +33,15 @@ export default async function NewMissionPage({
           constraints. The forge will turn it into a governed, testable journey through five human
           gates.
         </p>
+        {reference ? (
+          <p className="mt-3 inline-flex items-center gap-2 rounded-full border border-brand-300/60 bg-brand-50 px-3 py-1 text-small text-brand-700">
+            Converting brief <span className="font-mono">{reference}</span> — its text is
+            pre-filled below and the reference stays on the mission.
+          </p>
+        ) : null}
       </header>
       <div className="mt-8">
-        <MissionIntakeForm initialIntake={intake ?? ''} />
+        <MissionIntakeForm initialIntake={intake ?? ''} sourceLeadId={lead} />
       </div>
     </section>
   );

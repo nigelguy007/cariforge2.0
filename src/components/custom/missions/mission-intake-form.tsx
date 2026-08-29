@@ -139,7 +139,16 @@ const INTAKE_GROUPS = [
   },
 ] as const;
 
-export function MissionIntakeForm({ initialIntake = '' }: { initialIntake?: string }) {
+export function MissionIntakeForm({
+  initialIntake = '',
+  // UX review C1: Lead id when this intake converts a public brief —
+  // carried through to MissionCreate so the CF reference stays on the
+  // mission. The server re-verifies the lead belongs to this account.
+  sourceLeadId,
+}: {
+  initialIntake?: string;
+  sourceLeadId?: string;
+}) {
   const router = useRouter();
   const form = useForm({
     resolver: zodResolver(MissionCreate),
@@ -187,6 +196,7 @@ export function MissionIntakeForm({ initialIntake = '' }: { initialIntake?: stri
           missingInformation: values.missingInformation,
           domainTags: values.domainTags,
           email: values.email,
+          sourceLeadId,
         }),
         schema: MissionDetail,
       });
