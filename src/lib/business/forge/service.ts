@@ -23,7 +23,7 @@ import { prisma } from '@/lib/db';
 import { sendEmail } from '@/lib/email/send';
 import { tagOracleGateDecisionEmail } from '@/lib/email/templates/tag-oracle-gate-decision';
 import { computeNextVersion, markDownstreamInvalidated, validateParent } from './handoffs';
-import { assertElderOracleAttested, assertSpecialistAttestersPresent } from './oracle-council';
+import { assertElderOracleAttested, assertSpecialistAttestersPresent, isElderGate } from './oracle-council';
 import { assertAttribution, assertNonApproveAttribution, assertReasonAllowed } from './policy';
 import { gateIndexFor, nextStageFor, recomputeConfidence } from './state-machine';
 import { assertExternalApproved, assertRollbackLink, assertScopeDenied } from './tool-actions';
@@ -781,7 +781,28 @@ export async function decideGate(args: {
 }): Promise<MissionDetailT> {
   const mission = await prisma.mission.findUnique({ where: { id: args.missionId } });
   if (!mission) throw new Error('FORGE_NOT_FOUND');
-  if (!args.isAdmin && mission.createdById !== args.userId) throw new Error('FORGE_FORBIDDEN');
+
+  // Ownership check: the mission owner or an admin may decide any gate.
+  // Gates 0/4 have a THIRD legal path — the appointed Elder Oracle, who by
+  // design (see oracle-council.ts) is normally a separate, named human
+  // distinct from the mission's creator. Without this branch, an Elder
+  // Oracle appointed on someone else's mission was rejected here before
+  // ever reaching assertElderOracleAttested below, making an independently
+  // appointed Elder structurally unable to ever approve gate 0/4. The
+  // assignment lookup is pulled forward (it's otherwise only needed lower
+  // down, for assertElderOracleAttested) purely so this check has it.
+  const elderAssignment = isElderGate(args.gateIndex)
+    ? await prisma.missionOracleAssignment.findUnique({
+        where: { missionId_role: { missionId: args.missionId, role: 'ElderOracle' } },
+      })
+    : null;
+  const isAppointedElderOnElderGate =
+    isElderGate(args.gateIndex) &&
+    elderAssignment !== null &&
+    elderAssignment.userId === args.userId;
+  if (!args.isAdmin && mission.createdById !== args.userId && !isAppointedElderOnElderGate) {
+    throw new Error('FORGE_FORBIDDEN');
+  }
   if (TERMINAL_STATUSES.has(mission.status)) throw new Error('FORGE_TERMINAL');
 
   assertReasonAllowed(args.gateIndex, args.reasonCode);
@@ -804,10 +825,9 @@ export async function decideGate(args: {
   // TAG Oracle Council preconditions — Elder attestation (gates 0/4) +
   // at least one specialist attester on the handoff being decided. These
   // run BEFORE any state is mutated so a rejected attempt leaves the audit
-  // log untouched.
-  const elderAssignment = await prisma.missionOracleAssignment.findUnique({
-    where: { missionId_role: { missionId: args.missionId, role: 'ElderOracle' } },
-  });
+  // log untouched. elderAssignment was already fetched above (for the
+  // ownership check) on elder gates; non-elder gates never needed it and
+  // assertElderOracleAttested is a no-op for them regardless.
   const handoffAttesterRows = await prisma.stageHandoffSpecialistAttester.findMany({
     where: { handoffId: args.stageHandoffId },
     select: { userId: true },

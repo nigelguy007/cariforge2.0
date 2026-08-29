@@ -38,7 +38,7 @@ export function assertScopeDenied(_scope: ToolActionScope, status: MissionStatus
   // External or Internal — both denied while mission is paused/blocked/etc.
   throw new ForgeError(
     FORGE_ERROR_CODES.TOOL_SCOPE_DENIED,
-    `Tool actions denied while mission is ${status}.`,
+    `Tool actions are denied while the mission is ${status}. Resume the mission (or wait for it to leave ${status}) before proposing or executing a tool action.`,
   );
 }
 
@@ -54,7 +54,7 @@ export function assertExternalApproved(
       if (!found) {
         throw new ForgeError(
           FORGE_ERROR_CODES.TOOL_GATE_APPROVAL_MISSING,
-          `Tool ${tool.scope} request requires an active gate approval.`,
+          `This Internal tool action requires at least one gate to already have an Approve decision recorded. Get a gate approved first, then retry.`,
         );
       }
     }
@@ -72,7 +72,7 @@ export function assertExternalApproved(
   if (!matched) {
     throw new ForgeError(
       FORGE_ERROR_CODES.TOOL_GATE_APPROVAL_MISSING,
-      `External tool ${tool.scope} requires an existing gate Approve decision.`,
+      `This External tool action requires at least one gate to already have an Approve decision recorded. Get a gate approved first, then retry.`,
     );
   }
 }

@@ -28,7 +28,7 @@ export function assertReasonAllowed(gateIndex: number, code: ReasonCode): void {
   if (!gate.allowedReasonCodes.includes(code)) {
     throw new ForgeError(
       FORGE_ERROR_CODES.REASON_NOT_PERMITTED,
-      `Reason code ${code} is not permitted at gate ${gateIndex}.`,
+      `Reason code ${code} is not permitted at gate ${gateIndex}. Allowed reason codes here: ${gate.allowedReasonCodes.join(', ')}.`,
     );
   }
 }

@@ -30,7 +30,7 @@ export function validateParent(child: HandoffRef, parent: HandoffRef | null): vo
     if (parent.version >= child.version) {
       throw new ForgeError(
         FORGE_ERROR_CODES.VERSION_NOT_PARENT,
-        `parent version ${parent.version} must be lower than child version ${child.version}.`,
+        `parentVersionId must point at an earlier version of this same stage (parent is v${parent.version}, this submission would be v${child.version}). Omit parentVersionId, or point it at an earlier version.`,
       );
     }
     return;
@@ -47,7 +47,7 @@ export function validateParent(child: HandoffRef, parent: HandoffRef | null): vo
   if (parentIdx < 0 || childIdx < 0 || childIdx - parentIdx !== 1) {
     throw new ForgeError(
       FORGE_ERROR_CODES.VERSION_NOT_PARENT,
-      `parent stage ${parent.stage} is not the immediate predecessor of ${child.stage}.`,
+      `parentVersionId must reference a handoff from either the same stage or the immediately-preceding stage — ${parent.stage} is not the immediate predecessor of ${child.stage}. Omit parentVersionId, or point it at a ${child.stage} or immediately-prior-stage handoff.`,
     );
   }
 }

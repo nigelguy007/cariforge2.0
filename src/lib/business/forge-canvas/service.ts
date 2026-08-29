@@ -163,10 +163,22 @@ export async function getBlueprint(slug: string, version?: number) {
 // UX review C2 (wireframe v2, screen 2d): create — or return — the blueprint
 // linked to a mission's Software Build gate. Guarded: only the mission's
 // owner (or an admin) may call it, and only once the mission has actually
-// reached gate 5 (Governance approved). The seeded workflow is deliberately
-// minimal but VALID and honest: the mission's intake as the start input and
-// its authority boundary as a mandatory human-approval node — the governance
-// constraint carries into the builder instead of being retyped.
+// reached gate 5 (Software Build approved). The seeded workflow is
+// deliberately minimal but VALID and honest: the mission's intake as the
+// start input and its authority boundary as a mandatory human-approval
+// node — the governance constraint carries into the builder instead of
+// being retyped.
+//
+// Deliberately gated on `mission.status === 'Completed'`, NOT on
+// `currentStageIndex`. currentStageIndex tracks how far evidence handoffs
+// have been *submitted* (advanced unconditionally by submitHandoff, with
+// no human decision involved) — it can reach its max value with zero real
+// gate approvals. `status` only becomes 'Completed' when decideGate
+// records an actual Approve on gate 4 (see nextStageFor). Gating on
+// currentStageIndex here would let a mission owner submit all five
+// handoffs back-to-back and reach the Forge Canvas builder without a
+// single human ever authorising a gate — silently defeating "nothing
+// jumps a gate".
 export async function createBlueprintFromMission(args: {
   userId: string;
   isAdmin: boolean;
@@ -175,7 +187,7 @@ export async function createBlueprintFromMission(args: {
   const mission = await prisma.mission.findUnique({ where: { id: args.missionId } });
   if (!mission) throw new Error('FORGE_NOT_FOUND');
   if (!args.isAdmin && mission.createdById !== args.userId) throw new Error('FORGE_FORBIDDEN');
-  if (mission.currentStageIndex < 4) throw new Error('FORGE_CONFLICT');
+  if (mission.status !== 'Completed') throw new Error('FORGE_CONFLICT');
 
   // Already linked → hand back the latest version, idempotently.
   const existing = await prisma.canvasBlueprint.findFirst({

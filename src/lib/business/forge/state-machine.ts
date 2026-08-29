@@ -22,9 +22,14 @@ export const FORGE_ERROR_CODES = {
 export class ForgeError extends Error {
   constructor(
     public readonly code: (typeof FORGE_ERROR_CODES)[keyof typeof FORGE_ERROR_CODES],
-    message: string,
+    // `detail` is the human-readable, action-oriented text a caller
+    // wrote for this specific violation — kept as its own field (not
+    // just baked into `.message`) so forgeErrorResponse can surface it
+    // to the client directly instead of parsing the "CODE: detail"
+    // string or falling back to a generic message.
+    public readonly detail: string,
   ) {
-    super(`${code}: ${message}`);
+    super(`${code}: ${detail}`);
     this.name = 'ForgeError';
   }
 }

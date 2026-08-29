@@ -89,9 +89,12 @@ export function assertElderOracleAttested(
     );
   }
   if (approverUserId !== mission.elderOracleUserId) {
+    // Deliberately does not echo either user id in the message — this
+    // surfaces to the client as-is via forgeErrorResponse, and an
+    // internal user id is not something to leak into client-facing text.
     throw new ForgeError(
       FORGE_ERROR_CODES.ATTRIBUTION_MISSING,
-      `Gate ${gateIndex} may only be approved by the named Elder Oracle; approver ${approverUserId} is not the appointed Elder.`,
+      `Gate ${gateIndex} may only be approved by the named Elder Oracle for this mission. Sign in as the appointed Elder, or have an admin reassign the Elder Oracle role.`,
     );
   }
 }
