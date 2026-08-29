@@ -7,22 +7,23 @@ export const siteDescription =
 
 // PWA + social-share colors. HEX only (the oklch() tokens in globals.css aren't
 // readable here) — set to match your brand seed.
-// CARI Forge: deep emerald/rainforest-green field paired with a vivid
-// emerald accent (mirrors --brand-h=152, --brand-c=0.13, --brand-l=0.42 on
-// the oklch side — computed via the standard OKLCH->sRGB conversion, not
-// eyeballed). The OG/social background is a pale sage-mint field; the
-// foreground is dark forest-green ink for highest contrast against the
-// lighter background; the accent in the generated image is the emerald
-// engine at the seed's own lightness step.
+// CARI Forge: vivid violet accent (mirrors --brand-h=288, --brand-c=0.22,
+// --brand-l=0.55 on the oklch side — computed via the standard
+// OKLCH->sRGB conversion at each swatch's own step, not eyeballed; this
+// file had gone stale through the last two brand-hue changes, keep it in
+// sync going forward). The OG/social background is a pale lavender field;
+// the foreground is dark violet-ink for highest contrast against the
+// lighter background; the accent in the generated image is the brand-500
+// violet at the seed's own lightness step.
 export const brandVisual = {
-  /** PWA browser-UI / status-bar color — CARI Forge emerald engine. */
-  themeColor: '#006025',
-  /** PWA splash + install background — pale sage-mint field. */
-  backgroundColor: '#c9e7cf',
+  /** PWA browser-UI / status-bar color — CARI Forge violet engine. */
+  themeColor: '#724de7',
+  /** PWA splash + install background — pale lavender field. */
+  backgroundColor: '#edecff',
   /** Social-share (OG/Twitter) image. */
   og: {
-    background: '#c9e7cf',
-    foreground: '#003f19',
+    background: '#edecff',
+    foreground: '#1a113d',
     /** Second line under the site name; '' hides it. */
     tagline: 'Council-reviewed software for regulated buyers.',
   },
