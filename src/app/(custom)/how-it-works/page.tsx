@@ -172,6 +172,35 @@ export default function HowItWorksPage() {
         </div>
       </section>
 
+      {/* CONFIGURATOR — moved up next to the front door (was buried after
+          6 explanatory sections, behind a near-duplicate "what do you want
+          to build" prompt). This is the low-commitment hook: instant,
+          nothing saved. The real form above it is the actual front door.
+          Priority-11 item from the handoff doc: an actual, AI-backed
+          indicative read, not a mock. Genuinely calls Claude via
+          /api/configurator (src/lib/business/configurator.ts), gracefully
+          degrading to a plain nudge toward the real form if
+          ANTHROPIC_API_KEY isn't configured or the call fails. */}
+      <section id="configurator" className="section relative overflow-hidden section-aurora">
+        <div className="container-page grid gap-10 lg:grid-cols-[0.9fr_1.1fr] lg:items-start">
+          <div className="flex flex-col gap-3">
+            <GlassChip tone="brand" className="self-start">
+              Try it first
+            </GlassChip>
+            <h2 className="font-display text-h3 tracking-tight text-foreground">
+              Get an instant read before you apply.
+            </h2>
+            <p className="text-body text-muted-foreground">
+              One minute, nothing saved. When you&rsquo;re ready, the form above is what a named
+              human actually reads.
+            </p>
+          </div>
+          <GlassCard tone="surface" padding="lg">
+            <WorkflowConfigurator />
+          </GlassCard>
+        </div>
+      </section>
+
       {/* PATHWAY — the 21-Day Forge proves the case; Production Forge (the
           Partner + Impact agents' real wraparound work) hands it to the
           buyer's own infrastructure and tracks whether it kept its
@@ -562,37 +591,6 @@ export default function HowItWorksPage() {
               </ul>
             </GlassCard>
           </div>
-        </div>
-      </section>
-
-      {/* CONFIGURATOR — Priority-11 item from the handoff doc: an actual,
-          AI-backed indicative read, not a mock. Explicitly not the real
-          front-door: it doesn't persist anything and doesn't gate a case —
-          the copy says so twice (in the intro and inside the result card
-          itself). Genuinely calls Claude via /api/configurator
-          (src/lib/business/configurator.ts), gracefully degrading to a
-          plain nudge toward the real form if ANTHROPIC_API_KEY isn't
-          configured or the call fails. */}
-      <section id="configurator" className="section relative overflow-hidden section-aurora">
-        <div className="container-page grid gap-10 lg:grid-cols-[0.9fr_1.1fr] lg:items-start">
-          <div className="flex flex-col gap-3">
-            <GlassChip tone="brand" className="self-start">
-              Try it before you apply
-            </GlassChip>
-            <h2 className="font-display text-h3 tracking-tight text-foreground">
-              Get an indicative read in one minute.
-            </h2>
-            <p className="text-body text-muted-foreground">
-              Describe what you want to build and get an automated, indicative fit assessment —
-              which agents would carry it, what risks would come up, and the questions a human
-              Discovery approver would actually ask. This is a preview, not a ruling: it
-              doesn&rsquo;t save anything, and it isn&rsquo;t the real gate. When you&rsquo;re
-              ready, the form above is what an actual named human reads.
-            </p>
-          </div>
-          <GlassCard tone="surface" padding="lg">
-            <WorkflowConfigurator />
-          </GlassCard>
         </div>
       </section>
 

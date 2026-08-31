@@ -141,7 +141,7 @@ export function WorkflowConfigurator() {
           name="description"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Describe what you want to build</FormLabel>
+              <FormLabel>Sanity-check your idea</FormLabel>
               <FormControl>
                 <Textarea
                   placeholder="e.g. We want to triage incoming service requests and route the ones missing required documents back to the requester automatically…"
