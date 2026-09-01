@@ -243,12 +243,38 @@ export function ForgeCanvasBuilder() {
     snapshot();
     const id = `${type}-${counter.current++}`;
     const paletteEntry = PALETTE.find((p) => p.type === type);
+
+    // 2026-09-01 UX fix, direct user report: clicking a palette entry used
+    // to always drop a disconnected node at a generic offset (frequently
+    // stacking right on top of the last node — no visible gap, no line),
+    // which produced the confusing "unreachable" validation error on the
+    // very first attempt to build the most common case: a straight-line
+    // workflow. Chain from whatever's currently selected instead, the way
+    // "add a step" works in most flow builders — click Start, click Agent,
+    // click Human approval, click End, done, no dragging required. Only
+    // auto-wire when the selected node has ONE unambiguous output: not
+    // `condition` (two named True/False branches — the author has to pick)
+    // or `end` (no output at all), and not a node that already has an
+    // outgoing edge (would create a second one, itself invalid). Those
+    // cases still drop unconnected, same as before — they genuinely need a
+    // deliberate choice, not a guess.
+    const selectedNode = nodes.find((n) => n.id === selectedId) ?? null;
+    const canAutoChain =
+      !!selectedNode &&
+      selectedNode.data.nodeType !== 'condition' &&
+      selectedNode.data.nodeType !== 'end' &&
+      !edges.some((e) => e.source === selectedNode.id);
+
+    const position = canAutoChain
+      ? { x: selectedNode.position.x, y: selectedNode.position.y + 140 }
+      : { x: 120 + nodes.length * 40, y: 100 + nodes.length * 30 };
+
     setNodes((ns) => [
       ...ns,
       {
         id,
         type: 'forge',
-        position: { x: 120 + ns.length * 40, y: 100 + ns.length * 30 },
+        position,
         data: {
           label: paletteEntry?.label ?? type,
           nodeType: type,
@@ -256,6 +282,9 @@ export function ForgeCanvasBuilder() {
         } as ForgeNodeData,
       },
     ]);
+    if (canAutoChain && selectedNode) {
+      setEdges((es) => [...es, { id: `e-${selectedNode.id}-out-${id}`, source: selectedNode.id, target: id }]);
+    }
     setSelectedId(id);
   };
 
