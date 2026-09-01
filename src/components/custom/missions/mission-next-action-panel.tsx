@@ -40,8 +40,18 @@ export function MissionNextActionPanel({ missionId }: { missionId: string }) {
 
   const tone = pickTone(data.view.kind, data.isTerminal);
   return (
+    // Ring only, no tone.bg here: a `bg-*` utility lives in Tailwind's
+    // `utilities` layer, which always wins over `.glass-card`'s own
+    // `background-color` (`components` layer) regardless of source order
+    // or specificity — same category of bug already documented for
+    // .glass-cta/.glass-outline-cta in custom-style.css. That silently
+    // replaced the pale glass background with a low-opacity colour wash
+    // over the dark page, while text-foreground stayed dark (tuned for
+    // the pale glass this card no longer had) — the ghosted "Decide
+    // gate 0" heading reported 2026-09-01. The ring alone still carries
+    // the tone signal without breaking the glass surface underneath it.
     <section
-      className={`glass-card lift-soft rounded-2xl p-6 ring-1 ${tone.ring} ${tone.bg}`}
+      className={`glass-card lift-soft rounded-2xl p-6 ring-1 ${tone.ring}`}
       aria-live="polite"
     >
       <header>

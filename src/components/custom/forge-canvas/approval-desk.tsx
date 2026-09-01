@@ -16,8 +16,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { apiFetch } from '@/lib/api-client';
 import {
   CanvasRunDetail,
-  CanvasTaskList,
   type CanvasTaskItemT,
+  CanvasTaskList,
 } from '@/lib/contracts/forge-canvas';
 import { cn } from '@/lib/utils';
 

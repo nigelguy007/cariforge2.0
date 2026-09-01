@@ -28,8 +28,19 @@ function statusTone(status: string): string {
   }
 }
 
+// A4: text, not colour-only — "12 ms" once finished, "running" while the
+// node hasn't finished yet (still executing or paused on approval).
+function DurationLabel({ ms }: { ms: number | null }) {
+  return (
+    <span className="font-mono text-xs text-muted-foreground">
+      {ms === null ? 'running' : `${ms} ms`}
+    </span>
+  );
+}
+
 function Pretty({ value }: { value: unknown }) {
-  if (value === null || value === undefined) return <span className="text-muted-foreground">—</span>;
+  if (value === null || value === undefined)
+    return <span className="text-muted-foreground">—</span>;
   return (
     <pre className="max-h-48 overflow-auto rounded-md bg-muted/40 p-2 font-mono text-xs">
       {typeof value === 'string' ? value : JSON.stringify(value, null, 2)}
@@ -83,6 +94,7 @@ export function RunTrace({ runId }: { runId: string }) {
               <span className="text-xs uppercase tracking-wide text-muted-foreground">
                 {n.nodeType}
               </span>
+              <DurationLabel ms={n.durationMs} />
               <Badge className={cn('ml-auto', statusTone(n.status))}>{n.status}</Badge>
             </div>
             {n.error ? <p className="mt-2 text-small text-destructive">{n.error}</p> : null}

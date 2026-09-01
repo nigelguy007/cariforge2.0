@@ -2,62 +2,9 @@
 // vertical slice). Pure functions — no DB, no mocks.
 
 import { describe, expect, it } from 'vitest';
-import {
-  advance,
-  type AgentSnapshot,
-  resumeAfterDecision,
-  simulateAgent,
-} from '@/lib/business/forge-canvas/engine';
+import { advance, resumeAfterDecision, simulateAgent } from '@/lib/business/forge-canvas/engine';
 import { validateBlueprint } from '@/lib/business/forge-canvas/validate';
-import type { CariBlueprintDefinitionT } from '@/lib/contracts/forge-canvas';
-
-const AGENTS = new Map<string, AgentSnapshot>([
-  [
-    'forge-discovery',
-    { slug: 'forge-discovery', name: 'Discovery Agent', description: 'Frames needs.', riskClass: 'low' },
-  ],
-]);
-const SLUGS = new Set(AGENTS.keys());
-
-function bp(partial: Partial<CariBlueprintDefinitionT>): CariBlueprintDefinitionT {
-  return {
-    apiVersion: 'cariforge.ai/v1alpha1',
-    kind: 'AgentWorkflow',
-    objective: 'test',
-    nodes: [],
-    edges: [],
-    ...partial,
-  };
-}
-
-const P = { x: 0, y: 0 };
-
-// A full valid slice graph: start -> agent -> condition -> (true: approval -> end) (false: end)
-function fullGraph(): CariBlueprintDefinitionT {
-  return bp({
-    nodes: [
-      { id: 'start', type: 'start', position: P, label: 'Start', config: { inputDescription: '' } },
-      { id: 'a1', type: 'agent', position: P, label: 'Discovery', config: { agentSlug: 'forge-discovery' } },
-      {
-        id: 'c1',
-        type: 'condition',
-        position: P,
-        label: 'Mentions claims?',
-        config: { sourceNodeId: 'a1', contains: 'claims' },
-      },
-      { id: 'ap1', type: 'approval', position: P, label: 'Human gate', config: { title: 'Approve framing' } },
-      { id: 'end1', type: 'end', position: P, label: 'Done', config: {} },
-      { id: 'end2', type: 'end', position: P, label: 'Done (no match)', config: {} },
-    ],
-    edges: [
-      { id: 'e1', from: 'start', to: 'a1' },
-      { id: 'e2', from: 'a1', to: 'c1' },
-      { id: 'e3', from: 'c1', to: 'ap1', branch: 'true' },
-      { id: 'e4', from: 'c1', to: 'end2', branch: 'false' },
-      { id: 'e5', from: 'ap1', to: 'end1' },
-    ],
-  });
-}
+import { AGENTS, fullGraph, P, SLUGS } from './fixtures';
 
 describe('validateBlueprint', () => {
   it('accepts the full slice graph', () => {
@@ -77,7 +24,9 @@ describe('validateBlueprint', () => {
     const agent = def.nodes.find((n) => n.id === 'a1');
     if (agent?.type === 'agent') agent.config.agentSlug = 'nope';
     const res = validateBlueprint(def, SLUGS);
-    expect(res.issues.some((i) => i.nodeId === 'a1' && i.message.includes('Unknown agent'))).toBe(true);
+    expect(res.issues.some((i) => i.nodeId === 'a1' && i.message.includes('Unknown agent'))).toBe(
+      true,
+    );
   });
 
   it('requires condition to have exactly one true and one false branch', () => {

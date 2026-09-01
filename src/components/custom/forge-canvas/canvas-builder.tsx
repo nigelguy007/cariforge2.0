@@ -20,18 +20,19 @@ import {
   type Connection,
   Controls,
   type Edge,
+  type EdgeChange,
   MiniMap,
   type Node,
-  ReactFlow,
-  type EdgeChange,
   type NodeChange,
+  ReactFlow,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
-import { Redo2, Undo2 } from 'lucide-react';
+import { Redo2, Undo2, X } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import * as React from 'react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
@@ -43,19 +44,21 @@ import {
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { apiFetch } from '@/lib/api-client';
+import { blueprintToYaml, yamlToBlueprint } from '@/lib/business/forge-canvas/yaml';
 import {
   BlueprintItem,
   type BlueprintItemT,
   BlueprintList,
   BlueprintValidation,
   type BlueprintValidationT,
-  CanvasAgentList,
   type CanvasAgentItemT,
+  CanvasAgentList,
   type CanvasNodeT,
   type CanvasNodeType,
   CanvasRunDetail,
   type CariBlueprintDefinitionT,
 } from '@/lib/contracts/forge-canvas';
+import { GuideResponse, type GuideResponseT } from '@/lib/contracts/guide';
 import { ForgeCanvasNode, type ForgeNodeData } from './canvas-node';
 
 type FlowNode = Node<ForgeNodeData>;
@@ -68,6 +71,16 @@ const PALETTE: { type: CanvasNodeType; label: string; hint: string }[] = [
   { type: 'condition', label: 'Condition', hint: 'Deterministic branch — no model decides this.' },
   { type: 'approval', label: 'Human approval', hint: 'Pauses the run for a named decision.' },
   { type: 'end', label: 'End', hint: 'Where a run finishes.' },
+  {
+    type: 'conductor',
+    label: 'Conductor',
+    hint: 'Routes to one allowlisted agent — put approval on its outgoing edge yourself.',
+  },
+  {
+    type: 'http',
+    label: 'HTTP (dry run)',
+    hint: 'Always simulated — Connector Hub is not live yet.',
+  },
 ];
 
 function defaultConfig(type: CanvasNodeType): CanvasNodeT['config'] {
@@ -82,6 +95,10 @@ function defaultConfig(type: CanvasNodeType): CanvasNodeT['config'] {
       return { title: 'Approve to continue' };
     case 'end':
       return {};
+    case 'conductor':
+      return { allowedAgentSlugs: [], routes: [], maxCalls: 2, fallback: 'approval' };
+    case 'http':
+      return { method: 'GET', url: '', dryRun: true };
   }
 }
 
@@ -99,7 +116,9 @@ function toFlow(def: CariBlueprintDefinitionT): { nodes: FlowNode[]; edges: Edge
       id: e.id,
       source: e.from,
       target: e.to,
-      ...(e.branch ? { sourceHandle: e.branch, label: e.branch === 'true' ? 'True' : 'False' } : {}),
+      ...(e.branch
+        ? { sourceHandle: e.branch, label: e.branch === 'true' ? 'True' : 'False' }
+        : {}),
     })),
   };
 }
@@ -142,14 +161,29 @@ export function ForgeCanvasBuilder() {
   const [selectedId, setSelectedId] = React.useState<string | null>(null);
   const [issues, setIssues] = React.useState<BlueprintValidationT['issues']>([]);
   const [runInput, setRunInput] = React.useState('');
-  const [busy, setBusy] = React.useState<'save' | 'run' | 'validate' | null>(null);
+  const [busy, setBusy] = React.useState<'save' | 'run' | 'validate' | 'publish' | null>(null);
+  // A6: the loaded/saved version's number + Draft|Published status. Null
+  // until the first save/load of this session — nothing to show yet.
+  const [versionInfo, setVersionInfo] = React.useState<{
+    version: number;
+    status: 'Draft' | 'Published';
+  } | null>(null);
+  const importFileInputRef = React.useRef<HTMLInputElement>(null);
+  // PR B: Forge Guide — the reused configurator compiled into a starter
+  // draft. guideBanner is non-null exactly while the loaded graph is an
+  // un-reviewed Guide draft (cleared the moment the author saves, loads a
+  // different workflow, or starts editing something else via load()).
+  const [guideDescription, setGuideDescription] = React.useState('');
+  const [guideBusy, setGuideBusy] = React.useState(false);
+  const [guideBanner, setGuideBanner] = React.useState<string | null>(null);
   // UX review C2: when the loaded blueprint was created from a mission,
   // the toolbar links back to it — the canvas stops floating disconnected
   // from the pipeline that spawned it.
-  const [missionLink, setMissionLink] = React.useState<{ slug: string; name: string } | null>(
-    null,
-  );
+  const [missionLink, setMissionLink] = React.useState<{ slug: string; name: string } | null>(null);
   const counter = React.useRef(1);
+  // A3: copy/paste clipboard — an in-memory ref, never navigator.clipboard
+  // (no OS clipboard permission, no cross-tab leakage of workflow config).
+  const clipboard = React.useRef<FlowNode | null>(null);
 
   // Bounded undo/redo history (acceptance: "Undo, redo and keyboard
   // alternatives work") — snapshots of nodes+edges, capped at 50.
@@ -249,6 +283,83 @@ export function ForgeCanvasBuilder() {
     );
   };
 
+  // A2/A3: duplicate (inspector button + Meta/Ctrl+D) and copy/paste
+  // (Ctrl+C / Ctrl+V) share one clone step — new id, +40/+40 offset, a
+  // structurally-cloned config so the copy never aliases the original's
+  // object, and never carries edges (a clone starts disconnected; the
+  // author reconnects it deliberately).
+  const cloneNode = (node: FlowNode): FlowNode => {
+    const id = `${node.data.nodeType}-${counter.current++}`;
+    return {
+      ...node,
+      id,
+      selected: false,
+      position: { x: node.position.x + 40, y: node.position.y + 40 },
+      data: {
+        ...node.data,
+        config: structuredClone((node.data as { config?: object }).config ?? {}),
+      } as ForgeNodeData,
+    };
+  };
+  const duplicateSelected = () => {
+    if (!selected) return;
+    snapshot();
+    const clone = cloneNode(selected);
+    setNodes((ns) => [...ns, clone]);
+    setSelectedId(clone.id);
+  };
+  const copySelected = () => {
+    if (selected) clipboard.current = selected;
+  };
+  const pasteClipboard = () => {
+    if (!clipboard.current) return;
+    snapshot();
+    const clone = cloneNode(clipboard.current);
+    setNodes((ns) => [...ns, clone]);
+    setSelectedId(clone.id);
+  };
+
+  // Keyboard alternatives (accessibility, acceptance criteria): Meta/Ctrl+D
+  // duplicates, Ctrl+C/Ctrl+V copy/paste, Ctrl+Z/Shift+Ctrl+Z undo/redo —
+  // all skipped while focus is inside a text input so normal editing (and
+  // the browser's own copy/paste in a text field) isn't hijacked.
+  // duplicateSelected/copySelected/pasteClipboard/undo/redo are plain
+  // closures re-created every render (not memoized with useCallback), so
+  // listing them as deps would just duplicate [nodes, edges, selectedId]
+  // below, which the effect already re-subscribes on.
+  // biome-ignore lint/correctness/useExhaustiveDependencies: see above
+  React.useEffect(() => {
+    const isTextInput = (el: EventTarget | null) => {
+      const tag = (el as HTMLElement | null)?.tagName;
+      return (
+        tag === 'INPUT' ||
+        tag === 'TEXTAREA' ||
+        tag === 'SELECT' ||
+        (el as HTMLElement | null)?.isContentEditable === true
+      );
+    };
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (!(e.ctrlKey || e.metaKey) || isTextInput(e.target)) return;
+      const key = e.key.toLowerCase();
+      if (key === 'd') {
+        e.preventDefault();
+        duplicateSelected();
+      } else if (key === 'c') {
+        copySelected();
+      } else if (key === 'v') {
+        pasteClipboard();
+      } else if (key === 'z') {
+        e.preventDefault();
+        if (e.shiftKey) redo();
+        else undo();
+      }
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+    // Re-subscribes whenever the closed-over state it reads changes —
+    // canvas-scale event volume, not a hot loop.
+  }, [nodes, edges, selectedId]);
+
   const currentDefinition = () => toBlueprint(nodes, edges, name);
 
   const applyIssues = (list: BlueprintValidationT['issues']) => {
@@ -293,6 +404,9 @@ export function ForgeCanvasBuilder() {
         { slug: savedBp.slug, version: savedBp.version },
         ...s.filter((x) => x.slug !== savedBp.slug),
       ]);
+      setVersionInfo({ version: savedBp.version, status: savedBp.status });
+      // A saved version is no longer an un-reviewed Guide draft.
+      setGuideBanner(null);
       toast.success(`Saved ${savedBp.slug} v${savedBp.version}`);
     } catch (err) {
       const cause = (err as { cause?: { issues?: BlueprintValidationT['issues'] } }).cause;
@@ -309,7 +423,7 @@ export function ForgeCanvasBuilder() {
 
   const load = async (loadSlug: string) => {
     try {
-      const bp: BlueprintItemT = await apiFetch(`/api/forge-canvas/blueprints/${loadSlug}`, {
+      const bp = await apiFetch<BlueprintItemT>(`/api/forge-canvas/blueprints/${loadSlug}`, {
         schema: BlueprintItem,
       });
       const flow = toFlow(bp.definition);
@@ -320,12 +434,108 @@ export function ForgeCanvasBuilder() {
       setMissionLink(
         bp.missionSlug ? { slug: bp.missionSlug, name: bp.missionName ?? bp.missionSlug } : null,
       );
+      setVersionInfo({ version: bp.version, status: bp.status });
+      setGuideBanner(null);
       applyIssues([]);
       past.current = [];
       future.current = [];
       toast.success(`Loaded ${bp.slug} v${bp.version}`);
     } catch {
       toast.error('Could not load that blueprint.');
+    }
+  };
+
+  // A6: promote the latest saved (Draft) version to Published. Requires a
+  // save first — publishing an in-editor draft that was never saved makes
+  // no sense (there'd be no immutable version to promote).
+  const publish = async () => {
+    setBusy('publish');
+    try {
+      const bp = await apiFetch<BlueprintItemT>(`/api/forge-canvas/blueprints/${slug}/publish`, {
+        method: 'POST',
+        schema: BlueprintItem,
+      });
+      setVersionInfo({ version: bp.version, status: bp.status });
+      toast.success(`Published ${bp.slug} v${bp.version}`);
+    } catch {
+      toast.error('Could not publish — save a version first, or it may already be Published.');
+    } finally {
+      setBusy(null);
+    }
+  };
+
+  // A5: Export downloads the CURRENT in-memory draft (not necessarily
+  // saved) as YAML — a projection generated on demand, never a second
+  // stored source of truth.
+  const exportYaml = () => {
+    const yamlText = blueprintToYaml(currentDefinition());
+    const blob = new Blob([yamlText], { type: 'application/yaml' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${slug || 'workflow'}.yaml`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  // A5: Import parses a chosen .yaml file straight into the canvas — never
+  // auto-saves, so a bad import is just an unsaved draft the author can
+  // discard (Undo) or fix before Save.
+  const onImportFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file) return;
+    try {
+      const def = yamlToBlueprint(await file.text());
+      snapshot();
+      const flow = toFlow(def);
+      setNodes(flow.nodes);
+      setEdges(flow.edges);
+      applyIssues([]);
+      toast.success('Imported from YAML — review, then Save.');
+    } catch {
+      toast.error('Could not parse that YAML file.');
+    }
+  };
+
+  // PR B: compile the description into a starter draft via Forge Guide
+  // (reuses the existing configurator — no extra model call from here)
+  // and load it onto the canvas exactly like toFlow(load()) does, except
+  // it's never been saved: save() below still requires an explicit click.
+  const draftOnCanvas = async () => {
+    if (guideDescription.trim().length < 20) {
+      toast.error('Give us at least one full sentence about what you want to build.');
+      return;
+    }
+    setGuideBusy(true);
+    try {
+      const res = await apiFetch<GuideResponseT>('/api/forge-canvas/guide', {
+        method: 'POST',
+        body: JSON.stringify({ description: guideDescription }),
+        schema: GuideResponse,
+      });
+      const flow = toFlow(res.definition);
+      setNodes(flow.nodes);
+      setEdges(flow.edges);
+      setName(res.suggestedName);
+      setSlug(res.suggestedSlug);
+      setMissionLink(null);
+      setVersionInfo(null);
+      applyIssues([]);
+      // Reset undo history — this is a fresh draft, not an edit of
+      // whatever was on the canvas before.
+      past.current = [];
+      future.current = [];
+      setGuideBanner(
+        res.status === 'unavailable'
+          ? 'Draft only — the Configurator model was unavailable, so this is an offline starter, not a read of your description. Review, then Save. Nothing has run.'
+          : 'Draft only — review, then Save. Nothing has run.',
+      );
+      toast.success('Drafted a starter workflow on the canvas.');
+    } catch {
+      toast.error('Could not draft a workflow from that description.');
+    } finally {
+      setGuideBusy(false);
     }
   };
 
@@ -339,6 +549,7 @@ export function ForgeCanvasBuilder() {
         body: JSON.stringify({ slug, name, definition: currentDefinition() }),
         schema: BlueprintItem,
       });
+      setVersionInfo({ version: savedBp.version, status: savedBp.status });
       const detail = await apiFetch('/api/forge-canvas/runs', {
         method: 'POST',
         body: JSON.stringify({ slug: savedBp.slug, version: savedBp.version, input: runInput }),
@@ -414,6 +625,12 @@ export function ForgeCanvasBuilder() {
           </Button>
         </div>
         <div className="ml-auto flex flex-wrap items-center gap-2">
+          {/* A6: version + Draft|Published, text (not colour-only). */}
+          {versionInfo ? (
+            <span className="inline-flex h-9 items-center rounded-full border border-border px-3 font-mono text-xs text-muted-foreground">
+              v{versionInfo.version} · {versionInfo.status}
+            </span>
+          ) : null}
           {saved.length > 0 && (
             <Select onValueChange={load}>
               <SelectTrigger className="h-9 w-48" aria-label="Load a saved workflow">
@@ -428,11 +645,44 @@ export function ForgeCanvasBuilder() {
               </SelectContent>
             </Select>
           )}
+          {/* A5: YAML export/import — Export downloads the in-memory
+              draft as-is; Import parses a file straight onto the canvas
+              (never auto-saves). */}
+          <input
+            ref={importFileInputRef}
+            type="file"
+            accept=".yaml,.yml,text/yaml"
+            className="hidden"
+            onChange={onImportFile}
+            aria-hidden="true"
+            tabIndex={-1}
+          />
+          <Button type="button" variant="ghost" onClick={exportYaml} disabled={busy !== null}>
+            Export YAML
+          </Button>
+          <Button
+            type="button"
+            variant="ghost"
+            onClick={() => importFileInputRef.current?.click()}
+            disabled={busy !== null}
+          >
+            Import YAML
+          </Button>
           <Button type="button" variant="secondary" onClick={validate} disabled={busy !== null}>
             {busy === 'validate' ? 'Validating…' : 'Validate'}
           </Button>
           <Button type="button" variant="secondary" onClick={save} disabled={busy !== null}>
             {busy === 'save' ? 'Saving…' : 'Save version'}
+          </Button>
+          {/* A6: publish the latest saved Draft — disabled once already
+              Published, or before anything has been saved this session. */}
+          <Button
+            type="button"
+            variant="secondary"
+            onClick={publish}
+            disabled={busy !== null || !versionInfo || versionInfo.status === 'Published'}
+          >
+            {busy === 'publish' ? 'Publishing…' : 'Publish'}
           </Button>
           <Button type="button" className="glass-cta" onClick={run} disabled={busy !== null}>
             {busy === 'run' ? 'Starting…' : 'Save & test run'}
@@ -448,6 +698,33 @@ export function ForgeCanvasBuilder() {
       <div className="flex min-h-0 flex-1 flex-col gap-3 md:flex-row">
         {/* Palette */}
         <aside className="glass-panel max-h-56 w-full shrink-0 space-y-2 overflow-y-auto rounded-xl p-3 md:h-auto md:max-h-none md:w-52">
+          {/* PR B: Forge Guide — compiles a starter draft from a plain
+              description via the reused configurator. Draft only: nothing
+              runs, nothing saves, until the author reviews and clicks
+              Save themselves. */}
+          <div className="space-y-1.5 border-b border-border pb-3">
+            <Label htmlFor="guide-description" className="text-xs">
+              What problem are you solving?
+            </Label>
+            <Textarea
+              id="guide-description"
+              rows={3}
+              value={guideDescription}
+              onChange={(e) => setGuideDescription(e.target.value)}
+              className="text-xs"
+              placeholder="Describe the workflow you want to build…"
+            />
+            <Button
+              type="button"
+              variant="secondary"
+              size="sm"
+              className="w-full"
+              onClick={draftOnCanvas}
+              disabled={guideBusy}
+            >
+              {guideBusy ? 'Drafting…' : 'Draft on canvas'}
+            </Button>
+          </div>
           <p className="text-eyebrow text-brand-700">Nodes</p>
           {PALETTE.map((p) => (
             <button
@@ -592,25 +869,245 @@ export function ForgeCanvasBuilder() {
                   />
                 </div>
               )}
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={() => {
-                  snapshot();
-                  setNodes((ns) => ns.filter((n) => n.id !== selected.id));
-                  setEdges((es) =>
-                    es.filter((e) => e.source !== selected.id && e.target !== selected.id),
-                  );
-                  setSelectedId(null);
-                }}
-              >
-                Delete node
-              </Button>
+              {selected.data.nodeType === 'conductor' && (
+                <>
+                  <div className="space-y-1.5">
+                    <Label className="text-xs">Allowlisted agents</Label>
+                    <div className="max-h-32 space-y-1 overflow-y-auto rounded-md border border-border p-2">
+                      {agents.map((a) => {
+                        const list = (selectedConfig['allowedAgentSlugs'] as string[]) ?? [];
+                        const routes =
+                          (selectedConfig['routes'] as { contains: string; agentSlug: string }[]) ??
+                          [];
+                        const checked = list.includes(a.slug);
+                        return (
+                          <label key={a.slug} className="flex items-center gap-2 text-xs">
+                            <Checkbox
+                              checked={checked}
+                              onCheckedChange={(v) => {
+                                const next = v
+                                  ? [...list, a.slug]
+                                  : list.filter((s) => s !== a.slug);
+                                updateSelected({
+                                  config: {
+                                    ...selectedConfig,
+                                    allowedAgentSlugs: next,
+                                    // A route to an agent no longer
+                                    // allowlisted can never fire — drop it
+                                    // rather than leave a dead entry.
+                                    routes: routes.filter((r) => next.includes(r.agentSlug)),
+                                  },
+                                });
+                              }}
+                            />
+                            {a.name}
+                          </label>
+                        );
+                      })}
+                      {agents.length === 0 && (
+                        <p className="text-xs text-muted-foreground">Registry is empty.</p>
+                      )}
+                    </div>
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-xs">Routes (first match wins)</Label>
+                    {(
+                      (selectedConfig['routes'] as { contains: string; agentSlug: string }[]) ?? []
+                    ).map((r, idx) => {
+                      const allowlist = (selectedConfig['allowedAgentSlugs'] as string[]) ?? [];
+                      const routes =
+                        (selectedConfig['routes'] as { contains: string; agentSlug: string }[]) ??
+                        [];
+                      return (
+                        // biome-ignore lint/suspicious/noArrayIndexKey: routes have no stable id of their own — position in this ordered ("first match wins") list is the only identity they have.
+                        <div key={idx} className="flex items-center gap-1">
+                          <Input
+                            value={r.contains}
+                            onChange={(e) => {
+                              const next = routes.map((route, i) =>
+                                i === idx ? { ...route, contains: e.target.value } : route,
+                              );
+                              updateSelected({ config: { ...selectedConfig, routes: next } });
+                            }}
+                            placeholder="contains…"
+                            className="h-8 text-xs"
+                          />
+                          <Select
+                            value={r.agentSlug || undefined}
+                            onValueChange={(v) => {
+                              const next = routes.map((route, i) =>
+                                i === idx ? { ...route, agentSlug: v } : route,
+                              );
+                              updateSelected({ config: { ...selectedConfig, routes: next } });
+                            }}
+                          >
+                            <SelectTrigger className="h-8 w-28 text-xs" aria-label="Route agent">
+                              <SelectValue placeholder="Agent…" />
+                            </SelectTrigger>
+                            {/* Filtered to this Conductor's own allowlist —
+                                never a raw pick from the whole registry. */}
+                            <SelectContent>
+                              {allowlist.map((slug) => (
+                                <SelectItem key={slug} value={slug}>
+                                  {agents.find((a) => a.slug === slug)?.name ?? slug}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 shrink-0"
+                            onClick={() => {
+                              const next = routes.filter((_, i) => i !== idx);
+                              updateSelected({ config: { ...selectedConfig, routes: next } });
+                            }}
+                            aria-label="Remove route"
+                          >
+                            <X className="size-3.5" />
+                          </Button>
+                        </div>
+                      );
+                    })}
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        const routes =
+                          (selectedConfig['routes'] as { contains: string; agentSlug: string }[]) ??
+                          [];
+                        updateSelected({
+                          config: {
+                            ...selectedConfig,
+                            routes: [...routes, { contains: '', agentSlug: '' }],
+                          },
+                        });
+                      }}
+                    >
+                      Add route
+                    </Button>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    <div className="space-y-1.5">
+                      <Label htmlFor="node-max-calls" className="text-xs">
+                        Max calls
+                      </Label>
+                      <Input
+                        id="node-max-calls"
+                        type="number"
+                        min={1}
+                        max={8}
+                        value={(selectedConfig['maxCalls'] as number) ?? 2}
+                        onChange={(e) =>
+                          updateSelected({
+                            config: {
+                              ...selectedConfig,
+                              maxCalls: Math.min(8, Math.max(1, Number(e.target.value) || 1)),
+                            },
+                          })
+                        }
+                        className="h-8 text-sm"
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label className="text-xs">Fallback (doc only)</Label>
+                      <Select
+                        value={(selectedConfig['fallback'] as string) || 'approval'}
+                        onValueChange={(v) =>
+                          updateSelected({ config: { ...selectedConfig, fallback: v } })
+                        }
+                      >
+                        <SelectTrigger className="h-8 text-xs" aria-label="Fallback">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="approval">Approval</SelectItem>
+                          <SelectItem value="end">End</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    There is only ever one outgoing connection — put the human-approval node on it
+                    yourself; the engine never invents one.
+                  </p>
+                </>
+              )}
+              {selected.data.nodeType === 'http' && (
+                <>
+                  <div className="grid grid-cols-2 gap-2">
+                    <div className="space-y-1.5">
+                      <Label className="text-xs">Method</Label>
+                      <Select
+                        value={(selectedConfig['method'] as string) || 'GET'}
+                        onValueChange={(v) =>
+                          updateSelected({ config: { ...selectedConfig, method: v } })
+                        }
+                      >
+                        <SelectTrigger className="h-8 text-xs" aria-label="HTTP method">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="GET">GET</SelectItem>
+                          <SelectItem value="POST">POST</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label htmlFor="node-http-url" className="text-xs">
+                        URL
+                      </Label>
+                      <Input
+                        id="node-http-url"
+                        value={(selectedConfig['url'] as string) ?? ''}
+                        onChange={(e) =>
+                          updateSelected({ config: { ...selectedConfig, url: e.target.value } })
+                        }
+                        className="h-8 text-sm"
+                      />
+                    </div>
+                  </div>
+                  <label className="flex items-center gap-2 text-xs text-muted-foreground">
+                    <Checkbox checked disabled aria-label="Dry run (always on)" />
+                    Dry run — always on. Connector Hub is not live.
+                  </label>
+                </>
+              )}
+              <div className="flex gap-2">
+                <Button type="button" variant="outline" size="sm" onClick={duplicateSelected}>
+                  Duplicate
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    snapshot();
+                    setNodes((ns) => ns.filter((n) => n.id !== selected.id));
+                    setEdges((es) =>
+                      es.filter((e) => e.source !== selected.id && e.target !== selected.id),
+                    );
+                    setSelectedId(null);
+                  }}
+                >
+                  Delete node
+                </Button>
+              </div>
             </div>
           )}
         </aside>
       </div>
+
+      {/* PR B: standing reminder that the loaded graph is an un-reviewed
+          Guide draft — cleared the moment it's saved or a different saved
+          workflow is loaded. */}
+      {guideBanner ? (
+        <div className="glass-card rounded-xl border border-brand-300/60 bg-brand-50 p-3">
+          <p className="text-small text-brand-800">{guideBanner}</p>
+        </div>
+      ) : null}
 
       {/* Validation panel */}
       {issues.length > 0 && (

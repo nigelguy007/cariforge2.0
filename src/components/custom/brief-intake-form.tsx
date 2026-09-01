@@ -322,6 +322,7 @@ export function BriefIntakeForm() {
                 <Textarea
                   placeholder="e.g. We need to triage claims documents against EU AI Act Article 14 before 2 August 2026. Today a team of six does this by hand in a shared inbox — we need something that reads each claim, flags the ones missing required disclosures, and routes them to the right reviewer…"
                   rows={6}
+                  className="placeholder:text-xs placeholder:italic placeholder:leading-normal"
                   {...field}
                 />
               </FormControl>

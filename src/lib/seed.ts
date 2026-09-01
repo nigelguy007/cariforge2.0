@@ -6,11 +6,11 @@
 // may run on every deploy/boot, possibly concurrently on more than one
 // instance.
 //
-// Seeds the Forge Canvas agent registry (Agent Builder Release 1: "Agent
-// registry with five initial agent templates"). Three Forge Crew agents
-// (mirroring the existing seven-agent core's Discovery/Readiness/
-// Governance mandates) plus two operational templates, so the canvas has
-// both governance-flavoured and business-flavoured agents to compose.
+// Seeds the Forge Canvas agent registry. All seven Forge Crew agents
+// (mirroring the seven-agent core's Discovery/Readiness/Workflow/
+// Governance/AI Build/Partner/Impact mandates) plus a Forge Conductor
+// stub, plus two operational templates, so the canvas has both
+// governance-flavoured and business-flavoured agents to compose.
 
 export async function seed(): Promise<void> {
   const { prisma } = await import('@/lib/db');
@@ -39,6 +39,46 @@ export async function seed(): Promise<void> {
       riskClass: 'high',
       description:
         'Checks that logging, oversight and stop-the-line controls hold; flags policy gaps before approval.',
+    },
+    {
+      slug: 'forge-workflow',
+      name: 'Workflow Agent',
+      category: 'forge-crew',
+      riskClass: 'medium',
+      description:
+        'Designs the role-by-role escalation path and names an owner for every handoff before the build starts.',
+    },
+    {
+      slug: 'forge-ai-build',
+      name: 'AI Build Agent',
+      category: 'forge-crew',
+      riskClass: 'high',
+      description:
+        'Turns the approved spec into a runnable prototype blueprint, wiring the agents, checks and approval gates it needs.',
+    },
+    {
+      slug: 'forge-partner',
+      name: 'Partner Agent',
+      category: 'forge-crew',
+      riskClass: 'medium',
+      description:
+        'Carries the proof into the buyer’s own infrastructure and hands off deployment with a clear runbook.',
+    },
+    {
+      slug: 'forge-impact',
+      name: 'Impact Agent',
+      category: 'forge-crew',
+      riskClass: 'low',
+      description:
+        'Tracks whether the delivered build kept its promises against the outcomes named at Discovery.',
+    },
+    {
+      slug: 'forge-conductor',
+      name: 'Conductor Agent',
+      category: 'forge-crew',
+      riskClass: 'high',
+      description:
+        'Routes a run between a named, allowlisted set of agents with a depth limit and a human-approval fallback — stub registry entry; see the conductor canvas node for routing behaviour.',
     },
     {
       slug: 'ops-customer-triage',

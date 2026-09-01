@@ -18,7 +18,10 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   const { id } = await params;
   const parsed = TaskDecide.safeParse(await req.json().catch(() => null));
   if (!parsed.success) {
-    return NextResponse.json({ error: 'A decision and a typed reason are required' }, { status: 400 });
+    return NextResponse.json(
+      { error: 'A decision and a typed reason are required' },
+      { status: 400 },
+    );
   }
   try {
     const detail = await decideTask({

@@ -110,6 +110,20 @@
   --muted: oklch(0.96 0.006 var(--brand-h));
   --muted-foreground: oklch(0.45 0.025 var(--brand-h));
 
+  /* Never-shadowed aliases for the nested-surface reset below — see the
+     big comment at the .glass-card/.glass-chip reset rule in @layer
+     components for why these exist. MUST be literal duplicates of
+     --foreground/--muted-foreground above, NOT var() references to them:
+     a custom property's var() references resolve lazily, using whatever
+     is in scope at the element that finally CONSUMES it — not the scope
+     where the alias itself was declared. So `--true-foreground:
+     var(--foreground)` would be just as shadowable as --foreground
+     itself once read from inside a .glass-card. --brand-h is safe to
+     reference live (never locally overridden anywhere). */
+  --true-foreground: #1d1d1f;
+  --true-card-foreground: #1d1d1f;
+  --true-muted-foreground: oklch(0.45 0.025 var(--brand-h));
+
   --accent: oklch(0.95 0.022 var(--brand-h));
   --accent-foreground: oklch(0.28 0.02 var(--brand-h));
 
@@ -209,7 +223,20 @@
      their own card background. Same root cause, same fix as
      .glass-highlight below: rescope the text tokens locally to a fixed
      dark colour that reads correctly against this fixed pale glass in
-     BOTH themes, rather than letting them follow the page-level flip. */
+     BOTH themes, rather than letting them follow the page-level flip.
+
+     Second bug, same family, caught 2026-09-01 on /admin/telemetry and
+     /admin/missions: the rescope above only reaches elements whose OWN
+     `color` is an explicit `var(--foreground)`/`var(--card-foreground)`/
+     `var(--muted-foreground)` reference (i.e. Tailwind's text-foreground /
+     text-card-foreground / text-muted-foreground utilities) — anything
+     using ONLY a size utility (text-h3, text-h4, text-body — no colour
+     utility at all) never references those custom properties itself, so
+     it just inherits body's ALREADY-COMPUTED page-level colour straight
+     through, bypassing this rescope entirely: near-white heading/stat
+     text on this same near-white glass. `color: var(--foreground)` below
+     closes that gap by giving the card itself a literal inherited colour
+     for any descendant that doesn't opt into its own text-* utility. */
   .glass-surface,
   .glass-card,
   .glass-panel {
@@ -223,11 +250,51 @@
     --foreground: oklch(0.22 0.025 var(--brand-h));
     --card-foreground: oklch(0.22 0.025 var(--brand-h));
     --muted-foreground: oklch(0.42 0.03 var(--brand-h));
+    color: var(--foreground);
   }
   .glass-panel {
     box-shadow:
       0 1px 2px oklch(0.2 0.02 var(--brand-h) / 0.04),
       0 16px 40px -20px var(--glass-shadow);
+  }
+
+  /* Third bug, opposite direction, caught the same day on Forge Canvas's
+     node palette (a `bg-card` button nested inside the palette's
+     `.glass-panel`) and on the admin telemetry stat tiles (`.glass-chip`
+     nested inside a `.glass-card` section): the rescope two rules up is
+     tuned for content sitting DIRECTLY on the glass card's own pale
+     background. A nested surface with its OWN, different background
+     (`.glass-chip`'s `var(--secondary)`, or plain `bg-card`/`bg-secondary`/
+     `bg-muted`/`bg-background` — the last one is what shadcn's default
+     Button `outline` variant uses, caught on the mission header's Pause /
+     Replay / Rollback buttons) still inherits that rescoping via ordinary
+     custom-property inheritance, because CSS has no concept of "only my
+     direct content" — so a nested `bg-background` button's inherited
+     `color` (or `.glass-chip`'s own explicit `color: var(--foreground)`,
+     further down this file) resolves using the ANCESTOR .glass-card's
+     dark-for-pale-glass override even though its OWN background is dark:
+     dark text on a dark surface. Reset back to the TRUE (un-rescoped,
+     theme-correct) tokens for exactly these nested surfaces, using the
+     never-shadowed --true-* aliases declared in :root:root / .dark.dark —
+     a plain var(--foreground) reference here would just re-inherit the
+     very override being undone. */
+  .glass-card :where(.glass-chip, .bg-card, .bg-secondary, .bg-muted, .bg-background),
+  .glass-panel :where(.glass-chip, .bg-card, .bg-secondary, .bg-muted, .bg-background) {
+    --foreground: var(--true-foreground);
+    --card-foreground: var(--true-card-foreground);
+    --muted-foreground: var(--true-muted-foreground);
+    /* Also set `color` explicitly, not just the custom properties above:
+       an element with NO color utility of its own (e.g. shadcn's default
+       Button — caught on the mission header's Pause/Replay/Rollback
+       buttons, which have no text-* class) doesn't reference
+       var(--foreground) at all; it plain-inherits the LITERAL colour
+       already resolved on .glass-card/.glass-panel itself (dark, from
+       that rule's own `color: var(--foreground)` two rules up). Resetting
+       the custom property here is inert for such an element — nothing of
+       its own reads it. This line is that "own reference" for anything
+       nested here that would otherwise silently inherit the wrong
+       literal colour. */
+    color: var(--foreground);
   }
 
   /* .glass-card.tone-highlight / .glass-highlight — the OUTCOME surface: a
@@ -504,6 +571,14 @@
   --secondary-foreground: var(--foreground);
   --muted: oklch(0.2 0.045 var(--brand-h));
   --muted-foreground: oklch(0.68 0.02 var(--brand-h));
+
+  /* Dark-mode literal duplicates of the --true-* aliases declared in
+     :root:root above — see that comment for why these must be literal,
+     not var(--foreground)/var(--muted-foreground) references. */
+  --true-foreground: oklch(0.96 0.006 var(--brand-h));
+  --true-card-foreground: oklch(0.96 0.006 var(--brand-h));
+  --true-muted-foreground: oklch(0.68 0.02 var(--brand-h));
+
   --accent: oklch(0.22 0.06 var(--brand-h));
   --accent-foreground: var(--foreground);
   --border: oklch(1 0 0 / 12%);

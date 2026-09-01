@@ -105,17 +105,7 @@ export function MissionDetail({ missionSlug }: { missionSlug: string }) {
   return (
     <div className="space-y-6">
       <MissionNextActionPanel missionId={detail.mission.id} />
-      {/* UX review C2 (wireframe v2, 2d): once Governance is approved,
-          Software Build stops being a dead-end label — this panel hands
-          the mission off into the Forge Canvas. */}
-      <MissionBuildPanel
-        missionId={detail.mission.id}
-        currentStageIndex={detail.mission.currentStageIndex}
-      />
-      <MissionBlockersPanel missionSlug={missionSlug} />
-      <OracleCouncilCard detail={detail} onWritten={handleWritten} />
-      <MissionReleasePanel missionId={detail.mission.id} />
-      <MissionWorkItemsPanel missionId={detail.mission.id} />
+
       <header className="glass-panel rounded-2xl p-6">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
@@ -312,6 +302,17 @@ export function MissionDetail({ missionSlug }: { missionSlug: string }) {
           </section>
         </TabsContent>
       </Tabs>
+      {/* UX review C2 (wireframe v2, 2d): once Governance is approved,
+          Software Build stops being a dead-end label — this panel hands
+          the mission off into the Forge Canvas. */}
+      <MissionBuildPanel
+        missionId={detail.mission.id}
+        currentStageIndex={detail.mission.currentStageIndex}
+      />
+      <MissionBlockersPanel missionSlug={missionSlug} />
+      <OracleCouncilCard detail={detail} onWritten={handleWritten} />
+      <MissionReleasePanel missionId={detail.mission.id} />
+      <MissionWorkItemsPanel missionId={detail.mission.id} />
     </div>
   );
 }

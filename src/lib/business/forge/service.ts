@@ -509,10 +509,18 @@ export async function createMission(args: {
   sourceLeadId?: string;
 }): Promise<MissionDetailT> {
   const slug = slugify(args.name ?? args.intake);
+  // UX: a name wasn't required at intake (the front-door "What do you
+  // want to build?" box only asks for the free-text need), but showing
+  // the literal string "Untitled mission" back to the person who just
+  // wrote it reads as broken, not as an intentional placeholder — same
+  // "derive a name from the description" pattern as guide.ts's
+  // suggestNameAndSlug(), just inlined here since only the name (not a
+  // slug too) is needed.
+  const derivedName = args.intake.trim().split(/\s+/).slice(0, 8).join(' ').slice(0, 120);
   const mission = await prisma.mission.create({
     data: {
       slug,
-      name: args.name?.trim() || 'Untitled mission',
+      name: args.name?.trim() || derivedName || 'Untitled mission',
       intake: args.intake,
       normalizedNeed: args.normalizedNeed ?? '',
       domainTags: args.domainTags,

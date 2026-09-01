@@ -5,10 +5,7 @@
 // the canvas can badge the offending node. Sibling convention:
 // state-machine.ts (pure) vs service.ts (DB).
 
-import type {
-  BlueprintValidationT,
-  CariBlueprintDefinitionT,
-} from '@/lib/contracts/forge-canvas';
+import type { BlueprintValidationT, CariBlueprintDefinitionT } from '@/lib/contracts/forge-canvas';
 
 export function validateBlueprint(
   def: CariBlueprintDefinitionT,
@@ -25,7 +22,8 @@ export function validateBlueprint(
 
   const starts = def.nodes.filter((n) => n.type === 'start');
   const ends = def.nodes.filter((n) => n.type === 'end');
-  if (starts.length !== 1) push(null, `Exactly one Start node is required (found ${starts.length}).`);
+  if (starts.length !== 1)
+    push(null, `Exactly one Start node is required (found ${starts.length}).`);
   if (ends.length < 1) push(null, 'At least one End node is required.');
 
   // Edge endpoints must exist; build adjacency as we go.
@@ -41,6 +39,21 @@ export function validateBlueprint(
       const inc = incoming.get(e.to) ?? [];
       inc.push(e.from);
       incoming.set(e.to, inc);
+    }
+  }
+
+  // Secret scan (handover ask, PR A5): a node config that looks like it
+  // carries an embedded credential — before this blueprint can round-trip
+  // through YAML (or anywhere else in plain text). Config values should
+  // reference secrets by id (see ConductorNode/HttpNode comments), never
+  // embed one.
+  const SECRET_PATTERN = /sk-[a-z0-9]|api[_-]?key\s*[:=]/i;
+  for (const n of def.nodes) {
+    if (SECRET_PATTERN.test(JSON.stringify(n.config))) {
+      push(
+        n.id,
+        `"${n.label}" looks like it embeds a secret/API key — reference it by id instead.`,
+      );
     }
   }
 
@@ -79,6 +92,44 @@ export function validateBlueprint(
       case 'end':
         if (inc.length < 1) push(n.id, 'End node is unreachable (no incoming connection).');
         if (out.length > 0) push(n.id, 'End must have no outgoing connections.');
+        break;
+      case 'conductor': {
+        if (inc.length < 1) push(n.id, 'Conductor node is unreachable (no incoming connection).');
+        if (out.length !== 1) push(n.id, 'Conductor needs exactly one outgoing connection.');
+        // Policy must be able to block a proposed route (handover ask):
+        // enforced structurally here (every route's slug must be in the
+        // allowlist AND a known registry agent) AND again at run time in
+        // engine.ts — never trust a later pick over the allowlist.
+        for (const r of n.config.routes) {
+          if (!n.config.allowedAgentSlugs.includes(r.agentSlug)) {
+            push(
+              n.id,
+              `Route for "${r.contains}" targets "${r.agentSlug}", which isn't in this Conductor's allowlist.`,
+            );
+          }
+          if (!knownAgentSlugs.has(r.agentSlug)) {
+            push(
+              n.id,
+              `Route targets unknown agent "${r.agentSlug}" — pick one from the registry.`,
+            );
+          }
+        }
+        for (const slug of n.config.allowedAgentSlugs) {
+          if (!knownAgentSlugs.has(slug)) {
+            push(n.id, `Allowlisted agent "${slug}" isn't in the registry.`);
+          }
+        }
+        break;
+      }
+      case 'http':
+        if (inc.length < 1) push(n.id, 'HTTP node is unreachable (no incoming connection).');
+        if (out.length !== 1) push(n.id, 'HTTP node needs exactly one outgoing connection.');
+        if (!n.config.dryRun) push(n.id, 'HTTP node must stay dry-run in this release.');
+        if (
+          /^(https?:\/\/)?(localhost|127\.0\.0\.1|10\.|192\.168\.|169\.254\.)/i.test(n.config.url)
+        ) {
+          push(n.id, 'HTTP node URL may not target localhost or a private/link-local address.');
+        }
         break;
     }
   }

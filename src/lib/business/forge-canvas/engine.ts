@@ -100,7 +100,8 @@ export function advance(args: {
       return fail(currentId, 'unknown', null, 'Step limit exceeded — runaway run stopped.');
     }
     const node = nodeById(def, currentId);
-    if (!node) return fail(currentId, 'unknown', null, `Node "${currentId}" not found in blueprint.`);
+    if (!node)
+      return fail(currentId, 'unknown', null, `Node "${currentId}" not found in blueprint.`);
 
     switch (node.type) {
       case 'start': {
@@ -124,7 +125,12 @@ export function advance(args: {
         const upstreamEdge = def.edges.find((e) => e.to === node.id);
         const input = upstreamEdge ? (state[upstreamEdge.from] ?? null) : null;
         if (!agent) {
-          return fail(node.id, 'agent', input, `Agent "${node.config.agentSlug}" is not in the registry.`);
+          return fail(
+            node.id,
+            'agent',
+            input,
+            `Agent "${node.config.agentSlug}" is not in the registry.`,
+          );
         }
         const output = executeAgent(agent, input);
         state[node.id] = output;
@@ -193,6 +199,89 @@ export function advance(args: {
           error: null,
         });
         return { records, state, status: 'Succeeded', currentNodeId: null, pausedApproval: null };
+      }
+      // PR C: routes to at most one allowlisted agent per call, still via
+      // executeAgent (simulateAgent by default) — never a live call. The
+      // allowlist is enforced here too, not just at validate time: never
+      // trust a later model pick over what was configured on save.
+      case 'conductor': {
+        const upstreamEdge = def.edges.find((e) => e.to === node.id);
+        const upstream = upstreamEdge ? (state[upstreamEdge.from] ?? null) : null;
+        const haystack = JSON.stringify(upstream ?? '').toLowerCase();
+        const callsKey = `__conductorCalls:${node.id}`;
+        const calls = (state[callsKey] as number | undefined) ?? 0;
+
+        let output: unknown;
+        if (calls >= node.config.maxCalls) {
+          output = { routed: false, reason: 'max-calls' };
+        } else {
+          const match = node.config.routes.find((r) => haystack.includes(r.contains.toLowerCase()));
+          if (!match) {
+            output = { routed: false, reason: 'no-match' };
+          } else if (!node.config.allowedAgentSlugs.includes(match.agentSlug)) {
+            return fail(
+              node.id,
+              'conductor',
+              upstream,
+              `Policy blocked route to "${match.agentSlug}" — not in this Conductor's allowlist.`,
+            );
+          } else {
+            const agent = agents.get(match.agentSlug);
+            if (!agent) {
+              return fail(
+                node.id,
+                'conductor',
+                upstream,
+                `Routed agent "${match.agentSlug}" is not in the registry.`,
+              );
+            }
+            const agentOutput = executeAgent(agent, upstream);
+            state[callsKey] = calls + 1;
+            output = { routed: true, routedTo: match.agentSlug, simulated: true, agentOutput };
+          }
+        }
+
+        state[node.id] = output;
+        records.push({
+          ordinal: ordinal++,
+          nodeId: node.id,
+          nodeType: 'conductor',
+          status: 'Succeeded',
+          input: upstream,
+          output,
+          error: null,
+        });
+        currentId = singleNext(def, node.id);
+        if (!currentId)
+          return fail(node.id, 'conductor', upstream, 'Conductor has no outgoing connection.');
+        break;
+      }
+      // PR C: never fetches — Connector Hub isn't live. A labelled,
+      // clearly-simulated result, same spirit as simulateAgent().
+      case 'http': {
+        const upstreamEdge = def.edges.find((e) => e.to === node.id);
+        const upstream = upstreamEdge ? (state[upstreamEdge.from] ?? null) : null;
+        const output = {
+          simulated: true,
+          dryRun: true,
+          method: node.config.method,
+          url: node.config.url,
+          skipped: 'Connector Hub not live',
+        };
+        state[node.id] = output;
+        records.push({
+          ordinal: ordinal++,
+          nodeId: node.id,
+          nodeType: 'http',
+          status: 'Succeeded',
+          input: upstream,
+          output,
+          error: null,
+        });
+        currentId = singleNext(def, node.id);
+        if (!currentId)
+          return fail(node.id, 'http', upstream, 'HTTP node has no outgoing connection.');
+        break;
       }
     }
   }

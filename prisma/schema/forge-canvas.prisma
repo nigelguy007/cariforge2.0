@@ -35,6 +35,10 @@ model CanvasBlueprint {
   definition  Json                        // CariBlueprintDefinition (zod-validated at the API boundary)
   createdById String
   createdAt   DateTime @default(now())
+  // PR A6: every save writes Draft; POST .../publish promotes the latest
+  // Draft version of a slug to Published (one-way, no richer lifecycle).
+  // Runs may still execute a Draft version — testing is the point.
+  status      String   @default("Draft") // Draft | Published
   // UX review C2 (wireframe v2): a blueprint created from a mission's
   // Software Build gate stays linked to that mission — Gate 5 hands off
   // into the Forge instead of dead-ending. Scalar FK (Mission lives in

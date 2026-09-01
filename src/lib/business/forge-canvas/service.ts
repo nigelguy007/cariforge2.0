@@ -14,7 +14,7 @@ import type {
 } from '@/lib/contracts/forge-canvas';
 import { CariBlueprintDefinition } from '@/lib/contracts/forge-canvas';
 import { prisma } from '@/lib/db';
-import { advance, type AgentSnapshot, resumeAfterDecision, type RunState } from './engine';
+import { type AgentSnapshot, advance, type RunState, resumeAfterDecision } from './engine';
 import { validateBlueprint } from './validate';
 
 async function agentMap(): Promise<Map<string, AgentSnapshot>> {
@@ -79,6 +79,9 @@ export async function saveBlueprint(
       definition: save.definition,
       createdById: userId,
       missionId: linkedMissionId,
+      // PR A6: every save writes a fresh Draft — publishing is a
+      // separate, explicit act (POST .../publish), never implied by save.
+      status: 'Draft',
     },
   });
   return {
@@ -88,7 +91,36 @@ export async function saveBlueprint(
     version: row.version,
     definition: save.definition,
     createdAt: row.createdAt.toISOString(),
+    status: row.status as 'Draft' | 'Published',
     ...(await missionLinkFields(linkedMissionId)),
+  };
+}
+
+// PR A6: promote the latest Draft version of a slug to Published. One-way
+// (no Published -> Draft), no richer lifecycle than that. 409s if the
+// latest version is already Published — publishing twice is a no-op error,
+// not a silent success, so the caller notices they raced themselves.
+export async function publishBlueprint(args: { userId: string; isAdmin: boolean; slug: string }) {
+  const latest = await prisma.canvasBlueprint.findFirst({
+    where: { slug: args.slug },
+    orderBy: { version: 'desc' },
+  });
+  if (!latest) throw new Error('FORGE_NOT_FOUND');
+  if (!args.isAdmin && latest.createdById !== args.userId) throw new Error('FORGE_FORBIDDEN');
+  if (latest.status === 'Published') throw new Error('FORGE_CONFLICT');
+  const row = await prisma.canvasBlueprint.update({
+    where: { id: latest.id },
+    data: { status: 'Published' },
+  });
+  return {
+    id: row.id,
+    slug: row.slug,
+    name: row.name,
+    version: row.version,
+    definition: CariBlueprintDefinition.parse(row.definition),
+    createdAt: row.createdAt.toISOString(),
+    status: row.status as 'Draft' | 'Published',
+    ...(await missionLinkFields(row.missionId ?? null)),
   };
 }
 
@@ -111,7 +143,15 @@ export async function listBlueprints() {
   // business/leads.ts (revisit if blueprint count grows past thousands).
   const rows = await prisma.canvasBlueprint.findMany({
     orderBy: [{ slug: 'asc' }, { version: 'desc' }],
-    select: { id: true, slug: true, name: true, version: true, createdAt: true, missionId: true },
+    select: {
+      id: true,
+      slug: true,
+      name: true,
+      version: true,
+      createdAt: true,
+      missionId: true,
+      status: true,
+    },
   });
   const seen = new Set<string>();
   const latest = [];
@@ -140,6 +180,7 @@ export async function listBlueprints() {
     missionId: r.missionId ?? null,
     missionSlug: r.missionId ? (missionById.get(r.missionId)?.slug ?? null) : null,
     missionName: r.missionId ? (missionById.get(r.missionId)?.name ?? null) : null,
+    status: r.status as 'Draft' | 'Published',
   }));
   return { items };
 }
@@ -156,6 +197,7 @@ export async function getBlueprint(slug: string, version?: number) {
     version: row.version,
     definition: CariBlueprintDefinition.parse(row.definition),
     createdAt: row.createdAt.toISOString(),
+    status: row.status as 'Draft' | 'Published',
     ...(await missionLinkFields(row.missionId ?? null)),
   };
 }
@@ -202,6 +244,7 @@ export async function createBlueprintFromMission(args: {
       version: existing.version,
       definition: CariBlueprintDefinition.parse(existing.definition),
       createdAt: existing.createdAt.toISOString(),
+      status: existing.status as 'Draft' | 'Published',
       ...(await missionLinkFields(mission.id)),
     };
   }
@@ -293,6 +336,16 @@ export async function startRun(args: {
         finishedAt: result.status === 'AwaitingApproval' ? null : new Date(),
       },
     });
+    // A4: startedAt/finishedAt must come from the same clock. Leaving
+    // startedAt to the column's DB-side `now()` default (Postgres:
+    // transaction-start time) while stamping finishedAt from this
+    // process's `new Date()` lets the two disagree by a millisecond in
+    // either direction for a step that (in this simulated engine) takes
+    // ~0 real time — durationMs then goes negative and fails
+    // NodeRunItem's `.nonnegative()`, 500ing the whole run response.
+    // Stamping both from one JS Date per record removes the cross-clock
+    // race entirely.
+    const stamp = new Date();
     await tx.canvasNodeRun.createMany({
       data: result.records.map((r) => ({
         runId: created.id,
@@ -303,7 +356,8 @@ export async function startRun(args: {
         input: (r.input ?? null) as object,
         output: (r.output ?? null) as object,
         error: r.error,
-        finishedAt: r.status === 'AwaitingApproval' ? null : new Date(),
+        startedAt: stamp,
+        finishedAt: r.status === 'AwaitingApproval' ? null : stamp,
       })),
     });
     if (result.pausedApproval) {
@@ -374,6 +428,9 @@ export async function getRunDetail(
       error: n.error,
       startedAt: n.startedAt.toISOString(),
       finishedAt: n.finishedAt?.toISOString() ?? null,
+      // A4: derived, not stored — null while the node hasn't finished
+      // (still running, or paused awaiting approval).
+      durationMs: n.finishedAt ? n.finishedAt.getTime() - n.startedAt.getTime() : null,
     })),
     openTaskId: run.tasks[0]?.id ?? null,
   };
@@ -475,6 +532,9 @@ export async function decideTask(args: {
       data: { status: args.decision, finishedAt: new Date() },
     });
     if (result.records.length > 0) {
+      // Same fix as startRun(): one JS clock for both timestamps, not a
+      // DB-side default racing an app-side Date — see comment there.
+      const stamp = new Date();
       await tx.canvasNodeRun.createMany({
         data: result.records.map((r) => ({
           runId: task.runId,
@@ -485,7 +545,8 @@ export async function decideTask(args: {
           input: (r.input ?? null) as object,
           output: (r.output ?? null) as object,
           error: r.error,
-          finishedAt: r.status === 'AwaitingApproval' ? null : new Date(),
+          startedAt: stamp,
+          finishedAt: r.status === 'AwaitingApproval' ? null : stamp,
         })),
       });
     }

@@ -7,7 +7,17 @@
 'use client';
 
 import { Handle, type NodeProps, Position } from '@xyflow/react';
-import { AlertTriangle, Bot, CheckCircle2, CircleDot, GitBranch, Square, UserCheck } from 'lucide-react';
+import {
+  AlertTriangle,
+  Bot,
+  CheckCircle2,
+  CircleDot,
+  GitBranch,
+  Globe,
+  Route,
+  Square,
+  UserCheck,
+} from 'lucide-react';
 import type { CanvasNodeType } from '@/lib/contracts/forge-canvas';
 import { cn } from '@/lib/utils';
 
@@ -19,15 +29,14 @@ export interface ForgeNodeData extends Record<string, unknown> {
   runStatus?: string; // set on the trace view: Succeeded | Failed | AwaitingApproval | Approved | Rejected
 }
 
-const TYPE_META: Record<
-  CanvasNodeType,
-  { title: string; icon: typeof Bot; accent: string }
-> = {
+const TYPE_META: Record<CanvasNodeType, { title: string; icon: typeof Bot; accent: string }> = {
   start: { title: 'Start', icon: CircleDot, accent: 'text-emerald-700' },
   agent: { title: 'Agent', icon: Bot, accent: 'text-brand-700' },
   condition: { title: 'Condition', icon: GitBranch, accent: 'text-amber-700' },
   approval: { title: 'Human approval', icon: UserCheck, accent: 'text-purple-700' },
   end: { title: 'End', icon: Square, accent: 'text-slate-600' },
+  conductor: { title: 'Conductor', icon: Route, accent: 'text-cyan-700' },
+  http: { title: 'HTTP (dry run)', icon: Globe, accent: 'text-slate-500' },
 };
 
 export function ForgeCanvasNode({ data, selected }: NodeProps & { data: ForgeNodeData }) {
