@@ -65,12 +65,25 @@ type FlowNode = Node<ForgeNodeData>;
 
 const nodeTypes = { forge: ForgeCanvasNode };
 
+// 2026-09-01, direct user feedback: 7 node types on the very first screen
+// read as "over-complicated" and a time-to-market risk before anyone had
+// even placed one. Split into the 5 core types (Start/Agent/Condition/
+// Human approval/End — exactly what the page's own subtitle promises:
+// "Connect Start -> Agents -> Conditions -> Human approval -> End") always
+// visible, and 2 advanced types tucked behind a collapsed toggle below.
+// Conductor is genuinely advanced (multi-agent routing most first builds
+// don't need). HTTP is more than advanced — it's inert today (always
+// simulated, Connector Hub isn't live), so showing it up front as if it
+// were a real capability was actively misleading.
 const PALETTE: { type: CanvasNodeType; label: string; hint: string }[] = [
   { type: 'start', label: 'Start', hint: 'Where every run begins — one per workflow.' },
   { type: 'agent', label: 'Agent', hint: 'A registry agent does a bounded piece of work.' },
   { type: 'condition', label: 'Condition', hint: 'Deterministic branch — no model decides this.' },
   { type: 'approval', label: 'Human approval', hint: 'Pauses the run for a named decision.' },
   { type: 'end', label: 'End', hint: 'Where a run finishes.' },
+];
+
+const ADVANCED_PALETTE: { type: CanvasNodeType; label: string; hint: string }[] = [
   {
     type: 'conductor',
     label: 'Conductor',
@@ -79,7 +92,7 @@ const PALETTE: { type: CanvasNodeType; label: string; hint: string }[] = [
   {
     type: 'http',
     label: 'HTTP (dry run)',
-    hint: 'Always simulated — Connector Hub is not live yet.',
+    hint: 'Always simulated — Connector Hub is not live yet, so this does nothing real.',
   },
 ];
 
@@ -159,6 +172,7 @@ export function ForgeCanvasBuilder() {
   const [agents, setAgents] = React.useState<CanvasAgentItemT[]>([]);
   const [saved, setSaved] = React.useState<{ slug: string; version: number }[]>([]);
   const [selectedId, setSelectedId] = React.useState<string | null>(null);
+  const [showAdvanced, setShowAdvanced] = React.useState(false);
   const [issues, setIssues] = React.useState<BlueprintValidationT['issues']>([]);
   const [runInput, setRunInput] = React.useState('');
   const [busy, setBusy] = React.useState<'save' | 'run' | 'validate' | 'publish' | null>(null);
@@ -242,7 +256,7 @@ export function ForgeCanvasBuilder() {
   const addNode = (type: CanvasNodeType) => {
     snapshot();
     const id = `${type}-${counter.current++}`;
-    const paletteEntry = PALETTE.find((p) => p.type === type);
+    const paletteEntry = [...PALETTE, ...ADVANCED_PALETTE].find((p) => p.type === type);
 
     // 2026-09-01 UX fix, direct user report: clicking a palette entry used
     // to always drop a disconnected node at a generic offset (frequently
@@ -792,6 +806,26 @@ export function ForgeCanvasBuilder() {
               <span className="block text-xs text-muted-foreground">{p.hint}</span>
             </button>
           ))}
+          <button
+            type="button"
+            onClick={() => setShowAdvanced((v) => !v)}
+            className="w-full pt-1 text-left text-xs font-medium text-muted-foreground hover:text-foreground"
+          >
+            {showAdvanced ? '▾' : '▸'} Advanced ({ADVANCED_PALETTE.length})
+          </button>
+          {showAdvanced
+            ? ADVANCED_PALETTE.map((p) => (
+                <button
+                  key={p.type}
+                  type="button"
+                  onClick={() => addNode(p.type)}
+                  className="w-full rounded-lg border border-border bg-card px-3 py-2 text-left transition-colors hover:border-brand-400"
+                >
+                  <span className="block text-sm font-medium text-foreground">{p.label}</span>
+                  <span className="block text-xs text-muted-foreground">{p.hint}</span>
+                </button>
+              ))
+            : null}
           <div className="space-y-1 pt-2">
             <Label htmlFor="run-input" className="text-xs">
               Test-run input
