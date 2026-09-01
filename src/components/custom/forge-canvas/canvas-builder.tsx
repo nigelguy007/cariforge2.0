@@ -228,6 +228,17 @@ export function ForgeCanvasBuilder() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // 2026-09-01 UX pass: /forge?draft=<text> deep-links from the dashboard's
+  // "what would you like to achieve?" box straight into the Guide textarea,
+  // pre-filled but NOT auto-submitted — the author still reviews the text
+  // and explicitly clicks "Draft on canvas", same review-before-drafting
+  // discipline as everywhere else in Guide. Same window.location pattern as
+  // ?slug= above, for the same prerender-safety reason.
+  React.useEffect(() => {
+    const wanted = new URLSearchParams(window.location.search).get('draft');
+    if (wanted) setGuideDescription(wanted);
+  }, []);
+
   const addNode = (type: CanvasNodeType) => {
     snapshot();
     const id = `${type}-${counter.current++}`;
@@ -690,6 +701,21 @@ export function ForgeCanvasBuilder() {
         </div>
       </div>
 
+      {/* 2026-09-01: this banner used to render below the ENTIRE canvas
+          layout (palette/canvas/inspector), off-screen unless you scrolled
+          past a tall three-column area — real user confusion, reported
+          live: they landed on an unrelated offline-starter graph with no
+          idea why, because the one sentence explaining it ("the
+          Configurator model was unavailable...") was invisible above the
+          fold. Moved up here so it's the first thing visible, right where
+          the mismatch between "what I typed" and "what's on the canvas"
+          would actually be noticed. */}
+      {guideBanner ? (
+        <div className="glass-card rounded-xl border border-brand-300/60 bg-brand-50 p-3">
+          <p className="text-small text-brand-800">{guideBanner}</p>
+        </div>
+      ) : null}
+
       {/* Real mobile bug found in QA: three fixed-width panels side by
           side (palette 208px + inspector 256px + canvas) has no chance of
           fitting a phone viewport. Stacks to a single column below md;
@@ -1099,15 +1125,6 @@ export function ForgeCanvasBuilder() {
           )}
         </aside>
       </div>
-
-      {/* PR B: standing reminder that the loaded graph is an un-reviewed
-          Guide draft — cleared the moment it's saved or a different saved
-          workflow is loaded. */}
-      {guideBanner ? (
-        <div className="glass-card rounded-xl border border-brand-300/60 bg-brand-50 p-3">
-          <p className="text-small text-brand-800">{guideBanner}</p>
-        </div>
-      ) : null}
 
       {/* Validation panel */}
       {issues.length > 0 && (

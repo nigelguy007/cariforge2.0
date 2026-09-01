@@ -4,7 +4,15 @@
 
 'use client';
 
+import Link from 'next/link';
 import * as React from 'react';
+// 2026-09-01 UX pass: these two used to render standalone below the whole
+// page (in the server-component shell, missions/[slug]/page.tsx) — moved
+// into the Governance tab here alongside the rest of the audit/tracking
+// detail, so the shell no longer needs to know about them at all.
+import { MissionAutonomyCard } from '@/components/custom/forge-telemetry/mission-autonomy-card';
+import { MissionCostCard } from '@/components/custom/forge-telemetry/mission-cost-card';
+import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { apiFetch } from '@/lib/api-client';
 import {
@@ -15,11 +23,11 @@ import {
   type MissionDetailT,
 } from '@/lib/contracts/forge';
 import { friendlyLeadReference } from '@/lib/contracts/leads';
-import { MissionBuildPanel } from './mission-build-panel';
 import { AssurancePackCard } from './assurance-pack-card';
 import { GapListCard } from './gap-list-card';
 import { MissionAuditTimeline } from './mission-audit-timeline';
 import { MissionBlockersPanel } from './mission-blockers-panel';
+import { MissionBuildPanel } from './mission-build-panel';
 import { MissionEvidenceForm } from './mission-evidence-form';
 import { MissionEvidenceList } from './mission-evidence-list';
 import { MissionGatePanel } from './mission-gate-panel';
@@ -151,9 +159,39 @@ export function MissionDetail({ missionSlug }: { missionSlug: string }) {
         </div>
       </header>
 
+      {/* 2026-09-01 UX pass, direct user request: build should be one click
+          away, always — not something you unlock by first getting through
+          the 5-gate approval flow. This is a quick, unlinked sketch (no
+          mission-record tie-in); the formal hand-off that carries this
+          mission's approved authority boundary into a mission-linked
+          blueprint is still MissionBuildPanel, now in the Governance tab,
+          and still only available once Governance clears — that's a
+          different, stricter action and stays gated on purpose. */}
+      <section className="glass-highlight rounded-2xl p-6">
+        <p className="text-eyebrow">Build it</p>
+        <h2 className="text-h3">Sketch this as a visual workflow</h2>
+        <p className="mt-1 text-body">
+          Opens the drag-and-drop canvas with this mission&rsquo;s need pre-filled — review, edit,
+          and draft it into a runnable workflow. Nothing saves or runs until you choose to.
+        </p>
+        <Button asChild className="glass-cta mt-4">
+          <Link href={`/forge?draft=${encodeURIComponent(detail.mission.intake)}`}>
+            Open the visual builder
+          </Link>
+        </Button>
+      </section>
+
+      <MissionBlockersPanel missionSlug={missionSlug} />
+
       <Tabs defaultValue="overview" className="space-y-4">
         <TabsList className="glass-chip flex flex-wrap gap-1 rounded-full p-1">
           <TabsTrigger value="overview">Overview</TabsTrigger>
+          {/* Everything gate/Oracle/audit/cost-tracking related lives here now,
+              one click away instead of the default view — real user
+              feedback: none of it is needed to just describe and build
+              something, and having it all up front made the page
+              unreadable. */}
+          <TabsTrigger value="governance">Governance</TabsTrigger>
           <TabsTrigger value="handoffs">Handoffs</TabsTrigger>
           <TabsTrigger value="gates">Gates</TabsTrigger>
           <TabsTrigger value="objections">Objections</TabsTrigger>
@@ -164,39 +202,53 @@ export function MissionDetail({ missionSlug }: { missionSlug: string }) {
         </TabsList>
 
         <TabsContent value="overview">
-          <div className="grid gap-4 md:grid-cols-2">
-            <section className="glass-card rounded-2xl p-6">
-              <h2 className="text-h3">Intake</h2>
-              <p className="mt-2 whitespace-pre-wrap text-body">{detail.mission.intake}</p>
-            </section>
-            <section className="glass-card rounded-2xl p-6">
-              <h2 className="text-h3">Last audit events</h2>
-              <ul className="mt-2 space-y-2 text-body">
-                {detail.audits.slice(0, 5).map((a) => (
-                  <li key={a.id}>
-                    <span className="text-caption text-muted-foreground">
-                      {new Date(a.at).toLocaleString()} —{' '}
-                    </span>
-                    <span className="text-foreground">{a.event}</span>
-                  </li>
-                ))}
-              </ul>
-            </section>
-            <section className="glass-card rounded-2xl p-6 md:col-span-2">
-              <h2 className="text-h3">Gate panel</h2>
-              <div className="mt-3 grid gap-3 md:grid-cols-5">
-                {detail.gates.map((g) => (
-                  <GateCard
-                    key={g.gateIndex}
-                    gate={g}
-                    approval={
-                      detail.approvals.find((a) => a.gateIndex === g.gateIndex) ?? null
-                    }
-                    isCurrent={g.gateIndex === detail.mission.currentStageIndex}
-                  />
-                ))}
-              </div>
-            </section>
+          <section className="glass-card rounded-2xl p-6">
+            <h2 className="text-h3">Last audit events</h2>
+            <ul className="mt-2 space-y-2 text-body">
+              {detail.audits.slice(0, 5).map((a) => (
+                <li key={a.id}>
+                  <span className="text-caption text-muted-foreground">
+                    {new Date(a.at).toLocaleString()} —{' '}
+                  </span>
+                  <span className="text-foreground">{a.event}</span>
+                </li>
+              ))}
+            </ul>
+          </section>
+        </TabsContent>
+
+        <TabsContent value="governance">
+          <div className="space-y-4">
+            <div className="grid gap-4 md:grid-cols-2">
+              <section className="glass-card rounded-2xl p-6">
+                <h2 className="text-h3">Intake</h2>
+                <p className="mt-2 whitespace-pre-wrap text-body">{detail.mission.intake}</p>
+              </section>
+              <section className="glass-card rounded-2xl p-6 md:col-span-2">
+                <h2 className="text-h3">Gate panel</h2>
+                <div className="mt-3 grid gap-3 md:grid-cols-5">
+                  {detail.gates.map((g) => (
+                    <GateCard
+                      key={g.gateIndex}
+                      gate={g}
+                      approval={detail.approvals.find((a) => a.gateIndex === g.gateIndex) ?? null}
+                      isCurrent={g.gateIndex === detail.mission.currentStageIndex}
+                    />
+                  ))}
+                </div>
+              </section>
+            </div>
+            <OracleCouncilCard detail={detail} onWritten={handleWritten} />
+            <MissionBuildPanel
+              missionId={detail.mission.id}
+              currentStageIndex={detail.mission.currentStageIndex}
+            />
+            <MissionReleasePanel missionId={detail.mission.id} />
+            <MissionWorkItemsPanel missionId={detail.mission.id} />
+            <div className="grid gap-4 md:grid-cols-2">
+              <MissionAutonomyCard missionSlug={missionSlug} />
+              <MissionCostCard missionSlug={missionSlug} />
+            </div>
           </div>
         </TabsContent>
 
@@ -302,17 +354,6 @@ export function MissionDetail({ missionSlug }: { missionSlug: string }) {
           </section>
         </TabsContent>
       </Tabs>
-      {/* UX review C2 (wireframe v2, 2d): once Governance is approved,
-          Software Build stops being a dead-end label — this panel hands
-          the mission off into the Forge Canvas. */}
-      <MissionBuildPanel
-        missionId={detail.mission.id}
-        currentStageIndex={detail.mission.currentStageIndex}
-      />
-      <MissionBlockersPanel missionSlug={missionSlug} />
-      <OracleCouncilCard detail={detail} onWritten={handleWritten} />
-      <MissionReleasePanel missionId={detail.mission.id} />
-      <MissionWorkItemsPanel missionId={detail.mission.id} />
     </div>
   );
 }

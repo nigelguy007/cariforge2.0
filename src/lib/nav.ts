@@ -39,14 +39,17 @@ export const navItems: NavItem[] = [
   { label: 'Blog', href: '/blog', group: 'primary', order: 5 },
   // Mission Control — signed-in users see this; the page itself enforces auth.
   { label: 'Missions', href: '/missions', group: 'primary', requiresAuth: true, order: 5 },
-  // Agent Builder (Release 1 slice) — grouped so the bar stays short.
+  // Promoted out of the 'Forge' dropdown and given the lowest order (sorts
+  // first for a signed-in user, ahead of the marketing links) — 2026-09-01
+  // user report: the visual builder existed but nobody found it, buried one
+  // click inside a "Forge ⌄" menu. This is meant to be the primary,
+  // immediately-reachable action once signed in, not a submenu entry.
   {
-    label: 'Forge Canvas',
+    label: 'Build',
     href: '/forge',
     group: 'primary',
     requiresAuth: true,
-    menu: 'Forge',
-    order: 5,
+    order: -1,
   },
   // UX review C3 (wireframe v2): one unified Approvals inbox — gate
   // decisions + run pauses. /forge/approvals redirects here.

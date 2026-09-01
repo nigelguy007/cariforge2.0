@@ -10,7 +10,6 @@
 // "Ask CARI" hero) above the real mission list, reusing the existing
 // GET /api/forge/missions data — page composition, no new backend work.
 
-import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import * as React from 'react';
 import { AgentTeamPanel } from '@/components/custom/dashboard/agent-team-panel';
@@ -36,14 +35,27 @@ export default function DashboardPage() {
   const isAdmin = hasRole(session?.user?.role, 'admin');
   const [intake, setIntake] = React.useState('');
 
-  // The quick-capture box below hands off to /missions/new via a query
-  // param rather than creating a mission directly: MissionCreate requires
-  // nine structured attribution fields (need, intended outcome, constraints,
+  // 2026-09-01 UX pass: the primary action from this box is now "build it"
+  // (straight into the Forge Canvas via Guide, /forge?draft=), not "start a
+  // mission" (the full 5-gate governance flow). Real user feedback: the
+  // visual builder existed but nothing on the first screen pointed at it,
+  // and the gate/Oracle/audit machinery was the FIRST thing shown for
+  // something that just wants to be sketched and tried. Mission tracking
+  // (formal governance, audit trail, gate sign-off) is still fully there —
+  // demoted to a secondary link, not removed.
+  function handleBuildVisually(event: React.FormEvent) {
+    event.preventDefault();
+    const trimmed = intake.trim();
+    router.push(trimmed ? `/forge?draft=${encodeURIComponent(trimmed)}` : '/forge');
+  }
+
+  // The quick-capture box hands off to /missions/new via a query param
+  // rather than creating a mission directly: MissionCreate requires nine
+  // structured attribution fields (need, intended outcome, constraints,
   // authority boundary, ...) that a single textarea can't satisfy on its
   // own, and loosening that schema is out of scope here. This still gets a
   // user from "type the need" to a pre-filled intake form in one step.
-  function handleStartMission(event: React.FormEvent) {
-    event.preventDefault();
+  function handleStartMission() {
     const trimmed = intake.trim();
     router.push(trimmed ? `/missions/new?intake=${encodeURIComponent(trimmed)}` : '/missions/new');
   }
@@ -75,37 +87,39 @@ export default function DashboardPage() {
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="min-w-0">
             <p className="text-caption uppercase tracking-wide text-brand-700">
-              {isAdmin ? 'Admin dashboard' : 'Mission Control'}
+              {isAdmin ? 'Admin dashboard' : 'Build something'}
             </p>
-            <h1 className="text-h2 text-foreground">What would you like to achieve?</h1>
+            <h1 className="text-h2 text-foreground">What do you want to build?</h1>
           </div>
           <Badge variant="secondary" className="w-fit">
             {isAdmin ? 'Admin role' : 'User role'}
           </Badge>
         </div>
-        <form onSubmit={handleStartMission} className="mt-4 space-y-3">
+        <form onSubmit={handleBuildVisually} className="mt-4 space-y-3">
           <Textarea
             value={intake}
             onChange={(event) => setIntake(event.target.value)}
             rows={3}
-            placeholder="Describe the need as you would to a colleague — the forge turns it into a governed, testable mission through five human gates."
-            aria-label="What would you like to achieve?"
+            placeholder="Describe what you want — a support-ticket triage bot, a document reviewer, anything. You'll see it as a visual workflow next."
+            aria-label="What do you want to build?"
           />
           <div className="flex flex-wrap items-center gap-3">
             <Button type="submit" className="glass-cta">
-              Start a mission
+              Build visually
             </Button>
-            {/* UX review M2: name what this box actually does — it
-                pre-fills the one intake flow, it isn't a second one. */}
+            {/* UX review M2: name what this box actually does. Mission
+                tracking (formal governance, gate sign-off, audit trail) is
+                still available, just no longer the first/only option. */}
             <span className="text-small text-muted-foreground">
-              Pre-fills the{' '}
-              <Link
-                href="/missions/new"
+              Need formal sign-off tracking instead?{' '}
+              <button
+                type="button"
+                onClick={handleStartMission}
                 className="underline underline-offset-4 hover:text-foreground"
               >
-                full intake form
-              </Link>{' '}
-              — same flow, fewer keystrokes.
+                Start a governed mission
+              </button>{' '}
+              — same text, the full 5-gate flow.
             </span>
           </div>
         </form>
