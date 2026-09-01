@@ -59,17 +59,27 @@ export function BriefConversionCard() {
             {expanded === b.id ? b.brief : `${b.brief.slice(0, 180)}${b.brief.length > 180 ? '…' : ''}`}
           </p>
           <div className="mt-4 flex flex-wrap items-center gap-3">
+            {/* 2026-09-01, direct user feedback: "Convert to mission" was
+                the ONLY option, forcing everyone through the full 9-field
+                governance intake just to get started — same overweight
+                pattern already fixed on the dashboard, missed here. Build
+                visually is now primary; the governed path (which does
+                carry the lead id through, unlike this one) is secondary. */}
             <Button asChild className="glass-cta">
+              <Link href={`/forge?draft=${encodeURIComponent(b.brief.slice(0, 4800))}`}>
+                Build visually
+              </Link>
+            </Button>
+            <Button asChild variant="secondary" className="glass-outline-cta">
               <Link
                 href={`/missions/new?intake=${encodeURIComponent(b.brief.slice(0, 4800))}&lead=${encodeURIComponent(b.id)}`}
               >
-                Convert to mission
+                Start a governed mission instead
               </Link>
             </Button>
             <Button
               type="button"
-              variant="secondary"
-              className="glass-outline-cta"
+              variant="ghost"
               onClick={() => setExpanded((cur) => (cur === b.id ? null : b.id))}
             >
               {expanded === b.id ? 'Collapse brief' : 'View brief'}
