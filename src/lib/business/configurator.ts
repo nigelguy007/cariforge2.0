@@ -122,10 +122,13 @@ export async function getConfiguratorResult(description: string): Promise<Config
     const parsed = ConfiguratorResult.safeParse(response.parsed_output);
     if (!parsed.success) return { status: 'unavailable' };
     return { status: 'ok', result: parsed.data };
-  } catch {
+  } catch (err) {
     // Network error, rate limit, invalid key, refusal, parse failure — all
     // degrade the same way. Never the reason a prospect can't reach the
-    // real form.
+    // real form. Logged server-side (never surfaced to the client) so a
+    // real failure is diagnosable instead of indistinguishable from "no
+    // key configured" — this swallowed a real bug silently for days.
+    console.error('[configurator] getConfiguratorResult failed:', err);
     return { status: 'unavailable' };
   }
 }

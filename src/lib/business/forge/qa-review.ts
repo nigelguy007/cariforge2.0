@@ -112,10 +112,13 @@ export async function getQAReview(input: QAReviewInput): Promise<QAReviewT> {
     const parsed = QAReviewResult.safeParse(response.parsed_output);
     if (!parsed.success) return { status: 'unavailable' };
     return { status: 'ok', review: parsed.data };
-  } catch {
+  } catch (err) {
     // Network error, rate limit, invalid key, refusal, parse failure — all
     // degrade the same way. This sits in front of a real governance
     // decision; it must never be the reason a gate can't be decided.
+    // Logged server-side (never surfaced to the client) for the same
+    // reason as configurator.ts's identical catch.
+    console.error('[qa-review] getQAReview failed:', err);
     return { status: 'unavailable' };
   }
 }
