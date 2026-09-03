@@ -89,7 +89,11 @@ export async function getQAReview(input: QAReviewInput): Promise<QAReviewT> {
 
   try {
     const response = await client.messages.parse({
-      model: 'anthropic/claude-opus-5',
+      // 2026-09-03: same fix as configurator.ts — claude-opus-5 hit AI
+      // Gateway's RestrictedModelsError (free-tier accounts, even with a
+      // card on file, are gated off it; needs actual topped-up credits).
+      // Sonnet 5 is available on the same tier.
+      model: 'anthropic/claude-sonnet-5',
       max_tokens: 2048,
       system: SYSTEM_PROMPT,
       messages: [

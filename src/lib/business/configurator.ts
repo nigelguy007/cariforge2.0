@@ -106,7 +106,16 @@ export async function getConfiguratorResult(description: string): Promise<Config
 
   try {
     const response = await client.messages.parse({
-      model: 'anthropic/claude-opus-5',
+      // 2026-09-03: switched from claude-opus-5, confirmed live against
+      // production to hit AI Gateway's RestrictedModelsError ("Free tier
+      // users do not have access to this model") even with a card on
+      // file — Opus is gated behind actual paid/topped-up credits, not
+      // just card verification. Sonnet 5 is available on the same free
+      // tier and is a better fit anyway for what this actually is: a
+      // bounded classification-and-mapping task against fixed criteria
+      // (see the effort:'medium' comment below), not open-ended
+      // reasoning that would benefit from Opus specifically.
+      model: 'anthropic/claude-sonnet-5',
       max_tokens: 2048,
       // Medium effort, not the SDK's default high: this is a bounded
       // classification-and-mapping task against fixed, spelled-out
