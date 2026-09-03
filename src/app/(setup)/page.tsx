@@ -201,9 +201,20 @@ export default function Home() {
 
         {/* === HERO ========================================================= */}
         <main className="cq-hero cq-container" id="top">
+          {/* COMPLIANCE WORDING (2026-09-03, per rebuild-brief review): was
+              "EU AI Act · Article 12 & 14 ready" — an unqualified readiness
+              claim this product cannot actually make (readiness depends on
+              the BUYER's system, role, and their own legal assessment, not
+              on this product alone). Every other page that touches this
+              topic already hedges it ("Articles 12 & 14 timeline",
+              "readiness memo") — this badge was the one unqualified
+              instance on the whole site, and the most prominent, being the
+              first thing on the homepage. Narrowed to what the product
+              actually does: supports the two controls, doesn't certify
+              compliance with them. */}
           <span className="cq-badge cq-rise" style={{ ['--cq-d' as string]: '0.05s' }}>
             <SparkIcon />
-            EU AI Act &middot; Article 12 &amp; 14 ready
+            Built to support EU AI Act Art. 12 &amp; 14
           </span>
 
           <h1 className="cq-display cq-rise" style={{ ['--cq-d' as string]: '0.12s' }}>
@@ -718,7 +729,7 @@ export default function Home() {
               <span>
                 &copy; {new Date().getFullYear()} {siteName}
               </span>
-              <span>EU AI Act &middot; Article 12 &amp; 14 ready</span>
+              <span>Built to support EU AI Act Art. 12 &amp; 14</span>
             </div>
           </div>
         </footer>
