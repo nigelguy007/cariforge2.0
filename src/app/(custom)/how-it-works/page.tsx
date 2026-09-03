@@ -19,6 +19,12 @@ import {
   GlassSectionHeader,
 } from '@/components/custom/glass';
 import { WorkflowConfigurator } from '@/components/custom/workflow-configurator';
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from '@/components/ui/accordion';
 import { siteName } from '@/lib/site';
 
 export const metadata: Metadata = {
@@ -89,31 +95,38 @@ const STAGES: Array<{
     ordinal: 'I',
     name: 'Need Discovery',
     goal: 'Translate the submitted requirements into a testable problem statement.',
-    gate: 'Approve, return, or refuse — with a typed reason recorded.',
+    gate: 'Approve · Return · Refuse',
   },
   {
     ordinal: 'II',
     name: 'Readiness Review',
     goal: 'Audit data, integrations, and the regulatory regime before code.',
-    gate: 'Approve, return, or refuse — with a typed reason recorded.',
+    gate: 'Approve · Return · Refuse',
   },
   {
     ordinal: 'III',
     name: 'Workflow Design',
     goal: 'Map the human checkpoints, escalation paths, and rollback.',
-    gate: 'Approve, return, or refuse — with a typed reason recorded.',
+    gate: 'Approve · Return · Refuse',
   },
   {
     ordinal: 'IV',
     name: 'Governance Check',
     goal: 'Confirm the logging, oversight, and stop-the-line controls hold.',
-    gate: 'Approve, return, or refuse — with a typed reason recorded.',
+    gate: 'Approve · Return · Refuse',
   },
   {
     ordinal: 'V',
+    // COPY ACCURACY (2026-09-03, rebuild-brief review, same evidence as the
+    // homepage fix in the same commit range): this stage's real gate in
+    // src/lib/contracts/forge.ts (GATE_DEFS[4]) is named 'Prototype spec
+    // approved', and that file's own comment states its output is "a pair
+    // of schema-versioned *specification* documents, not deployable code."
+    // "Produce the runnable... software build" overclaimed against the
+    // product's own contract. Described here as what it actually is.
     name: 'Software Build',
-    goal: 'Produce the runnable Next.js + TypeScript software build (operated by Agent 5 — AI Build).',
-    gate: 'Approve, return, or refuse — with a typed reason recorded. Final approve releases the Software Build stage.',
+    goal: 'Produce the approved Blueprint and Runbook — the schema-versioned build spec Agent 5 (AI Build) hands off.',
+    gate: 'Approve · Return · Refuse — final approve releases the spec.',
     agentBadge: 'Agent 5 · AI Build',
   },
 ];
@@ -140,9 +153,9 @@ export default function HowItWorksPage() {
               The Oracles argue it. Five named humans gate it.
             </h1>
             <p className="max-w-xl text-body-lg text-muted-foreground">
-              {siteName} turns your requirements into a runnable software build — and never releases
-              it without a named human approving every stage. Read how below, or tell us what you
-              want to build on the right and see it start.
+              {siteName} turns your requirements into an approved build spec — and never releases it
+              without a named human approving every stage. Read how below, or tell us what you want
+              to build on the right and see it start.
             </p>
             <GlassCta asChild tone="outline" size="md" className="self-start">
               <Link href="#council">
@@ -232,7 +245,9 @@ export default function HowItWorksPage() {
                 <li>&middot; A readiness audit and a build-versus-buy comparison</li>
                 <li>&middot; A workflow design with human checkpoints and escalation paths</li>
                 <li>&middot; A governance spec confirming the controls hold</li>
-                <li>&middot; A runnable software build, with an audit trail and a hash chain</li>
+                <li>
+                  &middot; An approved Blueprint and Runbook, with an audit trail and a hash chain
+                </li>
               </ul>
             </GlassCard>
             <GlassCard tone="surface" padding="lg" className="h-full">
@@ -449,11 +464,15 @@ export default function HowItWorksPage() {
             <h2 className="font-display text-h3 tracking-tight text-foreground">
               CARI Forge doesn&rsquo;t ask you to replace what you already run.
             </h2>
+            {/* Trimmed 2026-09-03 (rebuild-brief review, "explain a fact once"):
+                this paragraph was restating the same three facts the bullet
+                list two lines below it already covers in full — audit, the
+                build-vs-buy comparison, the data-minimisation clause. Kept
+                the claim, dropped the duplicate detail; the specifics now
+                live in exactly one place. */}
             <p className="text-body text-muted-foreground">
-              Before any code is written, the Readiness agent audits the data sources and regulatory
-              regime a case actually touches, writes a build-versus-buy comparison to the case file,
-              and locks a data-minimisation clause. Your systems stay authoritative; the pipeline
-              works with what you already have, not instead of it.
+              Your systems stay authoritative &mdash; the pipeline works with what you already have,
+              not instead of it.
             </p>
           </div>
           <GlassCard tone="highlight" padding="lg">
@@ -492,70 +511,89 @@ export default function HowItWorksPage() {
             eyebrow="Technical architecture"
             title="What actually runs a case, layer by layer."
           />
-          <div className="mx-auto flex w-full max-w-3xl flex-col items-stretch">
-            {(
-              [
-                {
-                  label: 'Where a case starts',
-                  items: ['Front-door brief', 'Workflow configurator (indicative)'],
-                },
-                {
-                  label: 'Council & orchestration',
-                  items: [
-                    'The Oracles (5 voices)',
-                    'Elder Oracle ruling',
-                    '5-stage gated pipeline',
-                  ],
-                },
-                {
-                  label: 'Agent layer',
-                  items: [
-                    'Discovery',
-                    'Readiness',
-                    'Workflow',
-                    'Governance',
-                    'AI Build',
-                    'Partner',
-                    'Impact',
-                  ],
-                },
-                {
-                  label: 'Assurance',
-                  items: [
-                    'Case file',
-                    'Typed gate decisions',
-                    'Append-only audit trail',
-                    'Hash chain',
-                  ],
-                },
-                {
-                  label: 'Production handoff',
-                  items: ['Partner → buyer infrastructure', 'Impact → realised-value read-out'],
-                },
-              ] as const
-            ).map((layer, idx, arr) => (
-              <div key={layer.label} className="flex flex-col items-center">
-                <GlassPanel tone="surface" padding="md" className="w-full">
-                  <p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">
-                    {layer.label}
-                  </p>
-                  <div className="flex flex-wrap gap-2">
-                    {layer.items.map((item) => (
-                      <GlassChip key={item} tone="outline" size="sm">
-                        {item}
-                      </GlassChip>
-                    ))}
-                  </div>
-                </GlassPanel>
-                {idx < arr.length - 1 && (
-                  <div
-                    className="h-6 w-px bg-gradient-to-b from-brand-700/40 to-brand-700/10"
-                    aria-hidden="true"
-                  />
-                )}
-              </div>
-            ))}
-          </div>
+          {/* Collapsed-by-default disclosure (rebuild-brief review: "move
+              technical control details to... expandable disclosures" rather
+              than leaving them in the default scroll). Radix's Accordion —
+              already used on /faq — keeps the content in server-rendered
+              HTML at all times (just visually/ARIA-hidden while closed), so
+              this stays reachable to a11y tooling and to anyone who expands
+              it; it just isn't forced on every visitor by default. */}
+          <Accordion type="single" collapsible className="mx-auto w-full max-w-3xl">
+            <AccordionItem value="architecture" className="border-none">
+              <AccordionTrigger className="justify-center gap-2 rounded-full border border-border bg-secondary/60 px-5 py-2.5 text-small font-medium text-foreground hover:no-underline">
+                Show the five-layer architecture
+              </AccordionTrigger>
+              <AccordionContent className="pt-6">
+                <div className="mx-auto flex w-full max-w-3xl flex-col items-stretch">
+                  {(
+                    [
+                      {
+                        label: 'Where a case starts',
+                        items: ['Front-door brief', 'Workflow configurator (indicative)'],
+                      },
+                      {
+                        label: 'Council & orchestration',
+                        items: [
+                          'The Oracles (5 voices)',
+                          'Elder Oracle ruling',
+                          '5-stage gated pipeline',
+                        ],
+                      },
+                      {
+                        label: 'Agent layer',
+                        items: [
+                          'Discovery',
+                          'Readiness',
+                          'Workflow',
+                          'Governance',
+                          'AI Build',
+                          'Partner',
+                          'Impact',
+                        ],
+                      },
+                      {
+                        label: 'Assurance',
+                        items: [
+                          'Case file',
+                          'Typed gate decisions',
+                          'Append-only audit trail',
+                          'Hash chain',
+                        ],
+                      },
+                      {
+                        label: 'Production handoff',
+                        items: [
+                          'Partner → buyer infrastructure',
+                          'Impact → realised-value read-out',
+                        ],
+                      },
+                    ] as const
+                  ).map((layer, idx, arr) => (
+                    <div key={layer.label} className="flex flex-col items-center">
+                      <GlassPanel tone="surface" padding="md" className="w-full">
+                        <p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">
+                          {layer.label}
+                        </p>
+                        <div className="flex flex-wrap gap-2">
+                          {layer.items.map((item) => (
+                            <GlassChip key={item} tone="outline" size="sm">
+                              {item}
+                            </GlassChip>
+                          ))}
+                        </div>
+                      </GlassPanel>
+                      {idx < arr.length - 1 && (
+                        <div
+                          className="h-6 w-px bg-gradient-to-b from-brand-700/40 to-brand-700/10"
+                          aria-hidden="true"
+                        />
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </AccordionContent>
+            </AccordionItem>
+          </Accordion>
         </div>
       </section>
 

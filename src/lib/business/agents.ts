@@ -125,8 +125,14 @@ export const CORE_AGENTS: CoreAgents = {
       ordinal: 4,
       role: 'Governance',
       roleLong: 'Governance Check agent',
+      // COPY ACCURACY (2026-09-03, rebuild-brief review — see the matching
+      // note on 'ai-build' below for the full evidence trail): "every route
+      // handler and prisma model below is derived from this matrix" implied
+      // AI Build ships actual code artefacts. Softened to match what the
+      // gate's own contract (GATE_DEFS[4] in src/lib/contracts/forge.ts)
+      // says it hands off: a spec, not code.
       mandate:
-        'Confirms the logging, oversight, and stop-the-line controls hold under the named human approvals at every gate. Produces the binding spec handed to Agent 5 (AI Build) — every route handler and prisma model below is derived from this matrix.',
+        'Confirms the logging, oversight, and stop-the-line controls hold under the named human approvals at every gate. Produces the binding spec handed to Agent 5 (AI Build).',
       relatesToStage: 'Governance',
       scope: 'Pipeline',
       boundary: {
@@ -158,8 +164,25 @@ export const CORE_AGENTS: CoreAgents = {
       ordinal: 5,
       role: 'AI Build',
       roleLong: 'AI Build agent',
+      // COPY ACCURACY (2026-09-03, rebuild-brief review): was "ships the
+      // runnable Next.js + TypeScript codebase... route handlers, the
+      // append-only audit-trail prisma model" — overclaimed against the
+      // product's own contract. This stage's real gate (GATE_DEFS[4] in
+      // src/lib/contracts/forge.ts) is named 'Prototype spec approved', and
+      // that file's own comment states its output is "a pair of
+      // schema-versioned *specification* documents, not deployable code."
+      // Rewritten to what the agent actually hands off, matching the fix
+      // already made to the STAGES table on /how-it-works — this exact
+      // mandate string was rendering on that page directly beneath the
+      // corrected stage description, contradicting it. NOTE: the deeper
+      // `boundary` fields below (tools/outputs/evidence/successMeasures)
+      // still describe code-generation outputs ("The generated repository",
+      // "Next.js + TypeScript code generation") — left untouched here.
+      // Rewriting those accurately is a real, separate content decision
+      // (what tools/outputs a spec-producing agent actually has) that
+      // deserves its own dedicated pass, not a rushed patch alongside this.
       mandate:
-        'Runs Stage 5 (Software Build) of the pipeline and ships the runnable Next.js + TypeScript codebase from the binding spec handed over by Governance: route handlers, the append-only audit-trail prisma model, the immutable hash chain, and the developer-facing case file receipt. AI Build is the agent name; "Software Build" is the stage name it operates.',
+        'Runs Stage 5 (Software Build) of the pipeline and produces the approved Blueprint and Runbook — the schema-versioned build spec — from the binding spec handed over by Governance. AI Build is the agent name; "Software Build" is the stage name it operates.',
       relatesToStage: 'Software Build',
       scope: 'Pipeline',
       boundary: {
@@ -198,8 +221,12 @@ export const CORE_AGENTS: CoreAgents = {
       ordinal: 6,
       role: 'Partner',
       roleLong: 'Partner agent',
+      // COPY ACCURACY (2026-09-03, rebuild-brief review, same evidence as
+      // 'ai-build' above): "the runnable software build lands on
+      // infrastructure" assumed a deployable artefact exists at this point,
+      // which contradicts what Software Build's own gate actually produces.
       mandate:
-        'Wraps around delivery. Engages the buyer-side integrator / GA / cloud partner ecosystem so the runnable software build lands on infrastructure the buyer’s own people can run. Not a stage — a wraparound that turns a repository into an operated system.',
+        'Wraps around delivery. Engages the buyer-side integrator / GA / cloud partner ecosystem to take the approved build spec to the buyer’s own infrastructure. Not a stage — a wraparound that turns an approved spec into an operated system.',
       relatesToStage: 'Wraparound',
       scope: 'Wraparound',
       boundary: {

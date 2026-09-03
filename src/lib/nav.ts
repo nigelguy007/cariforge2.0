@@ -31,12 +31,25 @@ export const navItems: NavItem[] = [
   // src/app/(setup)/page.tsx) — these anchors live on /how-it-works now,
   // where the Oracles/Agents/Stages sections + the real brief-intake form
   // moved to.
+  // Nav-discipline pass (2026-09-03, rebuild-brief review): public primary
+  // was 6 slots (How it works, Council, Stages, Oracles, FAQ, Blog) against
+  // a target of "no more than 5" — real, worth fixing, and fixable without
+  // moving a single URL. Council/Stages were never separate PAGES, just
+  // anchors on /how-it-works itself (#council, #stages) — a visitor already
+  // on that page can scroll to them; they don't need their own top-bar
+  // slot. Removed from primary here, but the anchors and the sections they
+  // point at are untouched, so nothing that used to work stops working —
+  // only the top-bar entry point is gone.
   { label: 'How it works', href: '/how-it-works', group: 'primary', order: 0 },
-  { label: 'Council', href: '/how-it-works#council', group: 'primary', order: 1 },
-  { label: 'Stages', href: '/how-it-works#stages', group: 'primary', order: 2 },
   { label: 'Oracles', href: '/pilot/oracle-council', group: 'primary', order: 3 },
   { label: 'FAQ', href: '/faq', group: 'primary', order: 4 },
-  { label: 'Blog', href: '/blog', group: 'primary', order: 5 },
+  // Blog demoted out of primary (footer entry below is unaffected): verified
+  // 2026-09-03 the page has zero real articles (0 matches for a `title:`
+  // entry in its own source) — it is a newsletter-signup shell describing
+  // future editor notes, not existing content. Publishing it as a top-bar
+  // destination overpromises; the brief's "remove until 3+ real articles
+  // exist" holds here. The route/page itself is untouched — a direct visit
+  // or the footer link still reaches it.
   // Mission Control — signed-in users see this; the page itself enforces auth.
   { label: 'Missions', href: '/missions', group: 'primary', requiresAuth: true, order: 5 },
   // Promoted out of the 'Forge' dropdown and given the lowest order (sorts
