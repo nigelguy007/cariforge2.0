@@ -46,7 +46,10 @@ export default function DashboardPage() {
   function handleBuildVisually(event: React.FormEvent) {
     event.preventDefault();
     const trimmed = intake.trim();
-    router.push(trimmed ? `/forge?draft=${encodeURIComponent(trimmed)}` : '/forge');
+    // .slice(0, 4800) for the same reason as brief-conversion-card.tsx and
+    // mission-detail.tsx: a long description, once URL-encoded, can exceed
+    // what some proxies accept in a query string (414 URI-too-long).
+    router.push(trimmed ? `/forge?draft=${encodeURIComponent(trimmed.slice(0, 4800))}` : '/forge');
   }
 
   // The quick-capture box hands off to /missions/new via a query param

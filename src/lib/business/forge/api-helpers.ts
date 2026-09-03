@@ -93,5 +93,20 @@ export function forgeErrorResponse(err: unknown): Response {
     return NextResponse.json({ error: 'Work item transition not allowed' }, { status: 409 });
   if (msg === 'FORGE_NOT_COMPLETED')
     return NextResponse.json({ error: 'Mission is not in the Completed state' }, { status: 409 });
-  return NextResponse.json({ error: msg }, { status: 400 });
+
+  // Anything reaching here is NOT a known business rejection — every one of
+  // those returns above. It's either `FORGE_INTERNAL` or a genuine crash
+  // (DB connection drop, null-ref, unhandled edge case). Two bugs fixed
+  // here, both found in the 2026-09-03 audit:
+  //
+  //  1. It logged nothing. 40 route files funnel their catch blocks through
+  //     this one helper, so a real server-side failure left no trace
+  //     anywhere — indistinguishable from the caller sending something
+  //     invalid. Same swallowed-error class that hid the AI Gateway 403 for
+  //     days.
+  //  2. It answered 400 (client error) for what is always a server-side
+  //     fault, and echoed the raw internal message (`FORGE_INTERNAL`, or a
+  //     Prisma stack message) straight back to the caller.
+  console.error('[forge] unhandled error in route handler:', err);
+  return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
 }

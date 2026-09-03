@@ -175,7 +175,10 @@ export function MissionDetail({ missionSlug }: { missionSlug: string }) {
           and draft it into a runnable workflow. Nothing saves or runs until you choose to.
         </p>
         <Button asChild className="glass-cta mt-4">
-          <Link href={`/forge?draft=${encodeURIComponent(detail.mission.intake)}`}>
+          {/* .slice(0, 4800) matches brief-conversion-card.tsx: mission.intake
+              is zod-validated up to 5000 chars, which once URL-encoded can
+              exceed 6500 and risk a 414/URI-too-long on some proxies. */}
+          <Link href={`/forge?draft=${encodeURIComponent(detail.mission.intake.slice(0, 4800))}`}>
             Open the visual builder
           </Link>
         </Button>
