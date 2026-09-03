@@ -179,6 +179,21 @@
   --glass-border: oklch(0.88 0.014 var(--brand-h) / 0.9);
   --glass-shadow: oklch(0.2 0.02 var(--brand-h) / 0.14);
   --glass-blur: 10px;
+  /* Theme-aware ink for .glass-card/.glass-panel content (2026-09-03,
+     signed-in-app cosmoq pass). Previously .glass-card hardcoded a single
+     dark ink value directly in its @layer components rule below, correct
+     ONLY because --glass-bg was ALWAYS the light near-white fill — even in
+     dark mode, since --glass-bg/--glass-border/--glass-blur were never
+     redeclared inside .dark.dark at all. That's the real reason the
+     signed-in app didn't already look like the reference: dark mode's
+     cards were still light glass. Now that .dark.dark below gives dark
+     mode its OWN dark, translucent --glass-bg, the ink hardcoded here
+     would go dark-on-dark and vanish — exactly the ghost-text bug class
+     this file has hit before. Fixed the same way those were: a theme-aware
+     token, dark in light mode, light in dark mode, with .glass-card
+     referencing the token instead of a literal value. */
+  --glass-ink: oklch(0.22 0.025 var(--brand-h));
+  --glass-ink-muted: oklch(0.42 0.03 var(--brand-h));
 
   /* Outcome-shell tokens — the light green-tinted "value" surface that
      .glass-card tone="highlight" composes with. */
@@ -245,6 +260,7 @@
   .glass-surface,
   .glass-card,
   .glass-panel {
+    position: relative;
     background-color: var(--glass-bg);
     border: 1px solid var(--glass-border);
     box-shadow:
@@ -252,9 +268,13 @@
       0 8px 24px -12px var(--glass-shadow);
     backdrop-filter: blur(var(--glass-blur)) saturate(120%);
     -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(120%);
-    --foreground: oklch(0.22 0.025 var(--brand-h));
-    --card-foreground: oklch(0.22 0.025 var(--brand-h));
-    --muted-foreground: oklch(0.42 0.03 var(--brand-h));
+    /* --glass-ink/--glass-ink-muted (defined in :root:root / .dark.dark
+       above) instead of a literal value — see the token comment for why:
+       dark mode's glass background is no longer the light-mode fill, so the
+       ink has to flip with it. */
+    --foreground: var(--glass-ink);
+    --card-foreground: var(--glass-ink);
+    --muted-foreground: var(--glass-ink-muted);
     color: var(--foreground);
   }
   .glass-panel {
@@ -540,6 +560,169 @@
     border: 1px solid oklch(0.55 calc(var(--brand-c) * 0.8) var(--brand-h) / 0.5);
     color: var(--brand-700);
   }
+
+  /* === DARK-MODE LIQUID-GLASS BUTTONS (2026-09-03, signed-in-app cosmoq
+     pass) ========================================================
+     Upgrades .glass-cta/.glass-outline-cta specifically in dark mode to
+     the reference's signature control: a near-black pill whose BORDER is a
+     two-tone gradient ring, with a soft blurred bloom of the same gradient
+     sitting behind it — the exact technique already proven on the homepage
+     (.cq-btn-primary in cosmoq-home.css), reused here rather than
+     reinvented so the two treatments stay visually consistent. Same
+     aquamarine -> indigo ramp as the card glow above. Selector specificity:
+     `.dark .glass-cta.glass-cta` is (0,3,0), inside the SAME @layer
+     utilities as the base `.glass-cta.glass-cta` rule at (0,2,0) above —
+     same layer, so ordinary specificity decides, which is why this doesn't
+     need to relitigate the CSS-layer-order bug documented at the top of
+     this @layer utilities block; it wins on specificity alone. Left mode
+     unaffected — none of this touches :root:root's button rules. */
+  .dark .glass-cta.glass-cta {
+    position: relative;
+    isolation: isolate;
+    background: linear-gradient(oklch(0.14 0.024 var(--brand-h)), oklch(0.14 0.024 var(--brand-h)))
+      padding-box;
+    border: 1px solid transparent;
+    background-image:
+      linear-gradient(oklch(0.14 0.024 var(--brand-h)), oklch(0.14 0.024 var(--brand-h))),
+      linear-gradient(
+        135deg,
+        oklch(0.74 0.15 var(--brand-h)) 0%,
+        oklch(0.6 0.12 calc(var(--brand-h) + 40)) 45%,
+        oklch(0.55 0.17 calc(var(--brand-h) + 96)) 100%
+      );
+    background-origin: border-box;
+    background-clip: padding-box, border-box;
+    color: oklch(0.98 0.006 var(--brand-h));
+    box-shadow: none;
+  }
+  .dark .glass-cta.glass-cta::before {
+    content: "";
+    position: absolute;
+    inset: -3px;
+    z-index: -1;
+    border-radius: inherit;
+    background: linear-gradient(
+      135deg,
+      oklch(0.74 0.15 var(--brand-h)) 0%,
+      oklch(0.6 0.12 calc(var(--brand-h) + 40)) 45%,
+      oklch(0.55 0.17 calc(var(--brand-h) + 96)) 100%
+    );
+    filter: blur(11px);
+    opacity: 0.5;
+    transition: opacity 220ms var(--ease-out-expo, cubic-bezier(0.16, 1, 0.3, 1));
+  }
+  .dark .glass-cta.glass-cta:hover {
+    background-image:
+      linear-gradient(oklch(0.18 0.028 var(--brand-h)), oklch(0.18 0.028 var(--brand-h))),
+      linear-gradient(
+        135deg,
+        oklch(0.74 0.15 var(--brand-h)) 0%,
+        oklch(0.6 0.12 calc(var(--brand-h) + 40)) 45%,
+        oklch(0.55 0.17 calc(var(--brand-h) + 96)) 100%
+      );
+    color: oklch(0.98 0.006 var(--brand-h));
+  }
+  .dark .glass-cta.glass-cta:hover::before {
+    opacity: 0.78;
+  }
+
+  /* Secondary/ghost button: a translucent frosted pill with a hairline
+     border, matching .cq-btn-ghost — no gradient ring (that's reserved for
+     the primary action, same restraint principle as the homepage). */
+  .dark .glass-outline-cta.glass-outline-cta {
+    background: oklch(1 0 0 / 0.04);
+    border: 1px solid oklch(1 0 0 / 0.14);
+    color: var(--foreground);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
+  .dark .glass-outline-cta.glass-outline-cta:hover {
+    background: oklch(1 0 0 / 0.09);
+    border-color: oklch(1 0 0 / 0.22);
+  }
+
+  /* === SIGNED-IN APP BUTTONS (2026-09-03) =====================================
+     The marker classes button.tsx's cva variants now always carry
+     (dark-liquid-btn / dark-liquid-outline / dark-liquid-ghost) — inert in
+     light mode since no unscoped rule for them exists at all, fully styled
+     here under `.dark`. Same technique as .glass-cta above (gradient-ring
+     border + blurred bloom for the primary action; a lighter frosted pill
+     for outline/secondary/ghost). Selector is `.dark .X.X` (the marker
+     class doubled) — the exact same specificity trick .glass-cta.glass-cta
+     uses above and for the same reason: within @layer utilities, Tailwind's
+     own generated classes (bg-primary, hover:bg-primary/90, text-primary-
+     foreground) are simple one-class-or-one-class+pseudo selectors, so a
+     doubled selector reliably outranks them on SPECIFICITY alone — no
+     !important needed, and no dependency on which order Tailwind happens to
+     emit its utilities in, which a same-specificity rule (e.g. a single
+     `.dark-liquid-btn:hover` against `hover:bg-primary/90`, both (0,2,0))
+     would have been. Font size/weight set explicitly and identically across
+     all three — "the fonts be the same size" — rather than left to each
+     call site's surrounding text context. */
+  .dark .dark-liquid-btn.dark-liquid-btn {
+    position: relative;
+    isolation: isolate;
+    border: 1px solid transparent;
+    border-radius: 999px;
+    font-size: 0.94rem;
+    font-weight: 500;
+    background-image:
+      linear-gradient(oklch(0.14 0.024 var(--brand-h)), oklch(0.14 0.024 var(--brand-h))),
+      linear-gradient(
+        135deg,
+        oklch(0.74 0.15 var(--brand-h)) 0%,
+        oklch(0.6 0.12 calc(var(--brand-h) + 40)) 45%,
+        oklch(0.55 0.17 calc(var(--brand-h) + 96)) 100%
+      );
+    background-origin: border-box;
+    background-clip: padding-box, border-box;
+    color: oklch(0.98 0.006 var(--brand-h));
+    box-shadow: none;
+  }
+  .dark .dark-liquid-btn.dark-liquid-btn::before {
+    content: "";
+    position: absolute;
+    inset: -3px;
+    z-index: -1;
+    border-radius: inherit;
+    background: linear-gradient(
+      135deg,
+      oklch(0.74 0.15 var(--brand-h)) 0%,
+      oklch(0.6 0.12 calc(var(--brand-h) + 40)) 45%,
+      oklch(0.55 0.17 calc(var(--brand-h) + 96)) 100%
+    );
+    filter: blur(11px);
+    opacity: 0.5;
+    transition: opacity 220ms var(--ease-out-expo, cubic-bezier(0.16, 1, 0.3, 1));
+  }
+  .dark .dark-liquid-btn.dark-liquid-btn:hover::before {
+    opacity: 0.78;
+  }
+  .dark .dark-liquid-btn.dark-liquid-btn:hover {
+    color: oklch(0.98 0.006 var(--brand-h));
+  }
+
+  .dark .dark-liquid-outline.dark-liquid-outline,
+  .dark .dark-liquid-ghost.dark-liquid-ghost {
+    border-radius: 999px;
+    font-size: 0.94rem;
+    font-weight: 500;
+    background: oklch(1 0 0 / 0.04);
+    border: 1px solid oklch(1 0 0 / 0.14);
+    color: var(--foreground);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
+  /* .dark-liquid-ghost starts with no visible surface at all in shadcn's
+     'ghost' variant (only a hover background) — give it the same resting
+     frosted-pill look as outline/secondary rather than leaving it
+     invisible until hovered, so "all the buttons" reads as one family. */
+  .dark .dark-liquid-outline.dark-liquid-outline:hover,
+  .dark .dark-liquid-ghost.dark-liquid-ghost:hover {
+    background: oklch(1 0 0 / 0.09);
+    border-color: oklch(1 0 0 / 0.22);
+    color: var(--foreground);
+  }
 }
 
 /* === DARK-MODE OVERRIDES =====================================================
@@ -588,6 +771,25 @@
   --accent-foreground: var(--foreground);
   --border: oklch(1 0 0 / 12%);
   --input: oklch(1 0 0 / 14%);
+
+  /* Dark-mode glass — the actual fix for the signed-in app (2026-09-03):
+     never existed before. --glass-bg/--glass-border/--glass-blur were
+     declared ONLY in :root:root and never redeclared here, so every
+     .glass-card/.glass-panel across the entire signed-in app (dashboard,
+     Forge Canvas, Missions, Approvals, Admin — they all share these three
+     classes, that's the point of centralising them) was still rendering
+     the LIGHT near-white 92%-opaque fill even with .dark active. That's
+     the real reason dark mode didn't look like the reference: the cards
+     were never actually dark. Now genuinely dark and translucent — a
+     near-black aquamarine-tinted fill, brighter/more saturated border,
+     stronger blur for a frosted rather than merely-tinted read. */
+  --glass-bg: oklch(0.16 0.03 var(--brand-h) / 0.62);
+  --glass-border: oklch(0.6 calc(var(--brand-c) * 0.5) var(--brand-h) / 0.28);
+  --glass-blur: 16px;
+  /* Light ink for the now-dark glass fill — see the --glass-ink token
+     comment in :root:root for why this has to flip alongside --glass-bg. */
+  --glass-ink: oklch(0.96 0.006 var(--brand-h));
+  --glass-ink-muted: oklch(0.7 0.02 var(--brand-h));
   /* Outcome stays a light green-tinted card even in dark mode — the
      .glass-highlight rule above rescopes text tokens inside it
      specifically because this surface does NOT follow the page's dark
@@ -598,21 +800,66 @@
   --outcome: oklch(0.3 0.05 var(--brand-h));
 }
 
-/* Dark mode's ".glass-*" cards were previously flipped back to opaque
-   var(--card) here — the base rules above already switched to translucent
-   var(--glass-bg)/--glass-border, and --glass-bg/--glass-border are
-   theme-agnostic by formula (see the top-of-file comment), so this
-   override is no longer needed for background/border: leaving the base
-   rule's glass treatment in place IS the "lighter version in liquid
-   glass effect" against the deep-ocean dark field. Kept only for the
-   dark-appropriate shadow (a light page's soft shadow reads wrong against
-   a dark field — needs a stronger, darker drop shadow instead). */
+/* Dark-mode card treatment (2026-09-03, signed-in-app cosmoq pass — see the
+   --glass-bg token comment in .dark.dark above for why this used to be a
+   near-white card and isn't any more). Two parts: the shadow (kept from
+   before — a light page's soft shadow reads wrong on a dark field, needs a
+   stronger dark drop shadow), and a new corner glow.
+
+   The glow is what makes this read as "the reference" rather than just "a
+   dark card": a soft bloom in one corner, built from the SAME aquamarine
+   -> indigo ramp as the homepage sunrise/orb/card glows (brand-h and
+   brand-h+96) — literally "a hint of colours from the home page" per the
+   direct request, not a separately invented palette. On an ::before so it
+   never fights the card's own content for stacking (z-index -1, stacks
+   behind the card's own translucent background and shows through it, the
+   "glow behind frosted glass" look). Deliberately NOT paired with
+   `overflow: hidden` on the shared class — .glass-card/.glass-panel are
+   used everywhere across the signed-in app (dashboard, canvas, missions,
+   approvals, admin) and some of those usages may rely on a badge or
+   decoration overlapping the card's own edge; clipping overflow on a
+   primitive this widely shared, unaudited, is a real risk of its own.
+   Positioned fully INSIDE the card's own box instead (no negative offset)
+   so the only thing that can extend past the edge is the blur filter's own
+   natural softening, which is cosmetic, not a functional clipping risk.
+   Alternates warm-to-cool vs cool-to-warm on odd/even cards the same way
+   the homepage's feature cards do, so a grid of these doesn't read as one
+   glow copy-pasted. */
 .dark .glass-surface,
 .dark .glass-card,
 .dark .glass-panel {
   box-shadow:
     0 1px 0 oklch(1 0 0 / 0.08) inset,
     0 18px 40px -16px oklch(0 0 0 / 0.55);
+}
+.dark .glass-surface::before,
+.dark .glass-card::before,
+.dark .glass-panel::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 60%;
+  height: 60%;
+  z-index: -1;
+  pointer-events: none;
+  border-radius: 9999px;
+  background: radial-gradient(
+    closest-side,
+    oklch(0.72 0.15 var(--brand-h) / 0.22) 0%,
+    oklch(0.55 0.16 calc(var(--brand-h) + 96) / 0.14) 55%,
+    transparent 78%
+  );
+  filter: blur(24px);
+}
+.dark .glass-card:nth-of-type(even)::before,
+.dark .glass-panel:nth-of-type(even)::before {
+  background: radial-gradient(
+    closest-side,
+    oklch(0.55 0.16 calc(var(--brand-h) + 96) / 0.24) 0%,
+    oklch(0.72 0.15 var(--brand-h) / 0.14) 55%,
+    transparent 78%
+  );
 }
 
 /* .glass-outline-cta's `color: var(--brand-700)` (a fixed L=0.4 tone) was

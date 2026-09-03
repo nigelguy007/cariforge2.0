@@ -1258,6 +1258,63 @@ body {
   z-index: 1;
 }
 
+/* === GIANT WORDMARK ==========================================================
+   The reference's other big set-piece: a massive, glowing, semi-transparent
+   brand name sitting above the footer — outlined letters with a warm-to-cool
+   glow bleeding through them, rather than a flat filled logo. Two layers
+   make this work: a big blurred aquamarine->indigo glow SHAPE sitting
+   behind the text (::before), and the text itself rendered with a
+   transparent fill + a thin gradient stroke via -webkit-text-stroke, so the
+   glow shows THROUGH the letterforms instead of the letters just sitting on
+   top of a glow. -webkit-text-stroke has no unprefixed standard equivalent
+   yet, but every evergreen engine (Chromium, WebKit, Firefox 132+) supports
+   the -webkit- form; the @supports fallback below gives non-supporting
+   engines a plain, still-legible translucent fill instead of invisible
+   text. */
+.cq-wordmark-wrap {
+  position: relative;
+  display: grid;
+  place-items: center;
+  padding-block: clamp(2rem, 6vw, 5rem);
+  overflow: hidden;
+}
+.cq-wordmark-wrap::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(
+      60% 140% at 30% 50%,
+      oklch(0.74 0.15 var(--brand-h, 169) / 0.32) 0%,
+      transparent 65%
+    ),
+    radial-gradient(
+      55% 130% at 72% 50%,
+      oklch(0.55 0.17 calc(var(--brand-h, 169) + 96) / 0.32) 0%,
+      transparent 65%
+    );
+  filter: blur(50px);
+}
+.cq-wordmark {
+  position: relative;
+  font-size: clamp(3.5rem, 14vw, 11rem);
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  line-height: 1;
+  white-space: nowrap;
+  /* Fallback for engines without -webkit-text-stroke: a plain, dim,
+     translucent fill — still fully legible, just without the glow-through-
+     the-letterforms effect. */
+  color: oklch(1 0 0 / 0.14);
+}
+@supports (-webkit-text-stroke: 1px black) {
+  .cq-wordmark {
+    color: transparent;
+    -webkit-text-stroke: 1.5px oklch(1 0 0 / 0.5);
+  }
+}
+
 /* === FOOTER ================================================================= */
 .cq-footer {
   border-top: 1px solid var(--cq-line-soft);

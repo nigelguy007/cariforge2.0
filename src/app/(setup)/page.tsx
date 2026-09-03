@@ -696,6 +696,16 @@ export default function Home() {
           </div>
         </section>
 
+        {/* === GIANT WORDMARK ================================================
+            The reference's other signature moment (2026-09-03 addition): a
+            huge, glowing, semi-transparent brand wordmark sitting right
+            above the footer. aria-hidden — it's decoration, the real
+            "CARI Forge" name is already in the header/footer text; a screen
+            reader doesn't need it announced a third time. */}
+        <div className="cq-wordmark-wrap" aria-hidden="true">
+          <span className="cq-wordmark">CARI FORGE</span>
+        </div>
+
         {/* === FOOTER ======================================================= */}
         <footer className="cq-footer">
           <div className="cq-container">
