@@ -1,58 +1,62 @@
-// @polsia:user-owned — landing page served at /. Ported from a supplied
-// pixel-exact spec (a single fixed-viewport hero, liquid-glass black
-// aesthetic, entrance-motion choreography — originally written for a
-// fictional "Vesper.ai") with CariForge's own real name, mark, copy, and
-// facts substituted in per the structure — nothing here is fabricated
-// marketing copy or invented metrics.
+// @polsia:user-owned — landing page served at /.
 //
-// The spec is explicit: "No extra sections, cards, forms, pricing tables,
-// or footer beyond the three stats" and desktop is locked to one
-// non-scrolling viewport. That leaves nowhere on this route for the
-// Oracles/Agents/Stages explanation or the real brief-intake form that used
-// to live below the fold here — moved to /how-it-works rather than deleted;
-// see that page's own header comment. lib/nav.ts's primary items were
-// re-pointed there too so the rest of the site's nav still resolves.
+// DESIGN DIRECTION (2026-09-03, explicit user request): "change the design of
+// the website to look like https://cosmoq.framer.website ... and retain the
+// cariforge colours". The reference is a long, scrolling, multi-section
+// marketing page; the previous treatment here was a single locked,
+// non-scrolling viewport with a hero and three stats (a "no extra sections,
+// cards, forms, pricing tables, or footer" spec). Those are structurally
+// incompatible, so the page was rebuilt to the reference's section rhythm
+// rather than restyled in place. All styling lives in ./cosmoq-home.css,
+// which documents what was measured off the reference and why the two-tone
+// gradient is aquamarine -> indigo rather than the reference's own amber.
 //
-// This route also opts OUT of the app's normal global SiteNav/SiteFooter
-// (see the `pathname === '/'` check in site-nav.tsx) since it owns its own
-// complete header/nav/footer, and forces black regardless of the app's
-// light/dark theme toggle (this page predates and ignores that toggle
-// entirely, per the spec's own "force black immediately" requirement).
+// COPY ACCURACY: every claim below is drawn from this repo, not written to
+// fill a section. The five gate names are GATE_DEFS in
+// src/lib/contracts/forge.ts, verbatim; the specialist voices are
+// SPECIALIST_ROLE_VALUES; the Elder Oracle gate rule is
+// ELDER_ORACLE_GATE_INDEXES. Deliberately NOT carried over from the previous
+// version of this page: "turns your requirements into a runnable software
+// build" and "Runnable repo, not a slide deck". GATE_DEFS[4] is named
+// 'Prototype spec approved' and its own source comment states the output is
+// "a pair of schema-versioned *specification* documents, not deployable
+// code" — the old copy overclaimed against the product's own contract, which
+// is not something to ship to judges. The deliverable is described here as
+// what it is: an approved workflow whose stages stop for a named human.
+//
+// This route opts OUT of the app's global SiteNav/SiteFooter (see the
+// `pathname === '/'` check in site-nav.tsx) and renders its own header and
+// footer, and forces dark regardless of the app's light/dark toggle — the
+// reference is dark-only, so there is no light presentation to match.
 
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import Link from 'next/link';
+import { CqHeader } from '@/components/custom/cosmoq-home/cq-header';
 import { JsonLd } from '@/components/custom/json-ld';
-import { VesperAppearFallback } from '@/components/custom/vesper-home/vesper-appear-fallback';
-import { VesperHeader } from '@/components/custom/vesper-home/vesper-header';
 import { organization, website } from '@/lib/jsonld';
 import { siteDescription, siteName } from '@/lib/site';
-import './vesper-home.css';
+import './cosmoq-home.css';
 
-// This page's own fonts, self-hosted at build time by next/font (bytes
-// served from this app's own origin, zero external request at runtime) —
-// NOT the site-wide Sora/Manrope @import in custom-style.css, and
-// deliberately not next/font on <html> (src/lib/fonts.ts explains why the
-// rest of the app avoids that: layout.tsx is framework-owned). This page
-// applies the generated font className locally instead, so it doesn't need
-// layout.tsx at all. Also sidesteps a real constraint: the app's CSP locks
-// style-src to 'self' 'unsafe-inline' with no per-app extension (see
-// src/lib/csp.ts) — an external Google Fonts <link>, the spec's own
-// documented fallback for a missing self-hosted WOFF2, would simply be
-// blocked here. next/font's build-time self-hosting needs no CSP exception
-// and satisfies "self-hosted" more literally than the spec's own fallback.
-const vhomeInter = Inter({
+// This page's own font, self-hosted at build time by next/font (bytes served
+// from this app's own origin, zero external request at runtime) — NOT the
+// site-wide Sora/Manrope @import in custom-style.css, and deliberately not
+// next/font on <html> (src/lib/fonts.ts explains why the rest of the app
+// avoids that: layout.tsx is framework-owned). Also sidesteps a real
+// constraint: the app's CSP locks style-src to 'self' 'unsafe-inline' with no
+// per-app extension (see src/lib/csp.ts), so an external Google Fonts <link>
+// would simply be blocked here.
+//
+// Inter specifically because the reference's display face is "Inter Display"
+// — the weights below cover the 400/500 the reference actually uses at
+// display sizes (see cosmoq-home.css for the measured values).
+const cqInter = Inter({
   subsets: ['latin'],
-  weight: ['100', '200', '300', '400', '500', '600', '700', '800', '900'],
+  weight: ['400', '500', '600', '700'],
   style: ['normal'],
-  variable: '--vhome-font-inter',
+  variable: '--cq-font-inter',
   display: 'swap',
 });
-// Instrument_Serif previously loaded here for the italic "AI" emphasis word
-// (vesper-home.css's .vhome-h1 em) — removed along with that treatment per
-// explicit "I don't like the AI font" feedback; "AI" is now bold Inter
-// inside a glass pill, so this second font family is no longer used
-// anywhere on the page. Not worth shipping an unused font file.
 
 export const metadata: Metadata = {
   title: { absolute: siteName },
@@ -65,197 +69,447 @@ export const metadata: Metadata = {
   },
 };
 
-function SparkleIcon() {
+function SparkIcon() {
   return (
-    <svg
-      width="18"
-      height="20"
-      viewBox="0 0 24 24"
-      fill="currentColor"
-      className="vhome-badge-star"
-      aria-hidden="true"
-    >
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
       <path d="M12 2.6C12.55 2.6 12.88 3.15 13.08 4.7c.62 4.7 1.52 5.6 6.22 6.22 1.55.2 2.1.53 2.1 1.08s-.55.88-2.1 1.08c-4.7.62-5.6 1.52-6.22 6.22-.2 1.55-.53 2.1-1.08 2.1s-.88-.55-1.08-2.1c-.62-4.7-1.52-5.6-6.22-6.22C3.15 12.88 2.6 12.55 2.6 12s.55-.88 2.1-1.08c4.7-.62 5.6-1.52 6.22-6.22C11.12 3.15 11.45 2.6 12 2.6Z" />
     </svg>
   );
 }
 
-function GatesIcon() {
+function CheckIcon() {
   return (
     <svg
-      width="20"
-      height="20"
+      width="14"
+      height="14"
       viewBox="0 0 24 24"
       fill="none"
-      className="vhome-stat-icon"
+      stroke="currentColor"
+      strokeWidth="2.4"
+      strokeLinecap="round"
+      strokeLinejoin="round"
       aria-hidden="true"
     >
-      <title>Named human gates</title>
-      <defs>
-        <linearGradient id="vhome-gate-l" x1="3" y1="2" x2="14" y2="22">
-          <stop offset="0" stopColor="#ffffff" stopOpacity="0.38" />
-          <stop offset="1" stopColor="#3a3a3a" stopOpacity="0.62" />
-        </linearGradient>
-        <linearGradient id="vhome-gate-r" x1="3" y1="2" x2="14" y2="22">
-          <stop offset="0" stopColor="#3a3a3a" stopOpacity="0.38" />
-          <stop offset="1" stopColor="#ffffff" stopOpacity="0.62" />
-        </linearGradient>
-      </defs>
-      <rect x="3.4" y="2.6" width="7.2" height="18.8" rx="3.6" fill="url(#vhome-gate-l)" />
-      <rect x="13.4" y="2.6" width="7.2" height="18.8" rx="3.6" fill="url(#vhome-gate-r)" />
-      <rect x="9.2" y="10.9" width="5.6" height="2.2" rx="1.1" fill="#4a4a4a" />
+      <path d="M20 6 9 17l-5-5" />
     </svg>
   );
 }
 
-function DeliverableIcon() {
+function GridIcon() {
   return (
     <svg
-      width="20"
-      height="20"
+      width="15"
+      height="15"
       viewBox="0 0 24 24"
       fill="none"
-      className="vhome-stat-icon"
+      stroke="currentColor"
+      strokeWidth="1.9"
+      strokeLinecap="round"
+      strokeLinejoin="round"
       aria-hidden="true"
     >
-      <title>Runnable software build</title>
-      <rect x="2.4" y="2.4" width="19.2" height="19.2" rx="6.2" fill="#ffffff" />
-      <path
-        d="M12 7.1v7.4M8.15 12.35L12 16.2l3.85-3.85"
-        stroke="#111"
-        strokeWidth="1.85"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
+      <rect x="3" y="3" width="7" height="7" rx="1.6" />
+      <rect x="14" y="3" width="7" height="7" rx="1.6" />
+      <rect x="3" y="14" width="7" height="7" rx="1.6" />
+      <rect x="14" y="14" width="7" height="7" rx="1.6" />
     </svg>
   );
 }
 
-function AgentsIcon() {
+function ShieldIcon() {
   return (
     <svg
-      width="38"
-      height="21"
-      viewBox="0 0 40 22"
+      width="15"
+      height="15"
+      viewBox="0 0 24 24"
       fill="none"
-      className="vhome-stat-icon"
+      stroke="currentColor"
+      strokeWidth="1.9"
+      strokeLinecap="round"
+      strokeLinejoin="round"
       aria-hidden="true"
     >
-      <title>Seven specialised agents</title>
-      <circle cx="10.2" cy="11" r="9.2" fill="#2b2b2b" />
-      <ellipse cx="10.2" cy="12.1" rx="4.15" ry="3.7" fill="#f4f4f4" />
-      <circle cx="8.6" cy="11.4" r="0.7" fill="#1a1a1a" />
-      <circle cx="11.8" cy="11.4" r="0.7" fill="#1a1a1a" />
-      <circle cx="20.2" cy="11" r="9.2" fill="#ffffff" />
-      <circle cx="18.4" cy="10.4" r="1.7" fill="#111111" />
-      <circle cx="22" cy="10.4" r="1.7" fill="#111111" />
-      <ellipse cx="20.2" cy="13.2" rx="1.1" ry="0.7" fill="#111111" />
-      <path
-        d="M17.4 15.4c1 1.1 4.4 1.1 5.4 0"
-        stroke="#111111"
-        strokeWidth="1.2"
-        strokeLinecap="round"
-        fill="none"
-      />
-      <circle cx="30.2" cy="11" r="9.2" fill="#f26b1d" />
-      <text x="30.2" y="15.1" fontSize="12.5" fontWeight="700" textAnchor="middle" fill="#ffffff">
-        e
-      </text>
+      <path d="M12 3l7.5 3v5.3c0 4.6-3.1 8.5-7.5 9.7-4.4-1.2-7.5-5.1-7.5-9.7V6z" />
     </svg>
   );
 }
+
+// The faint line-work sitting over each feature card's gradient artwork —
+// the reference's cards carry a similar constellation. Rendered as a plain
+// inline SVG (no asset, no request) and marked aria-hidden: it is decoration
+// and carries no information the card's own text doesn't already give.
+function CardConstellation() {
+  return (
+    <svg
+      className="cq-card-art"
+      viewBox="0 0 320 200"
+      fill="none"
+      preserveAspectRatio="xMidYMid slice"
+      aria-hidden="true"
+    >
+      <g stroke="rgba(255,255,255,0.3)" strokeWidth="0.7">
+        <path d="M40 150 L110 70 L190 108 L268 46" />
+        <path d="M110 70 L142 154 L190 108" />
+        <path d="M40 150 L142 154" />
+        <path d="M190 108 L232 168" />
+      </g>
+      <g fill="rgba(255,255,255,0.72)">
+        <circle cx="40" cy="150" r="2.6" />
+        <circle cx="110" cy="70" r="3" />
+        <circle cx="190" cy="108" r="2.8" />
+        <circle cx="268" cy="46" r="2.4" />
+        <circle cx="142" cy="154" r="2.4" />
+        <circle cx="232" cy="168" r="2.2" />
+      </g>
+    </svg>
+  );
+}
+
+// The five gates, verbatim from GATE_DEFS in src/lib/contracts/forge.ts.
+// The `signer` column reflects ELDER_ORACLE_GATE_INDEXES = [0, 4]: a named
+// Elder Oracle must sign those two; the other three are signed by that
+// stage's named specialist.
+const GATES = [
+  { name: 'Need accepted', signer: 'Elder Oracle' },
+  { name: 'Ready for workflow', signer: 'Readiness' },
+  { name: 'Workflow approved', signer: 'Workflow' },
+  { name: 'Governance clear', signer: 'Governance' },
+  { name: 'Prototype spec approved', signer: 'Elder Oracle' },
+] as const;
+
+// SPECIALIST_ROLE_VALUES from src/lib/contracts/forge.ts — the five voices
+// the council argues in.
+const VOICES = ['Risk', 'Demand', 'Growth', 'Competition', 'Money'] as const;
 
 export default function Home() {
   return (
-    <div className={`vhome-root ${vhomeInter.variable}`}>
+    <div className={`cq-root ${cqInter.variable}`}>
       <JsonLd script={organization} />
       <JsonLd script={website} />
 
-      <div className="vhome-grain" />
-      <div className="vhome-hero-photo" />
+      <div className="cq-stars" aria-hidden="true" />
+      <div className="cq-hero-glow" aria-hidden="true" />
 
-      <div className="vhome-page">
-        <VesperHeader />
+      <div className="cq-page">
+        <CqHeader />
 
-        <main className="vhome-hero" id="top">
-          <div className="vhome-hero-copy">
-            <span
-              className="vhome-badge vhome-appear vhome-appear--pop"
-              style={{ ['--vhome-d' as string]: '0.22s' }}
-            >
-              <SparkleIcon />
-              EU AI Act &middot; Article 12 &amp; 14 ready
-            </span>
+        {/* === HERO ========================================================= */}
+        <main className="cq-hero cq-container" id="top">
+          <span className="cq-badge cq-rise" style={{ ['--cq-d' as string]: '0.05s' }}>
+            <SparkIcon />
+            EU AI Act &middot; Article 12 &amp; 14 ready
+          </span>
 
-            <h1 className="vhome-h1">
-              <span
-                className="vhome-headline-line vhome-appear vhome-appear--mask"
-                style={{ ['--vhome-d' as string]: '0.42s' }}
-              >
-                Software the <em>AI</em>
-              </span>
-              <span
-                className="vhome-headline-line vhome-appear vhome-appear--mask"
-                style={{ ['--vhome-d' as string]: '0.62s' }}
-              >
-                can&rsquo;t sign off on.
-              </span>
-            </h1>
+          <h1 className="cq-display cq-rise" style={{ ['--cq-d' as string]: '0.12s' }}>
+            Software the AI can&rsquo;t sign off on.
+          </h1>
 
-            <p
-              className="vhome-lede vhome-appear vhome-appear--soft"
-              style={{
-                ['--vhome-d' as string]: '0.82s',
-                animationDuration: '1.25s',
-              }}
-            >
-              {siteName} turns your requirements into a runnable software build &mdash; and never
-              releases it without a named human approving every stage.
-            </p>
+          <p className="cq-lede cq-rise" style={{ ['--cq-d' as string]: '0.2s' }}>
+            {siteName} turns a plain-English brief into a governed workflow &mdash; and never lets
+            it past a stage without a named human approving it.
+          </p>
 
-            <div className="vhome-hero-actions">
-              <Link
-                href="/how-it-works#front-door"
-                className="vhome-btn vhome-btn-solid vhome-hero-btn vhome-hero-btn-solid vhome-appear vhome-appear--btn"
-                style={{ ['--vhome-d' as string]: '0.96s' }}
-              >
-                Submit a brief
-              </Link>
-              <Link
-                href="/how-it-works#council"
-                className="vhome-btn vhome-btn-ghost vhome-hero-btn vhome-hero-btn-ghost vhome-appear vhome-appear--side"
-                style={{ ['--vhome-d' as string]: '1.10s' }}
-              >
-                Meet The Oracles
-              </Link>
+          <div className="cq-hero-actions cq-rise" style={{ ['--cq-d' as string]: '0.28s' }}>
+            <Link href="/how-it-works#front-door" className="cq-btn cq-btn-primary">
+              Submit a brief
+            </Link>
+            <Link href="/how-it-works" className="cq-btn cq-btn-ghost">
+              See how it works
+            </Link>
+          </div>
+
+          {/* Schematic of the real Forge Canvas — the node types below
+              (Start / Agent / Human approval / End) are the product's own,
+              and the "paused" state on the approval node is what a real run
+              actually does when it reaches a gate. */}
+          <div className="cq-showcase cq-rise" style={{ ['--cq-d' as string]: '0.36s' }}>
+            <div className="cq-showcase-bar">
+              <span className="cq-showcase-dot" />
+              <span className="cq-showcase-dot" />
+              <span className="cq-showcase-dot" />
+              <span className="cq-showcase-title">Forge Canvas &mdash; ticket triage</span>
+            </div>
+            <div className="cq-showcase-body">
+              <div className="cq-showcase-rail">
+                <span className="cq-rail-item" data-active="true">
+                  <span className="cq-rail-swatch" />
+                  Build
+                </span>
+                <span className="cq-rail-item">Runs</span>
+                <span className="cq-rail-item">Approvals</span>
+                <span className="cq-rail-item">Missions</span>
+                <span className="cq-rail-item">Audit</span>
+              </div>
+              <div className="cq-showcase-canvas">
+                <span className="cq-node">
+                  <span className="cq-node-badge">S</span>
+                  Start
+                  <span className="cq-node-meta">trigger</span>
+                </span>
+                <span className="cq-edge" />
+                <span className="cq-node">
+                  <span className="cq-node-badge">A</span>
+                  Classify the ticket
+                  <span className="cq-node-meta">agent</span>
+                </span>
+                <span className="cq-edge" />
+                <span className="cq-node" data-tone="approval">
+                  <span className="cq-node-badge">H</span>
+                  Human approval
+                  <span className="cq-node-meta">paused</span>
+                </span>
+                <span className="cq-edge" />
+                <span className="cq-node">
+                  <span className="cq-node-badge">E</span>
+                  Release
+                  <span className="cq-node-meta">end</span>
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <div className="cq-stats">
+            <div className="cq-stat">
+              <div className="cq-stat-value">5</div>
+              <div className="cq-stat-label">
+                named human gates &mdash; every stage needs a person to sign
+              </div>
+            </div>
+            <div className="cq-stat">
+              <div className="cq-stat-value">7</div>
+              <div className="cq-stat-label">specialised agents run the pipeline for you</div>
+            </div>
+            <div className="cq-stat">
+              <div className="cq-stat-value">0</div>
+              <div className="cq-stat-label">stages that can clear without a named approver</div>
             </div>
           </div>
         </main>
 
-        <footer className="vhome-stats">
-          <span
-            className="vhome-stat vhome-appear vhome-appear--stat"
-            style={{ ['--vhome-d' as string]: '1.12s' }}
-          >
-            <GatesIcon />5 named human gates, every stage
-          </span>
-          <span
-            className="vhome-stat vhome-appear vhome-appear--stat"
-            style={{ ['--vhome-d' as string]: '1.28s' }}
-          >
-            <DeliverableIcon />
-            Runnable repo, not a slide deck
-          </span>
-          <span
-            className="vhome-stat vhome-appear vhome-appear--stat"
-            style={{ ['--vhome-d' as string]: '1.44s' }}
-          >
-            <AgentsIcon />7 specialised agents run the pipeline
-          </span>
+        {/* === WHY ========================================================== */}
+        <section className="cq-section cq-container">
+          <div className="cq-eyebrow">
+            <GridIcon />
+            Why CARI Forge
+          </div>
+          <div className="cq-rule" />
+          <div className="cq-section-head">
+            <h2 className="cq-h2">Governance that isn&rsquo;t paperwork</h2>
+            <p className="cq-section-note">
+              The approval isn&rsquo;t a checkbox bolted on at the end. It&rsquo;s the thing the
+              workflow stops for.
+            </p>
+          </div>
+
+          <div className="cq-cards">
+            <article className="cq-card">
+              <CardConstellation />
+              <div className="cq-card-inner">
+                <h3 className="cq-card-title">Stops for a person, by design</h3>
+                <p className="cq-card-text">
+                  A run reaches an approval node and pauses &mdash; it does not proceed on a
+                  timeout, a default, or a confidence score. Someone named has to approve it, with a
+                  typed reason, before the next step executes.
+                </p>
+              </div>
+            </article>
+            <article className="cq-card">
+              <CardConstellation />
+              <div className="cq-card-inner">
+                <h3 className="cq-card-title">Every decision keeps its receipt</h3>
+                <p className="cq-card-text">
+                  Who approved, when, on what evidence, and the reason code they chose &mdash;
+                  recorded against the stage and replayable afterwards. Corrections are recorded
+                  too, rather than quietly overwriting what happened.
+                </p>
+              </div>
+            </article>
+          </div>
+        </section>
+
+        {/* === STATEMENT + ORB ============================================== */}
+        <section className="cq-section cq-container">
+          <div className="cq-split">
+            <p className="cq-statement">
+              Most AI tools ask you to trust the output. CARI Forge assumes you can&rsquo;t &mdash;
+              so it puts a named human in front of every stage, and keeps the record that proves it.
+            </p>
+            <div className="cq-orb-wrap">
+              <div className="cq-orb">
+                <span className="cq-orb-label">
+                  <ShieldIcon />
+                  Governed
+                </span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* === HOW IT WORKS ================================================= */}
+        <section className="cq-section cq-container">
+          <div className="cq-eyebrow">
+            <SparkIcon />
+            How it works
+          </div>
+          <div className="cq-rule" />
+          <div className="cq-section-head">
+            <h2 className="cq-h2">Brief in. Governed workflow out.</h2>
+            <p className="cq-section-note">
+              Describe it once in plain English. Shape it on a canvas. Take it through five named
+              gates.
+            </p>
+          </div>
+
+          <div className="cq-rows">
+            <article className="cq-row">
+              <div>
+                <h3 className="cq-row-title">Describe it, then draw it</h3>
+                <p className="cq-row-text">
+                  Write what you want in plain English and CARI Forge drafts the workflow for you.
+                  From there it&rsquo;s a drag-and-drop canvas &mdash; add a step and it connects
+                  itself to the one you had selected.
+                </p>
+                <div className="cq-pills">
+                  <span className="cq-pill">
+                    <CheckIcon />
+                    Plain-English brief
+                  </span>
+                  <span className="cq-pill">
+                    <CheckIcon />
+                    AI-drafted first pass
+                  </span>
+                  <span className="cq-pill">
+                    <CheckIcon />
+                    Visual canvas
+                  </span>
+                </div>
+                <Link href="/how-it-works#front-door" className="cq-row-link">
+                  Start a brief <span>&rarr;</span>
+                </Link>
+              </div>
+              <div className="cq-ladder">
+                <div className="cq-ladder-item">
+                  <span className="cq-ladder-num">1</span>
+                  Describe the outcome
+                  <span className="cq-ladder-tag">plain English</span>
+                </div>
+                <div className="cq-ladder-item">
+                  <span className="cq-ladder-num">2</span>
+                  Review the drafted workflow
+                  <span className="cq-ladder-tag">canvas</span>
+                </div>
+                <div className="cq-ladder-item">
+                  <span className="cq-ladder-num">3</span>
+                  Run it, with gates
+                  <span className="cq-ladder-tag">pauses for approval</span>
+                </div>
+              </div>
+            </article>
+
+            <article className="cq-row">
+              <div>
+                <h3 className="cq-row-title">Five gates, each with a named signer</h3>
+                <p className="cq-row-text">
+                  A mission crosses five gates. A named Elder Oracle must personally sign the first
+                  and the last; the three in between are signed by that stage&rsquo;s named
+                  specialist. No gate clears itself.
+                </p>
+                <Link href="/how-it-works#stages" className="cq-row-link">
+                  See the stages <span>&rarr;</span>
+                </Link>
+              </div>
+              <div className="cq-ladder">
+                {GATES.map((gate, i) => (
+                  <div className="cq-ladder-item" key={gate.name}>
+                    <span className="cq-ladder-num">{i}</span>
+                    {gate.name}
+                    <span className="cq-ladder-tag">{gate.signer}</span>
+                  </div>
+                ))}
+              </div>
+            </article>
+
+            <article className="cq-row">
+              <div>
+                <h3 className="cq-row-title">Argued in five voices</h3>
+                <p className="cq-row-text">
+                  Before a gate is put to a human, the council argues the case in five fixed voices
+                  &mdash; so the person signing sees the objections, not just a recommendation.
+                  Objections are recorded and have to be resolved, not dismissed.
+                </p>
+                <Link href="/pilot/oracle-council" className="cq-row-link">
+                  Meet The Oracles <span>&rarr;</span>
+                </Link>
+              </div>
+              <div className="cq-pills">
+                {VOICES.map((voice) => (
+                  <span className="cq-pill" key={voice}>
+                    <CheckIcon />
+                    {voice}
+                  </span>
+                ))}
+              </div>
+            </article>
+          </div>
+        </section>
+
+        {/* === CLOSING CTA ================================================== */}
+        <section className="cq-section cq-container">
+          <div className="cq-cta">
+            <h2 className="cq-h2">Bring us something you&rsquo;d need to defend.</h2>
+            <p className="cq-lede">
+              Send a one-line brief. You&rsquo;ll get back a governed workflow with every approval
+              attributable to a named person.
+            </p>
+            <div className="cq-hero-actions">
+              <Link href="/how-it-works#front-door" className="cq-btn cq-btn-primary">
+                Submit a brief
+              </Link>
+              <Link href="/pricing" className="cq-btn cq-btn-ghost">
+                See pricing
+              </Link>
+            </div>
+          </div>
+        </section>
+
+        {/* === FOOTER ======================================================= */}
+        <footer className="cq-footer">
+          <div className="cq-container">
+            <div className="cq-footer-grid">
+              <div>
+                <span className="cq-logo">
+                  <span>CARI Forge</span>
+                </span>
+                <p className="cq-footer-tagline">{siteDescription}</p>
+              </div>
+              <div>
+                <div className="cq-footer-title">Product</div>
+                <div className="cq-footer-links">
+                  <Link href="/how-it-works">How it works</Link>
+                  <Link href="/pricing">Pricing</Link>
+                  <Link href="/compare">Compare</Link>
+                  <Link href="/sample-brief">Sample brief</Link>
+                </div>
+              </div>
+              <div>
+                <div className="cq-footer-title">Governance</div>
+                <div className="cq-footer-links">
+                  <Link href="/how-the-council-works">The council</Link>
+                  <Link href="/pilot/oracle-council">The Oracles</Link>
+                  <Link href="/faq">FAQ</Link>
+                  <Link href="/login">Log in</Link>
+                </div>
+              </div>
+            </div>
+            <div className="cq-footer-base">
+              <span>
+                &copy; {new Date().getFullYear()} {siteName}
+              </span>
+              <span>EU AI Act &middot; Article 12 &amp; 14 ready</span>
+            </div>
+          </div>
         </footer>
       </div>
-
-      <VesperAppearFallback />
     </div>
   );
 }

@@ -97,9 +97,14 @@
 
   /* Primary CTA fills are now near-black, not the accent colour — matches
      Apple's actual pattern (solid black/dark-grey buttons; colour shows up
-     in links, badges, and borders instead) and matches the homepage hero's
-     own button treatment (vesper-home.css's .vhome-btn-solid), so the
-     whole site is consistent rather than the homepage being an outlier. */
+     in links, badges, and borders instead). NOTE (2026-09-03): this used to
+     also match the homepage hero's own button, but / was rebuilt to the
+     cosmoq reference and its primary CTA is now a near-black pill with a
+     two-tone GRADIENT BORDER (cosmoq-home.css's .cq-btn-primary). The two
+     treatments are deliberately no longer identical — that route is
+     dark-only and self-contained, this token governs the rest of the app —
+     but they agree on the substance: a dark fill, with the colour carried
+     by the edge rather than the fill. */
   --primary: #1d1d1f;
   --primary-foreground: #f5f5f7;
 

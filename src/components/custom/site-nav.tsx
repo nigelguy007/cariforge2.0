@@ -116,11 +116,14 @@ export function SiteNav() {
   const isSlotActive = (slot: NavSlot) =>
     slot.type === 'link' ? isActive(slot.item.href) : slot.items.some((i) => isActive(i.href));
 
-  // / is a single fixed-viewport page that owns its own complete header/nav
-  // (src/app/(setup)/page.tsx + vesper-header.tsx) — this global nav would
-  // double up with it and break the page's own no-scroll layout, so it opts
-  // out entirely on that one route. All hooks above still run unconditionally
-  // (rules of hooks); only the render bails.
+  // / owns its own complete header/nav (src/app/(setup)/page.tsx +
+  // cosmoq-home/cq-header.tsx) — a fixed, floating pill nav this global nav
+  // would double up with, so it opts out entirely on that one route.
+  // (Until 2026-09-03 that page was also locked to a single non-scrolling
+  // viewport, which this bail additionally protected; it is now a normal
+  // scrolling page, but it still renders its own header, so the bail stands
+  // for the original doubling-up reason.) All hooks above still run
+  // unconditionally (rules of hooks); only the render bails.
   if (pathname === '/') return null;
 
   return (
