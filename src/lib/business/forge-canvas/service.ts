@@ -68,8 +68,17 @@ export async function saveBlueprint(
   const latest = await prisma.canvasBlueprint.findFirst({
     where: { slug: save.slug },
     orderBy: { version: 'desc' },
-    select: { version: true, missionId: true },
+    select: { version: true, missionId: true, createdById: true },
   });
+  // SECURITY (2026-09-03 audit): this previously read only version/missionId
+  // off the prior version, never createdById — so ANY signed-in user could
+  // POST a new version under someone else's slug and become createdById of
+  // the new "latest". publishBlueprint() checks ownership against the latest
+  // version, so that check would then pass for the attacker: full slug
+  // takeover, victim's published blueprint replaced by attacker content.
+  // A brand-new slug (no prior version) is unaffected; re-saving your own
+  // blueprint is unchanged.
+  if (latest && latest.createdById !== userId) throw new Error('FORGE_FORBIDDEN');
   const linkedMissionId = missionId ?? latest?.missionId ?? null;
   const row = await prisma.canvasBlueprint.create({
     data: {
