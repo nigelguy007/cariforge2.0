@@ -20,10 +20,20 @@ import {
   type WorkItemStatusT,
 } from '@/lib/contracts/forge';
 import { prisma } from '@/lib/db';
-import { sendEmail } from '@/lib/email/send';
+// 2026-09-04: switched from the framework's src/lib/email/send.ts to the
+// user-owned Resend-backed transport (identical interface) — see
+// send-resend.ts's header for why: the framework module's target
+// (POLSIA_EMAIL_PROXY_URL) is a confirmed-dead https://email-proxy.invalid
+// placeholder, so gate-decision emails were silently never actually
+// sending (swallowed by this function's own catch below).
+import { sendEmail } from '@/lib/email/send-resend';
 import { tagOracleGateDecisionEmail } from '@/lib/email/templates/tag-oracle-gate-decision';
 import { computeNextVersion, markDownstreamInvalidated, validateParent } from './handoffs';
-import { assertElderOracleAttested, assertSpecialistAttestersPresent, isElderGate } from './oracle-council';
+import {
+  assertElderOracleAttested,
+  assertSpecialistAttestersPresent,
+  isElderGate,
+} from './oracle-council';
 import { assertAttribution, assertNonApproveAttribution, assertReasonAllowed } from './policy';
 import { gateIndexFor, nextStageFor, recomputeConfidence } from './state-machine';
 import { assertExternalApproved, assertRollbackLink, assertScopeDenied } from './tool-actions';

@@ -13,7 +13,14 @@ import { getConfiguratorResult } from '@/lib/business/configurator';
 import { friendlyLeadReference, LeadCreate, LeadItem } from '@/lib/contracts/leads';
 import { WalkthroughAck, WalkthroughCreate } from '@/lib/contracts/walkthrough';
 import { prisma } from '@/lib/db';
-import { sendEmail } from '@/lib/email/send';
+// 2026-09-04: switched from the framework's src/lib/email/send.ts to the
+// user-owned Resend-backed transport — the framework module's target
+// (POLSIA_EMAIL_PROXY_URL) is a confirmed-dead https://email-proxy.invalid
+// placeholder, never a real endpoint. See send-resend.ts's own header for
+// the full story. Identical SendEmailInput/SendEmailResult interface, so
+// nothing else in this file needed to change.
+import { sendEmail } from '@/lib/email/send-resend';
+import { formatBriefOwnerNotificationEmail } from '@/lib/email-templates/brief-owner-notification';
 import { formatBriefAckEmail } from '@/lib/email-templates/brief-submitter-ack';
 import { formatWalkthroughEmail } from '@/lib/email-templates/walkthrough-owner-notification';
 import { siteUrl } from '@/lib/site';
@@ -78,8 +85,12 @@ export async function POST(req: Request) {
             data: { notifiedAt: new Date() },
           });
           notified = true;
-        } catch {
-          // swallow — lead is captured; the operator can re-notify from the leads table.
+        } catch (err) {
+          // Not silently swallowed (2026-09-04) — same fix as the home-
+          // branch notification below; lead is still captured either way,
+          // the operator can re-notify from the leads table, but a failure
+          // is now visible in logs instead of vanishing.
+          console.error('[leads] walkthrough owner notification email failed to send:', err);
         }
       }
 
@@ -107,43 +118,36 @@ export async function POST(req: Request) {
       },
     });
 
-    // Best-effort owner notification via the Polsia email proxy. Skips silently
-    // in local dev (no API key); the lead still persists.
+    // Best-effort owner notification (2026-09-04: migrated off the ad-hoc
+    // raw fetch to https://polsia.com/api/proxy/email/send — that endpoint
+    // needed POLSIA_API_KEY, which was never actually set, AND pointed at
+    // POLSIA_EMAIL_PROXY_URL, confirmed to be the literal placeholder
+    // https://email-proxy.invalid. Now goes through the same sendEmail/
+    // Resend transport as everything else in this file, via a proper
+    // template instead of a hand-built string. The catch below used to
+    // silently swallow every failure with no logging at all — same
+    // silent-failure class this session has fixed everywhere else it's
+    // been found; fixed the same way here.
     let notified = false;
-    const apiKey = process.env.POLSIA_API_KEY;
     const ownerEmail = ownerEmailAddress();
-    if (apiKey && ownerEmail) {
+    if (ownerEmail) {
       try {
-        const subject = `New CARI Forge brief${parsed.data.email ? ` — ${parsed.data.email}` : ''}`;
-        const body = [
-          'A regulated buyer just left a one-line brief on cariforge.com.',
-          '',
-          `Captured: ${lead.createdAt.toISOString()}`,
-          `Lead id:   ${lead.id}`,
-          `Email:      ${parsed.data.email ?? '(none)'}`,
-          '',
-          '--- brief ---',
-          parsed.data.brief,
-          '',
-          'See the leads table for the full record.',
-        ].join('\n');
-        const res = await fetch('https://polsia.com/api/proxy/email/send', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${apiKey}`,
-          },
-          body: JSON.stringify({ to: ownerEmail, subject, body }),
+        await sendEmail({
+          to: ownerEmail,
+          ...formatBriefOwnerNotificationEmail({
+            leadId: lead.id,
+            capturedAtIso: lead.createdAt.toISOString(),
+            brief: parsed.data.brief,
+            submitterEmail: parsed.data.email,
+          }),
         });
-        if (res.ok) {
-          await prisma.lead.update({
-            where: { id: lead.id },
-            data: { notifiedAt: new Date() },
-          });
-          notified = true;
-        }
-      } catch {
-        // swallow — lead is captured; the operator can re-notify from the leads table.
+        await prisma.lead.update({
+          where: { id: lead.id },
+          data: { notifiedAt: new Date() },
+        });
+        notified = true;
+      } catch (err) {
+        console.error('[leads] owner notification email failed to send:', err);
       }
     }
 
