@@ -192,6 +192,7 @@ export default function Home() {
           SUNRISE block in cosmoq-home.css for the palette and why it is
           built from --brand-h rather than the reference's amber. */}
       <div className="cq-sunrise" aria-hidden="true">
+        <div className="cq-sun" />
         <div className="cq-planet" />
       </div>
 

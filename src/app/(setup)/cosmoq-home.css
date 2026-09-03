@@ -76,6 +76,19 @@ body {
   --cq-accent-deep: oklch(0.55 0.17 calc(var(--brand-h, 169) + 96));
   --cq-accent-soft: oklch(0.74 0.15 var(--brand-h, 169) / 0.16);
 
+  /* THE SUN. Warm amber, and the one colour on this page deliberately NOT
+     derived from --brand-h (2026-09-03, explicit direction: "make the
+     colours a bit brighter with the colour of the sun similar to the
+     reference site"). The first pass here avoided the reference's amber on
+     the grounds that it was a foreign brand colour; that call is overridden
+     — a warm sun over turquoise water is what a Caribbean sunrise actually
+     looks like, so the warm core and the sea-coloured atmosphere around it
+     are doing different jobs rather than competing. It is scoped to the
+     sunrise alone: nothing else on the page uses it, so the brand hue still
+     owns every button, chip, orb and card glow. */
+  --cq-sun: oklch(0.88 0.16 72);
+  --cq-sun-core: oklch(0.98 0.06 88);
+
   --cq-grad: linear-gradient(135deg, var(--cq-accent) 0%, var(--cq-accent-deep) 100%);
   --cq-grad-ring: linear-gradient(
     135deg,
@@ -187,20 +200,54 @@ body {
   content: "";
   position: absolute;
   left: 50%;
-  top: 690px;
+  top: 560px;
   width: 132%;
-  height: 660px;
+  /* Shorter than it first was (660px). The sea glow is atmosphere around a
+     sun sitting ON the horizon, so it has to hug the horizon; when it rose
+     too high it washed out the lede text sitting above it. */
+  height: 500px;
   transform: translate(-50%, -50%);
+  /* The CENTRE is deliberately the dimmest part of this gradient, which is
+     the opposite of how it started. The warm sun (.cq-sun) paints on top of
+     this, and a near-opaque turquoise core underneath it turned the amber to
+     a desaturated white — two bright layers cancelling into nothing. Pulling
+     the middle back lets the sun own the core and leaves the sea colours
+     doing what they should: flanking it and cooling outward. */
   background: radial-gradient(
     ellipse 50% 50% at 50% 50%,
-    oklch(0.97 0.05 calc(var(--brand-h, 169) + 16) / 0.92) 0%,
-    oklch(0.86 0.14 calc(var(--brand-h, 169) + 11) / 0.72) 14%,
-    oklch(0.76 0.17 var(--brand-h, 169) / 0.52) 29%,
-    oklch(0.6 0.16 calc(var(--brand-h, 169) + 31) / 0.34) 48%,
-    oklch(0.44 0.17 calc(var(--brand-h, 169) + 71) / 0.2) 66%,
-    transparent 84%
+    oklch(0.9 0.12 calc(var(--brand-h, 169) + 18) / 0.3) 0%,
+    oklch(0.87 0.16 calc(var(--brand-h, 169) + 12) / 0.6) 20%,
+    oklch(0.79 0.18 var(--brand-h, 169) / 0.62) 34%,
+    oklch(0.63 0.18 calc(var(--brand-h, 169) + 31) / 0.44) 52%,
+    oklch(0.47 0.19 calc(var(--brand-h, 169) + 71) / 0.26) 68%,
+    transparent 85%
   );
   filter: blur(46px);
+}
+
+/* The sun itself. A tight, warm bloom sitting ON the horizon, painted over
+   the sea-coloured atmosphere above — the reference puts a warm core at the
+   centre of its glow and lets it cool outward, and that contrast is most of
+   why its hero reads as a sunrise rather than as backlighting. Kept small
+   and low so it stays a sun and never becomes a wash. */
+.cq-sun {
+  position: absolute;
+  left: 50%;
+  top: 570px;
+  width: 68%;
+  height: 330px;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  background: radial-gradient(
+    ellipse 50% 50% at 50% 50%,
+    var(--cq-sun-core) 0%,
+    oklch(0.95 0.13 82 / 0.98) 14%,
+    var(--cq-sun) 30%,
+    oklch(0.82 0.17 60 / 0.62) 46%,
+    oklch(0.74 0.15 52 / 0.28) 62%,
+    transparent 78%
+  );
+  filter: blur(38px);
 }
 
 /* The light curtains. Fine vertical banding, masked to an ellipse around the
@@ -238,7 +285,7 @@ body {
    the hero. */
 .cq-sunrise .cq-planet {
   position: absolute;
-  top: 700px;
+  top: 585px;
   left: 50%;
   /* Deliberately enormous. At 2600px the visible arc was steep enough to
      read as a chevron meeting in the middle rather than a horizon; the
@@ -249,11 +296,15 @@ body {
   transform: translateX(-50%);
   border-radius: 50%;
   background: var(--cq-bg);
-  border-top: 1.5px solid oklch(0.97 0.05 calc(var(--brand-h, 169) + 16) / 0.92);
+  border-top: 1.5px solid oklch(0.99 0.04 calc(var(--brand-h, 169) + 18) / 0.98);
+  /* Three stacked glows off the rim: a tight warm one (the sun striking the
+     horizon), then the turquoise and deep-ocean falloff. Warm first so it
+     sits closest to the edge, which is what makes the rim read as lit by
+     the sun rather than merely outlined. */
   box-shadow:
-    0 -3px 34px -2px oklch(0.94 0.09 calc(var(--brand-h, 169) + 14) / 0.75),
-    0 -14px 90px -14px oklch(0.8 0.16 calc(var(--brand-h, 169) + 6) / 0.6),
-    0 -40px 220px -40px oklch(0.6 0.16 calc(var(--brand-h, 169) + 40) / 0.5);
+    0 -3px 30px -2px oklch(0.92 0.13 78 / 0.75),
+    0 -10px 70px -10px oklch(0.85 0.16 calc(var(--brand-h, 169) + 8) / 0.72),
+    0 -34px 200px -34px oklch(0.64 0.18 calc(var(--brand-h, 169) + 44) / 0.6);
   pointer-events: none;
 }
 
@@ -505,6 +556,15 @@ body {
   font-size: var(--cq-body);
   line-height: 1.55;
   text-wrap: balance;
+  /* The hero lede sits directly over the brightest part of the sunrise. At
+     full glow strength its muted grey lost most of its contrast against the
+     band — caught in review, and exactly the class of legibility problem
+     this site has been bitten by before. A soft dark halo restores contrast
+     without darkening the artwork or forcing the text to pure white. */
+  text-shadow: 0 1px 18px oklch(0.09 0.03 var(--brand-h, 169) / 0.85);
+}
+.cq-hero .cq-lede {
+  color: oklch(0.86 0.012 var(--brand-h, 169));
 }
 
 .cq-hero-actions {
