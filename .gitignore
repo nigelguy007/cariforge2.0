@@ -45,3 +45,9 @@ lerna-debug.log*
 # Polsia upgrade reconcile sidecars (never commit)
 *.polsia-app-old
 .claude/settings.local.json
+
+# Session handoff notes. NEVER commit: this repo is public, and HANDOFF.md
+# documents unfixed security findings against the live deployment — publishing
+# it would hand an attacker a mapped route list. Committed handover docs that
+# contain no live vulnerability detail belong in docs/ instead.
+HANDOFF.md
