@@ -10,11 +10,13 @@ import 'server-only';
 import { NextResponse } from 'next/server';
 import type { z } from 'zod';
 import { getConfiguratorResult } from '@/lib/business/configurator';
-import { LeadCreate, LeadItem } from '@/lib/contracts/leads';
+import { friendlyLeadReference, LeadCreate, LeadItem } from '@/lib/contracts/leads';
 import { WalkthroughAck, WalkthroughCreate } from '@/lib/contracts/walkthrough';
 import { prisma } from '@/lib/db';
 import { sendEmail } from '@/lib/email/send';
+import { formatBriefAckEmail } from '@/lib/email-templates/brief-submitter-ack';
 import { formatWalkthroughEmail } from '@/lib/email-templates/walkthrough-owner-notification';
+import { siteUrl } from '@/lib/site';
 
 export const dynamic = 'force-dynamic';
 
@@ -155,6 +157,39 @@ export async function POST(req: Request) {
     const triage = await getConfiguratorResult(parsed.data.brief);
     if (triage.status === 'ok') {
       await prisma.lead.update({ where: { id: lead.id }, data: { triage: triage.result } });
+    }
+
+    // SUBMITTER acknowledgement (2026-09-04, explicit user request): closes
+    // a real gap — until now, POST /api/leads only ever emailed the SITE
+    // OWNER (above); nothing was ever sent back to the person who submitted
+    // the brief. The on-screen "A real human will reply — within 48 hours"
+    // promise had nothing behind it once the tab closed. Only fires when an
+    // email was actually given (it's an optional field — nothing to send
+    // to otherwise); best-effort, same resilience pattern as the owner
+    // notification above — a failed send never blocks the lead response,
+    // the lead is already persisted regardless. Deliberately NOT silently
+    // swallowed like the owner-notification catch above: this is a brand
+    // new, unverified code path, and this exact codebase has already been
+    // bitten once this session by an error that silently swallowed itself
+    // into "looks fine, does nothing" (the AI Gateway diagnosis). A failed
+    // send here is real signal an operator needs — most likely cause is
+    // POLSIA_API_KEY being unset in this deploy's environment, the same gap
+    // that already silently no-ops the owner notification above.
+    if (parsed.data.email) {
+      try {
+        const reference = friendlyLeadReference(lead.id);
+        await sendEmail({
+          to: parsed.data.email,
+          ...formatBriefAckEmail({
+            brief: parsed.data.brief,
+            reference,
+            signupUrl: `${siteUrl}/signup`,
+            triage: triage.status === 'ok' ? triage.result : undefined,
+          }),
+        });
+      } catch (err) {
+        console.error('[leads] submitter acknowledgement email failed to send:', err);
+      }
     }
 
     return NextResponse.json(
