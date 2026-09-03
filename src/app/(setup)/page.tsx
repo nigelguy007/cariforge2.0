@@ -188,7 +188,12 @@ export default function Home() {
       <JsonLd script={website} />
 
       <div className="cq-stars" aria-hidden="true" />
-      <div className="cq-hero-glow" aria-hidden="true" />
+      {/* Sunrise over a planet's edge, in Caribbean-sea colours — see the
+          SUNRISE block in cosmoq-home.css for the palette and why it is
+          built from --brand-h rather than the reference's amber. */}
+      <div className="cq-sunrise" aria-hidden="true">
+        <div className="cq-planet" />
+      </div>
 
       <div className="cq-page">
         <CqHeader />
@@ -449,6 +454,213 @@ export default function Home() {
                   </span>
                 ))}
               </div>
+            </article>
+          </div>
+        </section>
+
+        {/* === THREE STEPS ================================================== */}
+        <section className="cq-section cq-container">
+          <div className="cq-eyebrow">
+            <GridIcon />
+            Getting started
+          </div>
+          <div className="cq-rule" />
+          <div className="cq-section-head">
+            <h2 className="cq-h2">Three steps to your first run</h2>
+            <p className="cq-section-note">
+              No configuration, no integration work, no schema to learn before you see something
+              happen.
+            </p>
+          </div>
+
+          <div className="cq-steps">
+            <article className="cq-step">
+              <div>
+                <span className="cq-step-num">1</span>
+                <h3 className="cq-row-title">Say what you want, in a sentence</h3>
+                <p className="cq-row-text">
+                  &ldquo;Triage inbound support tickets and escalate anything about billing.&rdquo;
+                  That&rsquo;s the whole input. No schema, no config file, no integration to wire up
+                  first.
+                </p>
+              </div>
+              <div className="cq-ladder">
+                <div className="cq-ladder-item">
+                  <span className="cq-ladder-num">&rsaquo;</span>
+                  Triage inbound support tickets&hellip;
+                  <span className="cq-ladder-tag">your brief</span>
+                </div>
+                <div className="cq-ladder-item">
+                  <span className="cq-ladder-num">&rsaquo;</span>
+                  Drafting workflow
+                  <span className="cq-ladder-tag">4 steps found</span>
+                </div>
+              </div>
+            </article>
+
+            <article className="cq-step">
+              <div>
+                <span className="cq-step-num">2</span>
+                <h3 className="cq-row-title">Adjust it on the canvas</h3>
+                <p className="cq-row-text">
+                  You get a drafted workflow, not a blank page. Drag steps around, add one and it
+                  wires itself to whatever you had selected, and drop in a human approval anywhere
+                  you want the run to stop.
+                </p>
+              </div>
+              <div className="cq-ladder">
+                <div className="cq-ladder-item">
+                  <span className="cq-ladder-num">A</span>
+                  Classify the ticket
+                  <span className="cq-ladder-tag">agent</span>
+                </div>
+                <div className="cq-ladder-item">
+                  <span className="cq-ladder-num">C</span>
+                  Is it about billing?
+                  <span className="cq-ladder-tag">condition</span>
+                </div>
+                <div className="cq-ladder-item">
+                  <span className="cq-ladder-num">H</span>
+                  Human approval
+                  <span className="cq-ladder-tag">added by you</span>
+                </div>
+              </div>
+            </article>
+
+            <article className="cq-step">
+              <div>
+                <span className="cq-step-num">3</span>
+                <h3 className="cq-row-title">Run it and approve it</h3>
+                <p className="cq-row-text">
+                  The run executes until it hits your approval step, then stops and waits. You
+                  approve with a typed reason, it carries on, and the whole thing is recorded
+                  against the run.
+                </p>
+              </div>
+              <div className="cq-ladder">
+                <div className="cq-ladder-item">
+                  <span className="cq-ladder-num">&#10003;</span>
+                  Start &rarr; Classify
+                  <span className="cq-ladder-tag">succeeded</span>
+                </div>
+                <div className="cq-ladder-item">
+                  <span className="cq-ladder-num">&#9208;</span>
+                  Human approval
+                  <span className="cq-ladder-tag">waiting for you</span>
+                </div>
+                <div className="cq-ladder-item">
+                  <span className="cq-ladder-num">&#10003;</span>
+                  Release
+                  <span className="cq-ladder-tag">succeeded</span>
+                </div>
+              </div>
+            </article>
+          </div>
+        </section>
+
+        {/* === EVIDENCE / SECURITY ========================================== */}
+        <section className="cq-section cq-container">
+          <div className="cq-eyebrow">
+            <ShieldIcon />
+            Evidence
+          </div>
+          <div className="cq-rule" />
+          <div className="cq-section-head">
+            <h2 className="cq-h2">Built to be audited</h2>
+            <p className="cq-section-note">
+              The record is the product. Every layer below exists so a decision can be defended
+              later, by name.
+            </p>
+          </div>
+
+          <div className="cq-split" style={{ marginTop: '2.75rem' }}>
+            <div>
+              <p className="cq-row-text" style={{ marginTop: 0 }}>
+                CARI Forge is built for buyers who will be asked to justify an automated decision
+                after the fact &mdash; procurement, public sector, regulated industries. That means
+                the audit trail can&rsquo;t be a log file bolted on afterwards; it has to be the
+                thing the workflow produces.
+              </p>
+              <Link href="/how-the-council-works" className="cq-row-link">
+                How the council works <span>&rarr;</span>
+              </Link>
+            </div>
+            <div className="cq-layers">
+              <div className="cq-layer">
+                <ShieldIcon />
+                Audit-trail bundle per run
+              </div>
+              <div className="cq-layer">
+                <ShieldIcon />
+                Persisted as a SHA-256 hash chain
+              </div>
+              <div className="cq-layer">
+                <ShieldIcon />
+                90-day minimum retention on every artefact
+              </div>
+              <div className="cq-layer">
+                <ShieldIcon />
+                Typed reason code on every gate decision
+              </div>
+              <div className="cq-layer">
+                <ShieldIcon />
+                EU AI Act Articles 12 &amp; 14 readiness memo
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* === PLANS ======================================================== */}
+        <section className="cq-section cq-container">
+          <div className="cq-eyebrow">
+            <SparkIcon />
+            Engagements
+          </div>
+          <div className="cq-rule" />
+          <div className="cq-section-head">
+            <h2 className="cq-h2">Start with one brief</h2>
+            <p className="cq-section-note">
+              Three engagement shapes. Each is scoped and quoted per buyer rather than sold off a
+              price list.
+            </p>
+          </div>
+
+          <div className="cq-plans">
+            <article className="cq-plan">
+              <h3 className="cq-plan-name">Pilot</h3>
+              <p className="cq-plan-text">
+                One one-line brief, one council ruling, one Software Build. Includes the audit-trail
+                bundle per run, persisted as a SHA-256 hash chain, with a 90-day retention minimum
+                on every artefact.
+              </p>
+              <Link href="/pricing" className="cq-btn cq-btn-ghost">
+                See what&rsquo;s included
+              </Link>
+            </article>
+
+            <article className="cq-plan" data-featured="true">
+              <span className="cq-plan-tag">Most common</span>
+              <h3 className="cq-plan-name">Procurement</h3>
+              <p className="cq-plan-text">
+                A programme of briefs with a consolidated evidence package at handover: a cross-case
+                audit-trail bundle with a per-case hash chain, and a reporting cadence tailored to
+                the procurement timeline.
+              </p>
+              <Link href="/pricing" className="cq-btn cq-btn-primary">
+                Talk to us
+              </Link>
+            </article>
+
+            <article className="cq-plan">
+              <h3 className="cq-plan-name">Public Sector</h3>
+              <p className="cq-plan-text">
+                Extended-timeline posture with an explicit EU AI Act Articles 12 &amp; 14 readiness
+                memo, a typed reasons log per gate decision, and supplementary evidentiary artefacts
+                produced to the buyer specification.
+              </p>
+              <Link href="/pricing" className="cq-btn cq-btn-ghost">
+                See what&rsquo;s included
+              </Link>
             </article>
           </div>
         </section>

@@ -141,24 +141,120 @@ body {
   mask-image: linear-gradient(180deg, #000 0%, #000 42%, transparent 88%);
 }
 
-/* A single wide aquamarine bloom behind the hero — the page's one large
-   colour event, the same role the reference's hero glow plays. */
-.cq-hero-glow {
+/* === SUNRISE ================================================================
+   The reference's defining hero image, and the thing the first pass here
+   missed: a SUNRISE OVER A PLANET'S EDGE. A bright band sits on a curved
+   horizon, vertical light curtains rise off it like an aurora, and the
+   planet itself is a dark disc with a lit rim cutting across the bottom of
+   the hero. The first pass had only a soft centred bloom, which read as a
+   vague glow rather than a sunrise — the curve and the curtains are what
+   make it legible as one.
+
+   COLOUR (explicit user direction, 2026-09-03): "look at the colours behind
+   like a sun rising — give me the colours of the caribbean sea for this".
+   So the sunrise keeps the reference's STRUCTURE but not its amber; the ramp
+   below runs through actual Caribbean-sea water colours, brightest at the
+   horizon and deepening outward, the way that sea reads from shallow sand
+   flats out to open water:
+
+     shallow turquoise   oklch(0.95 0.07 185)  — the bright core
+     vivid aquamarine    oklch(0.80 0.15 178)
+     CariForge brand     oklch(0.72 0.16 169)  — --brand-h, unchanged
+     sea green / teal    oklch(0.58 0.15 200)
+     deep ocean blue     oklch(0.42 0.16 240)  — the outer falloff
+
+   The brand hue sits in the middle of that ramp rather than beside it, so
+   "retain the CariForge colours" and "Caribbean sea" are the same
+   instruction here, not competing ones. Every stop is read live off
+   --brand-h with a fixed offset, so re-seeding the brand still moves the
+   whole sunrise together. */
+.cq-sunrise {
   position: absolute;
-  top: -18vh;
+  top: 0;
   left: 50%;
-  width: min(1200px, 130vw);
-  height: 780px;
+  width: min(1700px, 170vw);
+  height: 940px;
   transform: translateX(-50%);
   pointer-events: none;
   z-index: 0;
+  overflow: hidden;
+}
+
+/* The horizon bloom — a very wide, short ellipse sitting ON the planet rim.
+   Wide-and-short is what reads as a sun low on a horizon; a circular glow
+   reads as a lamp. */
+.cq-sunrise::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 690px;
+  width: 132%;
+  height: 660px;
+  transform: translate(-50%, -50%);
   background: radial-gradient(
-    closest-side,
-    oklch(0.7 0.13 var(--brand-h, 169) / 0.16) 0%,
-    oklch(0.55 0.14 calc(var(--brand-h, 169) + 96) / 0.09) 45%,
-    transparent 78%
+    ellipse 50% 50% at 50% 50%,
+    oklch(0.97 0.05 calc(var(--brand-h, 169) + 16) / 0.92) 0%,
+    oklch(0.86 0.14 calc(var(--brand-h, 169) + 11) / 0.72) 14%,
+    oklch(0.76 0.17 var(--brand-h, 169) / 0.52) 29%,
+    oklch(0.6 0.16 calc(var(--brand-h, 169) + 31) / 0.34) 48%,
+    oklch(0.44 0.17 calc(var(--brand-h, 169) + 71) / 0.2) 66%,
+    transparent 84%
   );
-  filter: blur(28px);
+  filter: blur(46px);
+}
+
+/* The light curtains. Fine vertical banding, masked to an ellipse around the
+   horizon so it only shows where the bloom is bright, then blurred just
+   enough to stop it reading as a hard pinstripe. */
+.cq-sunrise::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    90deg,
+    transparent 0 22px,
+    oklch(0.92 0.09 calc(var(--brand-h, 169) + 14) / 0.2) 22px 24px,
+    transparent 24px 54px,
+    oklch(0.74 0.14 calc(var(--brand-h, 169) + 34) / 0.13) 54px 55px,
+    transparent 55px 88px
+  );
+  -webkit-mask-image: radial-gradient(ellipse 56% 40% at 50% 66%, #000 0%, transparent 76%);
+  mask-image: radial-gradient(ellipse 56% 40% at 50% 66%, #000 0%, transparent 76%);
+  filter: blur(1.5px);
+}
+
+/* The planet. A disc far wider than the viewport, positioned so only its top
+   arc crosses the hero — that arc is the horizon. Filled with the page's own
+   field colour so it reads as an unlit body, with a lit rim along the top
+   edge and a bloom hugging it.
+
+   It is a CHILD of .cq-sunrise, not of .cq-root, and offset in px rather
+   than %. First pass had it as a sibling with `top: 62%`, which resolves
+   against .cq-root — i.e. 62% of the ENTIRE page height — so the horizon
+   was rendered somewhere around the pricing section instead of in the hero,
+   and the hero just showed a vague blur. Percentages against a
+   whole-page-height ancestor are the trap here; the fixed 940px sunrise box
+   makes px offsets predictable, and its overflow:hidden trims the disc to
+   the hero. */
+.cq-sunrise .cq-planet {
+  position: absolute;
+  top: 700px;
+  left: 50%;
+  /* Deliberately enormous. At 2600px the visible arc was steep enough to
+     read as a chevron meeting in the middle rather than a horizon; the
+     curve only looks like a planet's edge when the disc is several times
+     the viewport and just the shallowest slice of its top shows. */
+  width: min(7000px, 620vw);
+  aspect-ratio: 1;
+  transform: translateX(-50%);
+  border-radius: 50%;
+  background: var(--cq-bg);
+  border-top: 1.5px solid oklch(0.97 0.05 calc(var(--brand-h, 169) + 16) / 0.92);
+  box-shadow:
+    0 -3px 34px -2px oklch(0.94 0.09 calc(var(--brand-h, 169) + 14) / 0.75),
+    0 -14px 90px -14px oklch(0.8 0.16 calc(var(--brand-h, 169) + 6) / 0.6),
+    0 -40px 220px -40px oklch(0.6 0.16 calc(var(--brand-h, 169) + 40) / 0.5);
+  pointer-events: none;
 }
 
 .cq-page {
@@ -907,6 +1003,169 @@ body {
   font-size: 0.78rem;
 }
 
+/* === STEP PANELS ============================================================
+   The reference's "3 Steps to Kickstart": three tall panels, each with copy
+   on the left, a numbered chip, and a piece of mock UI on the right. Added
+   in the second pass — the first pass compressed this into three lines
+   inside a capability row, which is why the page read as much thinner than
+   the reference even though the section existed in some form. */
+.cq-steps {
+  display: grid;
+  gap: 1.25rem;
+  margin-top: 2.75rem;
+}
+.cq-step {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  align-items: center;
+  gap: clamp(1.5rem, 4vw, 3rem);
+  padding: clamp(1.5rem, 3vw, 2.25rem);
+  border: 1px solid var(--cq-line-soft);
+  border-radius: var(--cq-radius-lg);
+  background: oklch(0.115 0.022 var(--brand-h, 169));
+  overflow: hidden;
+}
+.cq-step::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(
+    50% 88% at 88% 46%,
+    oklch(0.72 0.16 var(--brand-h, 169) / 0.2) 0%,
+    oklch(0.5 0.16 calc(var(--brand-h, 169) + 66) / 0.14) 44%,
+    transparent 74%
+  );
+}
+.cq-step > * {
+  position: relative;
+  z-index: 1;
+}
+.cq-step-num {
+  display: inline-grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  margin-bottom: 0.9rem;
+  border-radius: 10px;
+  background: var(--cq-accent-soft);
+  border: 1px solid oklch(0.74 0.15 var(--brand-h, 169) / 0.4);
+  color: var(--cq-accent);
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+/* === SECURITY ===============================================================
+   The reference's "Multi-Layer Security" pairs the heading with a stack of
+   translucent layered planes. Here the layers are labelled with the real
+   guarantees rather than being pure decoration. */
+.cq-layers {
+  position: relative;
+  display: grid;
+  gap: 0.6rem;
+  padding: 1.4rem;
+  border: 1px solid var(--cq-line-soft);
+  border-radius: var(--cq-radius-lg);
+  background: oklch(0.12 0.024 var(--brand-h, 169));
+  overflow: hidden;
+}
+.cq-layers::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(
+    70% 60% at 50% 0%,
+    oklch(0.76 0.16 var(--brand-h, 169) / 0.22) 0%,
+    oklch(0.5 0.16 calc(var(--brand-h, 169) + 66) / 0.12) 46%,
+    transparent 76%
+  );
+}
+.cq-layer {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  padding: 0.8rem 1rem;
+  border: 1px solid var(--cq-line);
+  border-radius: 12px;
+  background: oklch(0.17 0.026 var(--brand-h, 169) / 0.86);
+  font-size: 0.9rem;
+}
+.cq-layer svg {
+  color: var(--cq-accent);
+  flex: none;
+}
+
+/* === PLANS ==================================================================
+   Three engagement tiers. The middle one is raised the way the reference
+   raises its own middle plan — a brighter border and the gradient ring
+   treatment, so the eye lands there first. */
+.cq-plans {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1.25rem;
+  margin-top: 2.75rem;
+  align-items: start;
+}
+.cq-plan {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  padding: 1.6rem 1.5rem;
+  border: 1px solid var(--cq-line-soft);
+  border-radius: var(--cq-radius-lg);
+  background: oklch(0.115 0.022 var(--brand-h, 169));
+  overflow: hidden;
+}
+.cq-plan[data-featured="true"] {
+  border-color: oklch(0.74 0.15 var(--brand-h, 169) / 0.45);
+  background: oklch(0.135 0.03 var(--brand-h, 169));
+}
+.cq-plan[data-featured="true"]::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(
+    80% 55% at 50% 0%,
+    oklch(0.74 0.15 var(--brand-h, 169) / 0.2) 0%,
+    transparent 72%
+  );
+}
+.cq-plan > * {
+  position: relative;
+  z-index: 1;
+}
+.cq-plan-name {
+  font-size: 1.2rem;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  color: #fff;
+}
+.cq-plan-tag {
+  align-self: flex-start;
+  padding: 0.28rem 0.6rem;
+  border: 1px solid oklch(0.74 0.15 var(--brand-h, 169) / 0.4);
+  border-radius: 999px;
+  background: var(--cq-accent-soft);
+  color: var(--cq-accent);
+  font-size: 0.72rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.cq-plan-text {
+  color: var(--cq-muted);
+  font-size: 0.94rem;
+  line-height: 1.55;
+}
+.cq-plan .cq-btn {
+  margin-top: auto;
+}
+
 /* === CLOSING CTA ============================================================ */
 .cq-cta {
   position: relative;
@@ -1037,7 +1296,11 @@ body {
   .cq-orb-wrap {
     order: -1;
   }
-  .cq-row {
+  .cq-row,
+  .cq-step {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .cq-plans {
     grid-template-columns: minmax(0, 1fr);
   }
   .cq-showcase-body {
