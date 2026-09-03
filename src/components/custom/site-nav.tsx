@@ -6,6 +6,7 @@ import { ChevronDown, Menu } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import * as React from 'react';
+import { BrandMark } from '@/components/custom/brand-mark';
 import { ThemeToggle } from '@/components/custom/theme-toggle';
 import { Button } from '@/components/ui/button';
 import {
@@ -144,8 +145,9 @@ export function SiteNav() {
         >
           <Link
             href="/"
-            className="mr-2 shrink-0 truncate font-display text-base font-semibold tracking-tight text-foreground"
+            className="mr-2 flex shrink-0 items-center gap-2 truncate font-display text-base font-semibold tracking-tight text-foreground"
           >
+            <BrandMark size={22} className="shrink-0 rounded-md" />
             <span className="font-display tracking-tight">{siteName}</span>
           </Link>
 
@@ -301,7 +303,10 @@ export function SiteNav() {
                   className="flex flex-col"
                 >
                   <SheetHeader>
-                    <SheetTitle className="text-left">{siteName}</SheetTitle>
+                    <SheetTitle className="flex items-center gap-2 text-left">
+                      <BrandMark size={22} className="shrink-0 rounded-md" />
+                      {siteName}
+                    </SheetTitle>
                   </SheetHeader>
                   <nav aria-label="Mobile" className="mt-6 flex flex-col gap-1 overflow-y-auto">
                     {/* All slots, no overflow; a `menu` slot becomes a labeled section. */}
