@@ -91,8 +91,8 @@ function BriefDashboardCta() {
   return (
     <div className="flex flex-col gap-2 rounded-xl border border-brand-300/60 bg-brand-50 p-4">
       <p className="text-small text-foreground">
-        Create an account to track this brief and convert it into a governed mission the moment
-        we reply.
+        Create an account to track this brief and convert it into a governed mission the moment we
+        reply.
       </p>
       <div className="flex flex-wrap gap-2">
         <a
@@ -112,10 +112,7 @@ function BriefDashboardCta() {
   );
 }
 
-const FIT_STYLE: Record<
-  ConfiguratorResultT['fit'],
-  { label: string; className: string }
-> = {
+const FIT_STYLE: Record<ConfiguratorResultT['fit'], { label: string; className: string }> = {
   strong: { label: 'Strong fit', className: 'bg-emerald-500/15 text-emerald-800' },
   possible: { label: 'Possible fit', className: 'bg-amber-500/15 text-amber-800' },
   unlikely: { label: 'Unlikely fit — for now', className: 'bg-rose-500/15 text-rose-800' },
@@ -132,7 +129,13 @@ const FIT_STYLE: Record<
 function DiscoveryTriageCard({ result }: { result: ConfiguratorResultT }) {
   const fit = FIT_STYLE[result.fit];
   return (
-    <div className="flex flex-col gap-3 rounded-xl border border-border bg-muted/30 p-4">
+    // Was `rounded-xl border border-border bg-muted/30 p-4` — a flat,
+    // hardcoded grey box, a different code path from .glass-card/.glass-inset
+    // entirely, which is why it never picked up the dark-glass treatment
+    // applied everywhere else. .glass-inset (custom-style.css) is the
+    // purpose-built nested version — designed to sit inside the outer
+    // .glass-card without compounding blur or doubling the corner glow.
+    <div className="glass-inset flex flex-col gap-3 p-4">
       <div className="flex flex-wrap items-center gap-2">
         <span className="text-small font-medium text-foreground">Discovery&rsquo;s read</span>
         <span className={`rounded-full px-2 py-0.5 text-caption font-medium ${fit.className}`}>
@@ -185,8 +188,8 @@ function DiscoveryTriageCard({ result }: { result: ConfiguratorResultT }) {
       ) : null}
 
       <p className="text-caption text-muted-foreground">
-        Automated and indicative — not a binding ruling. Sign up to convert this brief into a
-        real mission, where a named human gates every stage.
+        Automated and indicative — not a binding ruling. Sign up to convert this brief into a real
+        mission, where a named human gates every stage.
       </p>
     </div>
   );
@@ -275,7 +278,7 @@ export function BriefIntakeForm() {
         {triage?.status === 'ok' ? (
           <DiscoveryTriageCard result={triage.result} />
         ) : (
-          <div className="flex flex-col gap-2 rounded-xl border border-border bg-muted/30 p-4">
+          <div className="glass-inset flex flex-col gap-2 p-4">
             <p className="text-small font-medium text-foreground">What happens next</p>
             <ol className="flex list-decimal flex-col gap-1.5 pl-4 text-small text-card-foreground/80">
               <li>A named human reads your brief.</li>

@@ -361,6 +361,52 @@
     color: var(--foreground);
   }
 
+  /* .glass-inset — a nested "result" sub-panel, MEANT to sit inside a
+     .glass-card/.glass-panel (2026-09-03, real user report: the "Discovery's
+     read" verdict box on the front-door brief form was a flat, hardcoded
+     `bg-muted/30` div — a different code path entirely from the .glass-card
+     treatment fixed everywhere else, so it never picked up the dark-glass
+     look and stood out as a plain grey box). Deliberately NOT another
+     .glass-card: nesting one backdrop-filtered glass surface inside another
+     compounds blur cost for no visual gain, and .glass-card's own corner
+     glow would double up oddly at this smaller size. Uses a RELATIVE
+     darken/lighten (black-at-low-alpha vs white-at-low-alpha) rather than a
+     new theme-flip token — a nested panel just needs to read as "a distinct
+     region of its parent," one step darker on a light parent, one step
+     lighter on a dark one, which composes correctly in both themes without
+     inventing another --true-*-style pair. Text inside inherits the
+     parent .glass-card's already-theme-aware --foreground/--muted-foreground
+     — no rescope needed here, this isn't fighting an inherited override the
+     way the --true-* mechanism exists to undo. */
+  .glass-inset {
+    position: relative;
+    overflow: hidden;
+    border-radius: calc(var(--radius) - 2px);
+    border: 1px solid oklch(0.6 calc(var(--brand-c) * 0.5) var(--brand-h) / 0.22);
+    background: oklch(0.2 0.02 var(--brand-h) / 0.05);
+  }
+  .dark .glass-inset {
+    background: oklch(1 0 0 / 0.035);
+    border-color: oklch(0.65 calc(var(--brand-c) * 0.55) var(--brand-h) / 0.28);
+  }
+  .dark .glass-inset::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 55%;
+    height: 55%;
+    z-index: -1;
+    pointer-events: none;
+    border-radius: 9999px;
+    background: radial-gradient(
+      closest-side,
+      oklch(0.72 0.15 var(--brand-h) / 0.14) 0%,
+      transparent 78%
+    );
+    filter: blur(20px);
+  }
+
   /* .glass-nav — was the ONE deliberately-dark surface (a solid
      deep-emerald bar, brand colour concentrated at the top of every
      screen); flipped to a translucent frosted bar per the Apple
