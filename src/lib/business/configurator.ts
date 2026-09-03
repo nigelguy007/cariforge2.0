@@ -106,12 +106,17 @@ export async function getConfiguratorResult(description: string): Promise<Config
 
   try {
     const response = await client.messages.parse({
-      // 2026-09-03: both claude-opus-5 and claude-sonnet-5 confirmed live
-      // against production to hit AI Gateway's RestrictedModelsError
-      // ("Free tier users do not have access to this model") even with a
-      // card on file — testing whether Haiku 4.5 (the cheapest tier) is
-      // free-tier-available where those two weren't.
-      model: 'anthropic/claude-haiku-4-5-20251001',
+      // 2026-09-03: confirmed live against production that claude-opus-5,
+      // claude-sonnet-5, AND claude-haiku-4-5 all hit the identical AI
+      // Gateway RestrictedModelsError ("Free tier users do not have
+      // access to this model") even with a card on file — this is a
+      // tier-wide restriction on the whole account, not a per-model gap,
+      // so switching models further won't help. Needs actual topped-up
+      // credits (https://vercel.com/d?to=%2F%5Bteam%5D%2F%7E%2Fai%3Fmodal%3Dtop-up),
+      // not just card verification. Left on Sonnet 5 as the sensible
+      // default once that's resolved — model choice doesn't matter until
+      // then.
+      model: 'anthropic/claude-sonnet-5',
       max_tokens: 2048,
       // Medium effort, not the SDK's default high: this is a bounded
       // classification-and-mapping task against fixed, spelled-out
