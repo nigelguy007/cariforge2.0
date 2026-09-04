@@ -50,8 +50,10 @@ export const navItems: NavItem[] = [
   // destination overpromises; the brief's "remove until 3+ real articles
   // exist" holds here. The route/page itself is untouched — a direct visit
   // or the footer link still reaches it.
-  // Mission Control — signed-in users see this; the page itself enforces auth.
-  { label: 'Missions', href: '/missions', group: 'primary', requiresAuth: true, order: 5 },
+  // Signed-in users see this; the page itself enforces auth. Labelled
+  // "Projects" to match the simplified workspace's own nav and copy
+  // (redesign brief, Step 2/3) — the route and page are unchanged.
+  { label: 'Projects', href: '/missions', group: 'primary', requiresAuth: true, order: 5 },
   // Promoted out of the 'Forge' dropdown and given the lowest order (sorts
   // first for a signed-in user, ahead of the marketing links) — 2026-09-01
   // user report: the visual builder existed but nobody found it, buried one
@@ -131,7 +133,7 @@ export const navItems: NavItem[] = [
     group: 'footer',
     order: 7,
   },
-  { label: 'Mission control', href: '/missions', group: 'footer', order: 8 },
+  { label: 'Projects', href: '/missions', group: 'footer', order: 8 },
   { label: 'Pilot intro', href: '/pilot-intro', group: 'footer', order: 9 },
   {
     label: 'Submit a brief',

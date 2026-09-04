@@ -23,7 +23,7 @@ const navItems = [
   },
   {
     href: '/missions',
-    label: 'Missions',
+    label: 'Projects',
     icon: ListChecks,
   },
   {

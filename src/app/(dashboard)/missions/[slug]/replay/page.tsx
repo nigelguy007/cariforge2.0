@@ -17,19 +17,22 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 export default async function MissionReplayPage({ params }: PageProps) {
   const { slug } = await params;
   return (
-    <section className="container-page py-section">
-      <header className="glass-panel rounded-2xl p-6">
-        <p className="text-eyebrow text-brand-700">Targeted replay</p>
-        <h1 className="text-h1 text-foreground">Replay a stage</h1>
-        <p className="mt-2 text-body text-muted-foreground">
-          Replay from a stage to invalidate downstream handoffs via the typed replay reason code.
-          The mission knocks back to the replayed stage and stays there until the new handoff +
-          decisions restore progress.
+    <section className="app-content py-section">
+      <header className="app-panel p-6">
+        <p className="app-caption text-[var(--app-text-muted)]">Run again</p>
+        <h1 className="app-h1 mt-1 text-[var(--app-text)]">Run this project again from a step</h1>
+        <p className="app-body mt-2 text-[var(--app-text-muted)]">
+          Running again from a step replaces its output and anything built on it. The project
+          returns to that step and stays there until a new step output and decisions restore
+          progress.
         </p>
       </header>
       <div className="mt-8">
-        <Link className="link-brand" href={`/missions/${slug}#handoffs`}>
-          Open Mission detail and use the replay control →
+        <Link
+          className="app-link app-small inline-flex min-h-11 items-center"
+          href={`/missions/${slug}#supporting-detail-controls`}
+        >
+          Open the project and run it again from a step
         </Link>
       </div>
     </section>

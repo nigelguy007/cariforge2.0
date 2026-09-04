@@ -17,12 +17,12 @@ export default async function AdminTelemetryPage() {
   await requireAdminOnPage();
   return (
     <section className="container-page py-section">
-      <header className="glass-panel rounded-2xl p-6">
-        <p className="text-eyebrow text-brand-700">Admin</p>
-        <h1 className="text-h1 text-foreground">Telemetry &amp; cost</h1>
-        <p className="mt-2 text-body text-muted-foreground">
+      <header className="app-panel p-6">
+        <p className="app-caption text-[var(--app-text-muted)]">Admin</p>
+        <h1 className="app-h1 mt-1 text-[var(--app-text)]">Telemetry &amp; cost</h1>
+        <p className="app-body mt-2 text-[var(--app-text-muted)]">
           Autonomy ladder, credit ledger rollup, and chat spend for every mission on the CARI Forge
-          platform. Unknown cost is surfaced HONESTLY — no estimates fabricated.
+          platform. Unknown cost is surfaced honestly — no estimates fabricated.
         </p>
       </header>
       <div className="mt-8 space-y-6">

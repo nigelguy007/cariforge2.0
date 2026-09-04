@@ -1011,8 +1011,24 @@
   font-size: var(--app-body);
   line-height: 1.5;
   color: var(--app-text);
-  /* Kill the body radial glow on app routes: quiet neutral background. */
   background: var(--app-bg);
+  /* Liquid-glass request (2026-09-04): panels need a soft, brand-tinted wash
+     behind them for backdrop-filter to actually read as glass — a flat
+     single-colour background makes blur invisible. Same hue/chroma tokens
+     the rest of the site already uses (--brand-h/--brand-c/--brand-l); no
+     new colour introduced, per the standing "keep CariForge colours" rule. */
+  background-image:
+    radial-gradient(
+      1100px 620px at 12% -12%,
+      oklch(var(--brand-l) var(--brand-c) var(--brand-h) / 0.12),
+      transparent 60%
+    ),
+    radial-gradient(
+      900px 560px at 100% 0%,
+      oklch(var(--brand-l) var(--brand-c) var(--brand-h) / 0.08),
+      transparent 55%
+    );
+  background-attachment: fixed;
 }
 .dark .app-shell {
   --app-border-strong: oklch(1 0 0 / 20%);
@@ -1021,6 +1037,17 @@
   --app-accent-soft: oklch(0.22 0.06 var(--brand-h));
   --app-accent-border: oklch(0.6 calc(var(--brand-c) * 0.6) var(--brand-h) / 0.5);
   --app-shadow-action: 0 1px 2px oklch(0 0 0 / 0.4), 0 6px 16px -10px oklch(0 0 0 / 0.6);
+  background-image:
+    radial-gradient(
+      1100px 620px at 12% -12%,
+      oklch(var(--brand-l) var(--brand-c) var(--brand-h) / 0.16),
+      transparent 60%
+    ),
+    radial-gradient(
+      900px 560px at 100% 0%,
+      oklch(var(--brand-l) var(--brand-c) var(--brand-h) / 0.1),
+      transparent 55%
+    );
 }
 
 /* Small set of app-only utilities. Kept as plain classes (not @layer) so
@@ -1056,13 +1083,25 @@
   font-size: var(--app-caption);
   line-height: 1.45;
 }
+/* Liquid glass: reuses the site's own --glass-bg/--glass-border/--glass-blur
+   tokens (see the .glass-card/.glass-panel rule above — same material,
+   already theme-aware for light/dark) over the brand-tinted wash on
+   .app-shell above, so app panels read as the same frosted glass as the
+   rest of the product. Radius token unchanged — only the material did. */
 .app-shell .app-panel {
-  background: var(--app-surface);
-  border: 1px solid var(--app-border);
+  background-color: var(--glass-bg);
+  backdrop-filter: blur(var(--glass-blur)) saturate(120%);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(120%);
+  border: 1px solid var(--glass-border);
   border-radius: var(--app-radius);
+  box-shadow:
+    0 1px 2px oklch(0.2 0.02 var(--brand-h) / 0.04),
+    0 8px 24px -12px var(--glass-shadow);
 }
 .app-shell .app-panel-action {
-  background: var(--app-surface);
+  background-color: var(--glass-bg);
+  backdrop-filter: blur(var(--glass-blur)) saturate(120%);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(120%);
   border: 1px solid var(--app-accent-border);
   border-radius: var(--app-radius);
   box-shadow: var(--app-shadow-action);
@@ -1097,9 +1136,12 @@
   display: none;
 }
 .app-shell .app-disclosure {
-  background: var(--app-surface);
-  border: 1px solid var(--app-border);
+  background-color: var(--glass-bg);
+  backdrop-filter: blur(var(--glass-blur)) saturate(120%);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(120%);
+  border: 1px solid var(--glass-border);
   border-radius: var(--app-radius);
+  box-shadow: 0 1px 2px oklch(0.2 0.02 var(--brand-h) / 0.04);
 }
 .app-shell .app-disclosure > summary {
   padding: 0.625rem 0.875rem 0.625rem 2.125rem;
