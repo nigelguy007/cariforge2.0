@@ -153,7 +153,12 @@ export function NextActionCard({
       toast.success('CariForge drafted this step — review it below.');
       await onWritten();
     } catch (err) {
-      toast.error((err as Error).message ?? 'Could not draft this step. Try again shortly.');
+      // apiFetch's own thrown Error.message is always the generic
+      // "apiFetch <path> failed (<status>)" — the route's actual, more
+      // useful message (e.g. "CariForge could not draft this step right
+      // now...") only ever lands in .cause.
+      const cause = (err as { cause?: { error?: string } }).cause;
+      toast.error(cause?.error ?? 'Could not draft this step. Try again shortly.');
     } finally {
       setDrafting(false);
     }
