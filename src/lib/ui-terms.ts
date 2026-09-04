@@ -76,6 +76,20 @@ export const STAGE_UI: Readonly<Record<StageName, StageUi>> = {
   },
 };
 
+// === Agent activity ==========================================================
+// User-specified format (2026-09-05 architecture doc): "Discovery Agent —
+// Defined the need", one row per real stage. "Agent" naming is a deliberate,
+// explicit exception to the "hide Agent 1-7" rule above — this section only
+// names the five REAL stages that exist in this schema (not the doc's
+// aspirational Partner/Impact agents, which have no stage of their own here).
+export const AGENT_ACTIVITY_UI: Readonly<Record<StageName, { agent: string; done: string }>> = {
+  Discovery: { agent: 'Discovery Agent', done: 'Defined the need' },
+  Readiness: { agent: 'Readiness Agent', done: 'Verified available evidence' },
+  Workflow: { agent: 'Workflow Agent', done: 'Designed the process' },
+  Governance: { agent: 'Controls Agent', done: 'Added required safeguards' },
+  SoftwareBuild: { agent: 'Build Agent', done: 'Created the prototype' },
+};
+
 export type StepUi = StageUi & { readonly stage: StageName };
 
 /** Ordered list of steps, 1..5, for the stepper. */

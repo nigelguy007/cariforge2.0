@@ -39,9 +39,85 @@ import { OracleAttestationList } from '@/components/custom/missions/oracle-attes
 import { OracleCouncilCard } from '@/components/custom/missions/oracle-council-card';
 import { QAReviewCard } from '@/components/custom/missions/qa-review-card';
 import { useIsAdmin } from '@/lib/auth-client';
-import type { MissionDetailT } from '@/lib/contracts/forge';
-import { DECISION_UI, reasonLabel, STEPS, stageUiForIndex } from '@/lib/ui-terms';
+import { type MissionDetailT, SPECIALIST_ROLE_VALUES } from '@/lib/contracts/forge';
+import {
+  AGENT_ACTIVITY_UI,
+  DECISION_UI,
+  reasonLabel,
+  STEPS,
+  stageUiForIndex,
+} from '@/lib/ui-terms';
 import type { ProjectWorkspaceView } from './use-project-workspace';
+
+// User-specified format (2026-09-05 architecture doc): a visible, always-
+// collapsed-parent checklist of what each real step's agent has produced,
+// plus a Council-review line — built entirely from data that already
+// exists (a non-superseded handoff per stage, real specialist attesters on
+// the latest one, real objection resolutions). No stage is invented: only
+// the five real stages this schema has are shown, never the doc's
+// aspirational Partner/Impact agents.
+function AgentActivityPanel({ detail }: { detail: MissionDetailT }) {
+  const doneCount = STEPS.filter((step) =>
+    detail.handoffs.some((h) => h.stage === step.stage && h.supersededById === null),
+  ).length;
+  const latestHandoff = detail.handoffs.find((h) => h.supersededById === null) ?? null;
+  const reviewCount = latestHandoff
+    ? new Set(
+        detail.handoffAttesters.filter((a) => a.handoffId === latestHandoff.id).map((a) => a.role),
+      ).size
+    : 0;
+  const resolvedConcerns = detail.objections.filter((o) => o.resolution !== null).length;
+
+  return (
+    <div className="app-panel">
+      <div className="flex items-baseline justify-between gap-3">
+        <p className="app-body font-medium text-[var(--app-text)]">Agent activity</p>
+        <p className="app-small text-[var(--app-text-muted)]">
+          {doneCount} of {STEPS.length} complete
+        </p>
+      </div>
+      <ul className="mt-2 space-y-1.5">
+        {STEPS.map((step) => {
+          const done = detail.handoffs.some(
+            (h) => h.stage === step.stage && h.supersededById === null,
+          );
+          const ui = AGENT_ACTIVITY_UI[step.stage];
+          return (
+            <li key={step.stage} className="flex items-baseline gap-2 app-small">
+              <span
+                aria-hidden="true"
+                className={done ? 'text-emerald-600' : 'text-[var(--app-text-muted)]'}
+              >
+                {done ? '✓' : '·'}
+              </span>
+              <span className={done ? 'text-[var(--app-text)]' : 'text-[var(--app-text-muted)]'}>
+                {ui.agent}
+              </span>
+              <span className="text-[var(--app-text-muted)]">
+                {done ? ui.done : 'Not started yet'}
+              </span>
+            </li>
+          );
+        })}
+      </ul>
+      {latestHandoff ? (
+        <>
+          <div className="mt-3 flex items-baseline justify-between gap-3 border-t border-[var(--app-border)] pt-2">
+            <p className="app-small font-medium text-[var(--app-text)]">Council review</p>
+            <p className="app-small text-[var(--app-text-muted)]">
+              {reviewCount} of {SPECIALIST_ROLE_VALUES.length} complete
+            </p>
+          </div>
+          {resolvedConcerns > 0 ? (
+            <p className="app-caption mt-1 text-[var(--app-text-muted)]">
+              {resolvedConcerns} {resolvedConcerns === 1 ? 'concern' : 'concerns'} resolved
+            </p>
+          ) : null}
+        </>
+      ) : null}
+    </div>
+  );
+}
 
 export type DetailSection =
   | 'council'
@@ -88,7 +164,7 @@ function summaryLine(view: ProjectWorkspaceView): string {
 }
 
 const GROUP_ORDER: readonly { key: DetailSection; title: string }[] = [
-  { key: 'council', title: 'Specialist review' },
+  { key: 'council', title: 'Agent activity' },
   { key: 'concerns', title: 'Concerns' },
   { key: 'evidence', title: 'Evidence' },
   { key: 'outputs', title: 'Step outputs' },
@@ -159,6 +235,7 @@ export function SupportingDetail({
   const content: Record<DetailSection, React.ReactNode> = {
     council: (
       <>
+        <AgentActivityPanel detail={detail} />
         {isAdmin ? <OracleCouncilCard detail={detail} onWritten={onWritten} /> : null}
         {latestHandoff ? (
           <div className="app-panel">
