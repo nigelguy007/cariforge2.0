@@ -23,14 +23,16 @@ export default function ForgeCanvasPage() {
               genuinely different paths they are. Renamed to stop that
               collision, and added one sentence stating the objective in
               plain terms before the mechanics (Start → Agents → ...) —
-              which explains HOW, not WHY you're here. */}
+              which explains HOW, not WHY you're here.
+              Link text updated (simplified-workspace redesign) to match
+              /missions/new's own current heading, "Start a project". */}
           <h1 className="text-h2 text-foreground">Sketch it, then run it</h1>
           <p className="text-small text-foreground">
             This is the self-service path: you build the actual steps yourself on a canvas, and
             test-run them right here — nothing formal, nothing reviewed by anyone else. Looking for
             the audited, sign-off version instead?{' '}
             <Link href="/missions/new" className="link-brand">
-              Start a governed mission
+              Start a project
             </Link>
             .
           </p>

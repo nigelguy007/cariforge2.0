@@ -24,9 +24,11 @@ test('forge canvas is reachable and shows the node palette above the fold', asyn
   await expect(page.getByRole('button', { name: /^Start/ })).toBeVisible();
 });
 
-test('approvals desk shows no tasks for a fresh submitter (own-only scoping)', async ({ page }) => {
+test('approvals queue shows no tasks for a fresh submitter (own-only scoping)', async ({
+  page,
+}) => {
   await page.goto('/approvals');
-  await expect(page.getByText('No approval tasks yet')).toBeVisible();
+  await expect(page.getByText('You have no approvals waiting')).toBeVisible();
 });
 
 test('pipeline detail is reachable once signed in, even for a non-admin', async ({ page }) => {
