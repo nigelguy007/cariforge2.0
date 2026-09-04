@@ -169,8 +169,11 @@ describe('nextActionFor — outstanding objection priority', () => {
       workItems: [],
     });
     expect(r.kind).toBe('ApproveGate');
+    // FIXED 2026-09-04: was asserting 'Readiness' — status InDiscovery with
+    // gate 0 (Discovery) still Awaiting means gate 0 is what's actually
+    // next, not gate 1's stage. See next-action.ts's pickNextGate comment.
     if (r.kind === 'ApproveGate') {
-      expect(r.stage).toBe('Readiness');
+      expect(r.stage).toBe('Discovery');
     }
   });
 });

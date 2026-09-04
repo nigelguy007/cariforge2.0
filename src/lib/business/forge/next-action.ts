@@ -130,7 +130,18 @@ function pickNextGate(
 ): { gateIndex: number; stage: StageName; name: string; purpose: string } | null {
   // AwaitingApproval means a fresh handoff just landed — the next gate is the
   // one matching currentStageIndex (or that gate's index for that handoff).
-  // For In<X> statuses, the next gate is the gate bound to stage X.
+  // For In<X> statuses, the next gate is the gate bound to stage X: a
+  // mission whose status is "InDiscovery" is actively WORKING Discovery,
+  // so the gate awaiting a decision is Discovery's own gate (0) — not the
+  // next stage's, which hasn't started.
+  //
+  // FIXED 2026-09-04: this map used to point one stage AHEAD of the
+  // status (InDiscovery -> Readiness's gate, etc.) — found by walking a
+  // real mission end-to-end: right after transitions/start (status
+  // InDiscovery, gate 0 still Awaiting, zero handoffs submitted), this
+  // panel told a real user to "Decide gate 1 — Ready for workflow," a
+  // stage that hadn't even started. Only InBuild -> SoftwareBuild was
+  // already correct (nothing further to be off into).
   if (status === 'AwaitingApproval') {
     const latest = approvals[0];
     const g = latest ? gates.find((gate) => gate.gateIndex === latest.gateIndex) : gates[0];
@@ -140,10 +151,10 @@ function pickNextGate(
   }
   const stageMap: Partial<Record<MissionStatus, StageName>> = {
     Draft: 'Discovery',
-    InDiscovery: 'Readiness',
-    InReadiness: 'Workflow',
-    InWorkflow: 'Governance',
-    InGovernance: 'SoftwareBuild',
+    InDiscovery: 'Discovery',
+    InReadiness: 'Readiness',
+    InWorkflow: 'Workflow',
+    InGovernance: 'Governance',
     InBuild: 'SoftwareBuild',
   };
   const targetStage = stageMap[status];
