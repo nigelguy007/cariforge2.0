@@ -15,6 +15,7 @@ import {
   type ApprovalDecision,
   GATE_DEFS,
   type MissionStatus,
+  type ObjectionResolution,
   type OracleRole,
   type ReasonCode,
   type StageName,
@@ -206,6 +207,15 @@ export const REASON_UI: Readonly<Record<ReasonCode, string>> = {
 export function reasonLabel(code: ReasonCode): string {
   return REASON_UI[code];
 }
+
+// === Concerns (objections) ==================================================
+
+export const OBJECTION_RESOLUTION_UI: Readonly<Record<ObjectionResolution, string>> = {
+  Overruled: 'Overruled by the reviewer',
+  CarriedForward: 'Carried forward, with the concern on record',
+  OwnerResolved: 'Resolved by the project owner',
+  Closed: 'Closed',
+};
 
 /**
  * The reason code the dialog pre-selects for each decision, chosen from the

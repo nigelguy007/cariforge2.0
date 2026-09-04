@@ -29,6 +29,7 @@ import {
   ObjectionResolutionInput,
 } from '@/lib/contracts/forge';
 import { applyServerErrors } from '@/lib/forms';
+import { OBJECTION_RESOLUTION_UI } from '@/lib/ui-terms';
 
 export function MissionObjectionCard({
   missionId,
@@ -80,11 +81,11 @@ export function MissionObjectionCard({
         </p>
       </header>
       <p className="text-body">{objection.text}</p>
-      <p className="text-small text-muted-foreground">
-        Handoff: <code>{objection.stageHandoffId.slice(-6)}</code>
-      </p>
       <p className="text-small">
-        Status: {objection.resolution ? `resolved (${objection.resolution})` : 'open'}
+        Status:{' '}
+        {objection.resolution
+          ? OBJECTION_RESOLUTION_UI[objection.resolution]
+          : 'Waiting for an answer'}
       </p>
       {objection.resolutionText ? (
         <p className="text-small">Resolution note: {objection.resolutionText}</p>
@@ -106,7 +107,7 @@ export function MissionObjectionCard({
                   <SelectContent>
                     {OBJECTION_RESOLUTION_VALUES.map((v) => (
                       <SelectItem key={v} value={v}>
-                        {v}
+                        {OBJECTION_RESOLUTION_UI[v]}
                       </SelectItem>
                     ))}
                   </SelectContent>

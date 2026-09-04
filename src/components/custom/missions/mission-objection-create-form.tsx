@@ -25,6 +25,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { apiFetch } from '@/lib/api-client';
 import { MissionDetail, type MissionDetailT, ObjectionCreate } from '@/lib/contracts/forge';
 import { applyServerErrors } from '@/lib/forms';
+import { stepLabel } from '@/lib/ui-terms';
 
 export function MissionObjectionCreateForm({
   detail,
@@ -77,22 +78,22 @@ export function MissionObjectionCreateForm({
           name="stageHandoffId"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Against handoff</FormLabel>
+              <FormLabel>Which step is this about?</FormLabel>
               <Select onValueChange={field.onChange} value={field.value}>
                 <FormControl>
                   <SelectTrigger>
-                    <SelectValue placeholder="Pick a handoff" />
+                    <SelectValue placeholder="Pick a step" />
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
                   {handoffOptions.length === 0 ? (
                     <SelectItem value="" disabled>
-                      No handoffs yet
+                      No step output yet
                     </SelectItem>
                   ) : (
                     handoffOptions.map((h) => (
                       <SelectItem key={h.id} value={h.id}>
-                        {h.stage} v{h.version}
+                        {stepLabel(h.stage)} (version {h.version})
                       </SelectItem>
                     ))
                   )}
