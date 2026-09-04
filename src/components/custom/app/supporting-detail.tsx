@@ -39,10 +39,11 @@ import { OracleAttestationList } from '@/components/custom/missions/oracle-attes
 import { OracleCouncilCard } from '@/components/custom/missions/oracle-council-card';
 import { QAReviewCard } from '@/components/custom/missions/qa-review-card';
 import { useIsAdmin } from '@/lib/auth-client';
-import { type MissionDetailT, SPECIALIST_ROLE_VALUES } from '@/lib/contracts/forge';
+import { GATE_DEFS, type MissionDetailT, SPECIALIST_ROLE_VALUES } from '@/lib/contracts/forge';
 import {
   AGENT_ACTIVITY_UI,
   DECISION_UI,
+  humanise,
   reasonLabel,
   STEPS,
   stageUiForIndex,
@@ -56,6 +57,84 @@ import type { ProjectWorkspaceView } from './use-project-workspace';
 // the latest one, real objection resolutions). No stage is invented: only
 // the five real stages this schema has are shown, never the doc's
 // aspirational Partner/Impact agents.
+// Generic: works for both an AI-drafted payload (known field names, see
+// ai-draft.ts's StepDraftV4) and a human-typed one (arbitrary JSON) —
+// shows whatever non-empty string/array fields exist, translated, rather
+// than assuming one fixed shape.
+function payloadFacts(
+  payload: Record<string, unknown>,
+): readonly { label: string; value: string }[] {
+  const facts: { label: string; value: string }[] = [];
+  for (const [key, value] of Object.entries(payload)) {
+    if (typeof value === 'string' && value.trim()) {
+      facts.push({ label: humanise(key), value: value.trim() });
+    } else if (Array.isArray(value) && value.length > 0) {
+      const items = value.filter((v): v is string => typeof v === 'string' && v.trim().length > 0);
+      if (items.length > 0) facts.push({ label: humanise(key), value: items.join('; ') });
+    }
+  }
+  return facts;
+}
+
+/** "Selecting an agent reveals" (2026-09-05 architecture doc): what it was
+ *  asked to do, what it produced, its confidence, concerns raised, and
+ *  why the decision landed the way it did — all from data already on
+ *  the mission, no new fetch. */
+function AgentStepDetail({
+  step,
+  handoff,
+  gate,
+  approval,
+  objections,
+}: {
+  step: (typeof STEPS)[number];
+  handoff: MissionDetailT['handoffs'][number] | null;
+  gate: MissionDetailT['gates'][number] | undefined;
+  approval: MissionDetailT['approvals'][number] | undefined;
+  objections: readonly MissionDetailT['objections'][number][];
+}) {
+  const gateDef = GATE_DEFS.find((g) => g.stage === step.stage);
+  return (
+    <div className="app-detail-body mt-2 space-y-2">
+      <p className="app-caption text-[var(--app-text-muted)]">
+        Asked to: {gateDef?.purpose ?? step.sentence}
+      </p>
+      {handoff ? (
+        <>
+          {payloadFacts(handoff.payload as Record<string, unknown>).map((f) => (
+            <div key={f.label}>
+              <p className="app-small font-medium text-[var(--app-text)]">{f.label}</p>
+              <p className="app-small text-[var(--app-text-muted)]">{f.value}</p>
+            </div>
+          ))}
+          <p className="app-caption text-[var(--app-text-muted)]">
+            Confidence: {Math.round(handoff.confidence * 100)}%
+          </p>
+        </>
+      ) : null}
+      {objections.length > 0 ? (
+        <div>
+          <p className="app-small font-medium text-[var(--app-text)]">Concerns raised</p>
+          <ul className="mt-1 space-y-1">
+            {objections.map((o) => (
+              <li key={o.id} className="app-small text-[var(--app-text-muted)]">
+                {o.raisedByRole}: {o.text}
+                {o.resolution ? ' — resolved' : ''}
+              </li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
+      {gate && approval ? (
+        <p className="app-caption text-[var(--app-text-muted)]">
+          {DECISION_UI[approval.decision]} by {approval.approverName ?? 'the approver'} —{' '}
+          {reasonLabel(approval.reasonCode)}
+        </p>
+      ) : null}
+    </div>
+  );
+}
+
 function AgentActivityPanel({ detail }: { detail: MissionDetailT }) {
   const doneCount = STEPS.filter((step) =>
     detail.handoffs.some((h) => h.stage === step.stage && h.supersededById === null),
@@ -76,26 +155,47 @@ function AgentActivityPanel({ detail }: { detail: MissionDetailT }) {
           {doneCount} of {STEPS.length} complete
         </p>
       </div>
-      <ul className="mt-2 space-y-1.5">
+      <ul className="mt-2 space-y-1">
         {STEPS.map((step) => {
-          const done = detail.handoffs.some(
-            (h) => h.stage === step.stage && h.supersededById === null,
-          );
+          const handoff =
+            detail.handoffs.find((h) => h.stage === step.stage && h.supersededById === null) ??
+            null;
+          const done = handoff !== null;
           const ui = AGENT_ACTIVITY_UI[step.stage];
+          const gate = detail.gates.find((g) => g.gateIndex === STEPS.indexOf(step));
+          const approval = detail.approvals
+            .filter((a) => a.gateIndex === STEPS.indexOf(step))
+            .sort((a, b) => b.at.localeCompare(a.at))[0];
+          const objections = handoff
+            ? detail.objections.filter((o) => o.stageHandoffId === handoff.id)
+            : [];
           return (
-            <li key={step.stage} className="flex items-baseline gap-2 app-small">
-              <span
-                aria-hidden="true"
-                className={done ? 'text-emerald-600' : 'text-[var(--app-text-muted)]'}
-              >
-                {done ? '✓' : '·'}
-              </span>
-              <span className={done ? 'text-[var(--app-text)]' : 'text-[var(--app-text-muted)]'}>
-                {ui.agent}
-              </span>
-              <span className="text-[var(--app-text-muted)]">
-                {done ? ui.done : 'Not started yet'}
-              </span>
+            <li key={step.stage}>
+              <details className="app-disclosure">
+                <summary className="flex min-h-9 items-baseline gap-2 app-small">
+                  <span
+                    aria-hidden="true"
+                    className={done ? 'text-emerald-600' : 'text-[var(--app-text-muted)]'}
+                  >
+                    {done ? '✓' : '·'}
+                  </span>
+                  <span
+                    className={done ? 'text-[var(--app-text)]' : 'text-[var(--app-text-muted)]'}
+                  >
+                    {ui.agent}
+                  </span>
+                  <span className="text-[var(--app-text-muted)]">
+                    {done ? ui.done : 'Not started yet'}
+                  </span>
+                </summary>
+                <AgentStepDetail
+                  step={step}
+                  handoff={handoff}
+                  gate={gate}
+                  approval={approval}
+                  objections={objections}
+                />
+              </details>
             </li>
           );
         })}
