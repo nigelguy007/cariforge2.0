@@ -767,11 +767,57 @@ export function ForgeCanvasBuilder() {
       <div className="flex min-h-0 flex-1 flex-col gap-3 md:flex-row">
         {/* Palette */}
         <aside className="glass-panel max-h-56 w-full shrink-0 space-y-2 overflow-y-auto rounded-xl p-3 md:h-auto md:max-h-none md:w-52">
+          {/* Real user testing feedback (2026-09-04): "What do nodes do?"
+              asked despite every palette entry already carrying a one-line
+              hint (2026-09-01 fix, below) — because on mobile this whole
+              aside is a height-capped, independently-scrolling box (next
+              comment), and the Guide box used to sit above the node list
+              inside it. On a phone that box alone (label + textarea +
+              button) could fill the entire visible height, so the actual
+              answer to "what do nodes do" was scrolled out of sight below
+              the fold before anyone got to it. Reordered so the node list
+              — the primary, always-relevant answer — is what's visible
+              first; the Guide shortcut (optional, one way to start) now
+              comes after it, not before. */}
+          <div className="space-y-1.5 border-b border-border pb-3">
+            <p className="text-eyebrow text-brand-700">Nodes</p>
+            {PALETTE.map((p) => (
+              <button
+                key={p.type}
+                type="button"
+                onClick={() => addNode(p.type)}
+                className="w-full rounded-lg border border-border bg-card px-3 py-2 text-left transition-colors hover:border-brand-400"
+              >
+                <span className="block text-sm font-medium text-foreground">{p.label}</span>
+                <span className="block text-xs text-muted-foreground">{p.hint}</span>
+              </button>
+            ))}
+            <button
+              type="button"
+              onClick={() => setShowAdvanced((v) => !v)}
+              className="w-full pt-1 text-left text-xs font-medium text-muted-foreground hover:text-foreground"
+            >
+              {showAdvanced ? '▾' : '▸'} Advanced ({ADVANCED_PALETTE.length})
+            </button>
+            {showAdvanced
+              ? ADVANCED_PALETTE.map((p) => (
+                  <button
+                    key={p.type}
+                    type="button"
+                    onClick={() => addNode(p.type)}
+                    className="w-full rounded-lg border border-border bg-card px-3 py-2 text-left transition-colors hover:border-brand-400"
+                  >
+                    <span className="block text-sm font-medium text-foreground">{p.label}</span>
+                    <span className="block text-xs text-muted-foreground">{p.hint}</span>
+                  </button>
+                ))
+              : null}
+          </div>
           {/* PR B: Forge Guide — compiles a starter draft from a plain
               description via the reused configurator. Draft only: nothing
               runs, nothing saves, until the author reviews and clicks
               Save themselves. */}
-          <div className="space-y-1.5 border-b border-border pb-3">
+          <div className="space-y-1.5">
             <Label htmlFor="guide-description" className="text-xs">
               What problem are you solving?
             </Label>
@@ -794,38 +840,6 @@ export function ForgeCanvasBuilder() {
               {guideBusy ? 'Drafting…' : 'Draft on canvas'}
             </Button>
           </div>
-          <p className="text-eyebrow text-brand-700">Nodes</p>
-          {PALETTE.map((p) => (
-            <button
-              key={p.type}
-              type="button"
-              onClick={() => addNode(p.type)}
-              className="w-full rounded-lg border border-border bg-card px-3 py-2 text-left transition-colors hover:border-brand-400"
-            >
-              <span className="block text-sm font-medium text-foreground">{p.label}</span>
-              <span className="block text-xs text-muted-foreground">{p.hint}</span>
-            </button>
-          ))}
-          <button
-            type="button"
-            onClick={() => setShowAdvanced((v) => !v)}
-            className="w-full pt-1 text-left text-xs font-medium text-muted-foreground hover:text-foreground"
-          >
-            {showAdvanced ? '▾' : '▸'} Advanced ({ADVANCED_PALETTE.length})
-          </button>
-          {showAdvanced
-            ? ADVANCED_PALETTE.map((p) => (
-                <button
-                  key={p.type}
-                  type="button"
-                  onClick={() => addNode(p.type)}
-                  className="w-full rounded-lg border border-border bg-card px-3 py-2 text-left transition-colors hover:border-brand-400"
-                >
-                  <span className="block text-sm font-medium text-foreground">{p.label}</span>
-                  <span className="block text-xs text-muted-foreground">{p.hint}</span>
-                </button>
-              ))
-            : null}
           <div className="space-y-1 pt-2">
             <Label htmlFor="run-input" className="text-xs">
               Test-run input
