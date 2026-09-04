@@ -15,7 +15,19 @@ import { Button } from '@/components/ui/button';
 import { apiFetch } from '@/lib/api-client';
 import { type OpenBriefItem, OpenBriefList } from '@/lib/contracts/leads';
 
-export function BriefConversionCard() {
+export interface BriefConversionCardProps {
+  // Real user feedback (2026-09-04, with screenshot): the dashboard showed
+  // "Your brief" (with its own Build-visually / Start-a-mission choice)
+  // immediately followed by a second, generic "What do you want to build?"
+  // quick-capture box — "remove the what do you want to build because u
+  // would have added it in the your brief." This card is the only thing
+  // that knows whether an open brief actually exists (it owns the fetch),
+  // so it reports that back via this callback rather than the dashboard
+  // page re-fetching the same data itself.
+  onLoaded?: (hasOpenBriefs: boolean) => void;
+}
+
+export function BriefConversionCard({ onLoaded }: BriefConversionCardProps = {}) {
   const [briefs, setBriefs] = React.useState<OpenBriefItem[] | null>(null);
   const [expanded, setExpanded] = React.useState<string | null>(null);
 
@@ -23,17 +35,25 @@ export function BriefConversionCard() {
     let cancelled = false;
     apiFetch('/api/forge/briefs/open', { schema: OpenBriefList })
       .then((data) => {
-        if (!cancelled) setBriefs(data.items);
+        if (cancelled) return;
+        setBriefs(data.items);
+        onLoaded?.(data.items.length > 0);
       })
       .catch(() => {
         // Silent: this card is a bonus bridge, never a blocker — the
         // dashboard renders identically for users with no open brief.
-        if (!cancelled) setBriefs([]);
+        if (cancelled) return;
+        setBriefs([]);
+        onLoaded?.(false);
       });
     return () => {
       cancelled = true;
     };
-  }, []);
+    // onLoaded is included per biome's useExhaustiveDependencies — in
+    // practice this is always a useState setter (DashboardPage passes
+    // setHasOpenBrief directly), which React guarantees is referentially
+    // stable across renders, so this still only fetches once on mount.
+  }, [onLoaded]);
 
   if (!briefs || briefs.length === 0) return null;
 

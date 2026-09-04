@@ -34,6 +34,15 @@ export default function DashboardPage() {
   const router = useRouter();
   const isAdmin = hasRole(session?.user?.role, 'admin');
   const [intake, setIntake] = React.useState('');
+  // Real user feedback (2026-09-04, with screenshot): "look u can see the
+  // two nonsensical your brief and then asking what do you want to build.
+  // remove the what do you want to build because u would have added it in
+  // the your brief. if person did not add your brief then put what do you
+  // want to build." Defaults to showing the quick-capture box (today's
+  // behavior, and the correct state for a user with nothing open yet) and
+  // hides it only once BriefConversionCard confirms an open brief exists —
+  // that card already covers "describe what you want" for that brief.
+  const [hasOpenBrief, setHasOpenBrief] = React.useState(false);
 
   // 2026-09-01 UX pass: the primary action from this box is now "build it"
   // (straight into the Forge Canvas via Guide, /forge?draft=), not "start a
@@ -74,59 +83,65 @@ export default function DashboardPage() {
       {/* UX review C1 (wireframe v2, 2c): the front door's CF reference
           finally goes somewhere — an open brief matched by email surfaces
           here as a one-click conversion into the governed pipeline. */}
-      <BriefConversionCard />
+      <BriefConversionCard onLoaded={setHasOpenBrief} />
       {/* Real gap found via user screenshot: this authenticated area has no
           atmospheric background at all (no layout.tsx, just the flat page
           --background), so .glass-panel's blur/translucency had nothing
           textured behind it to reveal — it just looked like a flat box,
           not "liquid glass". hero-aurora (already proven on the homepage
-          and /how-it-works) gives it something to actually blur. */}
-      <section className="glass-panel hero-aurora relative overflow-hidden rounded-2xl p-6 md:p-8">
-        {/* Real mobile bug found in QA: a flex row's children default to
+          and /how-it-works) gives it something to actually blur.
+
+          Hidden when an open brief already covers "what do you want to
+          build" (see hasOpenBrief above) — showing both at once is what
+          the 2026-09-04 screenshot feedback was about. */}
+      {!hasOpenBrief && (
+        <section className="glass-panel hero-aurora relative overflow-hidden rounded-2xl p-6 md:p-8">
+          {/* Real mobile bug found in QA: a flex row's children default to
             min-width:auto, so this text block's intrinsic content width
             (the H1 in particular) was forcing the whole hero section wider
             than the viewport instead of letting the heading wrap —
             min-w-0 is the standard fix, lets it shrink and wrap properly. */}
-        <div className="flex flex-wrap items-start justify-between gap-4">
-          <div className="min-w-0">
-            <p className="text-caption uppercase tracking-wide text-brand-700">
-              {isAdmin ? 'Admin dashboard' : 'Build something'}
-            </p>
-            <h1 className="text-h2 text-foreground">What do you want to build?</h1>
+          <div className="flex flex-wrap items-start justify-between gap-4">
+            <div className="min-w-0">
+              <p className="text-caption uppercase tracking-wide text-brand-700">
+                {isAdmin ? 'Admin dashboard' : 'Build something'}
+              </p>
+              <h1 className="text-h2 text-foreground">What do you want to build?</h1>
+            </div>
+            <Badge variant="secondary" className="w-fit">
+              {isAdmin ? 'Admin role' : 'User role'}
+            </Badge>
           </div>
-          <Badge variant="secondary" className="w-fit">
-            {isAdmin ? 'Admin role' : 'User role'}
-          </Badge>
-        </div>
-        <form onSubmit={handleBuildVisually} className="mt-4 space-y-3">
-          <Textarea
-            value={intake}
-            onChange={(event) => setIntake(event.target.value)}
-            rows={3}
-            placeholder="Describe what you want — a support-ticket triage bot, a document reviewer, anything. You'll see it as a visual workflow next."
-            aria-label="What do you want to build?"
-          />
-          <div className="flex flex-wrap items-center gap-3">
-            <Button type="submit" className="glass-cta">
-              Build visually
-            </Button>
-            {/* UX review M2: name what this box actually does. Mission
+          <form onSubmit={handleBuildVisually} className="mt-4 space-y-3">
+            <Textarea
+              value={intake}
+              onChange={(event) => setIntake(event.target.value)}
+              rows={3}
+              placeholder="Describe what you want — a support-ticket triage bot, a document reviewer, anything. You'll see it as a visual workflow next."
+              aria-label="What do you want to build?"
+            />
+            <div className="flex flex-wrap items-center gap-3">
+              <Button type="submit" className="glass-cta">
+                Build visually
+              </Button>
+              {/* UX review M2: name what this box actually does. Mission
                 tracking (formal governance, gate sign-off, audit trail) is
                 still available, just no longer the first/only option. */}
-            <span className="text-small text-muted-foreground">
-              Need formal sign-off tracking instead?{' '}
-              <button
-                type="button"
-                onClick={handleStartMission}
-                className="underline underline-offset-4 hover:text-foreground"
-              >
-                Start a governed mission
-              </button>{' '}
-              — same text, the full 5-gate flow.
-            </span>
-          </div>
-        </form>
-      </section>
+              <span className="text-small text-muted-foreground">
+                Need formal sign-off tracking instead?{' '}
+                <button
+                  type="button"
+                  onClick={handleStartMission}
+                  className="underline underline-offset-4 hover:text-foreground"
+                >
+                  Start a governed mission
+                </button>{' '}
+                — same text, the full 5-gate flow.
+              </span>
+            </div>
+          </form>
+        </section>
+      )}
 
       <section>
         <h2 className="text-h3 text-foreground">Your missions</h2>
