@@ -35,11 +35,17 @@ export default async function NewMissionPage({
             two alternative paths (the canvas is the other). Only reachable
             from an explicit choice (a brief's "Start a governed mission"
             button, or navigating here directly), never forced. */}
+        {/* Real user feedback (2026-09-04): "what is the meaning of build
+            visually and start a governed mission is nothing is built? what
+            is the point of both?" — "before anything is built" overclaimed
+            what this pipeline actually produces at the end: a reviewed,
+            audited build spec (Blueprint + Runbook), not running code. */}
         <p className="mt-2 text-body text-foreground">
           This is separate from — not a required next step after — submitting a brief. It's the
           formal alternative to the visual canvas: instead of building the steps yourself, you
-          describe the need once and it goes through five human-gated review stages before anything
-          is built.
+          describe the need once and it goes through five human-gated review stages that end in a
+          fully audited, approved build spec — not running code. Actually building it is a separate
+          step after that, done by your own team.
         </p>
         <p className="mt-2 text-body text-muted-foreground">
           Write the need as you would to a colleague: one paragraph, the outcome, the blocker, the

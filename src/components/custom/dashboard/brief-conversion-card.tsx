@@ -91,14 +91,31 @@ export function BriefConversionCard({ onLoaded }: BriefConversionCardProps = {})
               separate, self-contained option cards, each with its own
               one-line answer directly attached to its own button, so
               there's nothing to cross-reference. */}
+          {/* Real user feedback (2026-09-04): "what is the meaning of build
+              visually and start a governed mission is nothing is built?
+              what is the point of both?" Fair, and found by actually
+              completing a real mission end to end: gate 4's approval
+              produces a Blueprint + Runbook — a reviewed, audited SPEC,
+              not running code (GATE_DEFS[4].name is literally "Prototype
+              spec approved", not "Build complete" — see forge.ts). The
+              old copy here said "before anything is built," which reads
+              as a promise this pipeline itself never keeps. Rewritten to
+              state each path's actual deliverable, plus the one fact that
+              answers "what's the point": neither path deploys real
+              software from inside this app — that's a separate, later
+              step (Production Forge, run by your own team), using
+              whichever output you pick below. */}
           <p className="mt-3 text-small font-medium text-foreground">
             What do you want to do with it?
           </p>
           <div className="mt-2 grid gap-3 sm:grid-cols-2">
             <div className="flex flex-col gap-2 rounded-xl border border-border p-3">
-              <p className="text-small font-semibold text-foreground">Build it yourself, now</p>
+              <p className="text-small font-semibold text-foreground">
+                Sketch it and try it yourself
+              </p>
               <p className="text-caption text-muted-foreground">
-                Sketch the steps on a canvas and test-run it right away. Nobody else reviews it.
+                A working draft you test-run in a sandbox, right away — nothing real happens, nobody
+                else reviews it. Good for checking the logic makes sense first.
               </p>
               <Button asChild className="glass-cta mt-1 self-start">
                 <Link href={`/forge?draft=${encodeURIComponent(b.brief.slice(0, 4800))}`}>
@@ -108,10 +125,11 @@ export function BriefConversionCard({ onLoaded }: BriefConversionCardProps = {})
             </div>
             <div className="flex flex-col gap-2 rounded-xl border border-border p-3">
               <p className="text-small font-semibold text-foreground">
-                Send it for formal sign-off
+                Get it formally reviewed and specced
               </p>
               <p className="text-caption text-muted-foreground">
-                Nothing runs yet. A named human approves every stage before anything is built.
+                Not code — a fully audited, human-approved build spec, with a named person signing
+                off at every stage. Often the actual deliverable a regulated buyer needs.
               </p>
               <Button asChild variant="secondary" className="glass-outline-cta mt-1 self-start">
                 <Link
@@ -122,6 +140,10 @@ export function BriefConversionCard({ onLoaded }: BriefConversionCardProps = {})
               </Button>
             </div>
           </div>
+          <p className="mt-2 text-caption text-muted-foreground">
+            Neither one deploys real software by itself — that happens afterward, by your own team,
+            using whichever output you build from here.
+          </p>
           <Button
             type="button"
             variant="ghost"
