@@ -981,6 +981,10 @@
 .app-shell {
   --app-bg: var(--background);
   --app-surface: var(--card);
+  /* Row-hover background for plain (non-glass) lists — a11y-review fix
+     (2026-09-04): referenced by approvals-queue.tsx/evidence-index.tsx
+     but never defined, so those hover states were a silent no-op. */
+  --app-surface-muted: var(--secondary);
   --app-border: var(--border);
   --app-border-strong: oklch(0.82 0.02 var(--brand-h));
   --app-text: var(--foreground);
