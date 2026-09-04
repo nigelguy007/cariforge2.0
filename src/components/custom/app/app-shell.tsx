@@ -13,7 +13,6 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import * as React from 'react';
 import { BrandMark } from '@/components/custom/brand-mark';
-import { ThemeToggle } from '@/components/custom/theme-toggle';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
   DropdownMenu,
@@ -67,7 +66,7 @@ export function AppShell({ children }: AppShellProps) {
 
   if (isPending || !session?.user) {
     return (
-      <main className="app-shell flex min-h-dvh items-center justify-center px-6">
+      <main className="app-shell dark flex min-h-dvh items-center justify-center px-6">
         <p className="app-small text-[var(--app-text-muted)]" aria-live="polite">
           {isPending ? 'Loading…' : 'Redirecting to sign in…'}
         </p>
@@ -79,7 +78,7 @@ export function AppShell({ children }: AppShellProps) {
   const displayName = user.name?.trim() || user.email || 'Account';
 
   return (
-    <div className="app-shell min-h-dvh">
+    <div className="app-shell dark min-h-dvh">
       <a
         href="#app-main"
         className="sr-only focus:not-sr-only focus:absolute focus:left-3 focus:top-3 focus:z-50 focus:rounded-md focus:bg-[var(--app-surface)] focus:px-3 focus:py-2"
@@ -93,7 +92,6 @@ export function AppShell({ children }: AppShellProps) {
             <span className="truncate font-semibold text-[var(--app-text)]">CariForge</span>
           </Link>
           <div className="flex items-center gap-1">
-            <ThemeToggle className="size-11" />
             <DropdownMenu>
               <DropdownMenuTrigger
                 className="app-transition flex min-h-11 items-center gap-2 rounded-[var(--app-radius-sm)] px-2 hover:bg-[var(--secondary)]"

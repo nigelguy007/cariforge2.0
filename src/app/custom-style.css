@@ -1034,7 +1034,13 @@
     );
   background-attachment: fixed;
 }
-.dark .app-shell {
+/* Compound selector `.app-shell.dark`, not the descendant form
+   `.dark .app-shell`: the app now carries the `dark` class on its OWN
+   root element permanently (see app-shell.tsx), not on an ancestor, so a
+   descendant combinator here would silently never match. A compound
+   selector's specificity (0,2,0) beats the plain `.app-shell` rule above
+   (0,1,0) regardless of source order, so this still wins either way. */
+.app-shell.dark {
   --app-border-strong: oklch(1 0 0 / 20%);
   --app-accent: var(--brand-300);
   --app-accent-strong: var(--brand-200);
