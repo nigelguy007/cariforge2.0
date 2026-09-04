@@ -1,12 +1,10 @@
-// @polsia:user-owned — wraps every /forge/* page in the same DashboardShell
-// as /dashboard: one signed-in chrome (handover §7 / R2 "one consistent
-// shell"), and — per security review — the client-side redirect to /login
-// for signed-out visitors. Data was never exposed (every /api/forge-canvas
-// route 401s without a session); this closes the page-shell gap too.
+// @polsia:user-owned — every signed-in route shares the one AppShell
+// (brief, Step 3 + 7): Projects / Approvals / Evidence nav, avatar menu, and
+// the client-side redirect to /login for signed-out visitors.
 
 import type { ReactNode } from 'react';
-import { DashboardShell } from '@/components/custom/dashboard/dashboard-shell';
+import { AppShell } from '@/components/custom/app/app-shell';
 
-export default function ForgeLayout({ children }: { children: ReactNode }) {
-  return <DashboardShell>{children}</DashboardShell>;
+export default function AppRouteLayout({ children }: { children: ReactNode }) {
+  return <AppShell>{children}</AppShell>;
 }

@@ -21,6 +21,7 @@ import {
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 // Session seam. better-auth is installed — read the session reactively so
 // `requiresAuth: true` nav items (e.g. the admin Leads link) appear after sign-in.
+import { isAppRoute } from '@/lib/app-routes';
 import { useSession } from '@/lib/auth-client';
 import { type NavGroup, type NavItem, navItems } from '@/lib/nav';
 import { siteName } from '@/lib/site';
@@ -125,7 +126,9 @@ export function SiteNav() {
   // scrolling page, but it still renders its own header, so the bail stands
   // for the original doubling-up reason.) All hooks above still run
   // unconditionally (rules of hooks); only the render bails.
-  if (pathname === '/') return null;
+  // Signed-in app routes render their own AppShell (Projects / Approvals /
+  // Evidence + avatar menu), so the marketing nav steps aside there too.
+  if (pathname === '/' || isAppRoute(pathname)) return null;
 
   return (
     <>
@@ -393,7 +396,7 @@ export function SiteFooter() {
   const pathname = usePathname();
   // Same reason as SiteNav above: / owns its own complete footer (the
   // three-stat bar), so the global footer opts out on that one route.
-  if (footer.length === 0 || pathname === '/') return null;
+  if (footer.length === 0 || pathname === '/' || isAppRoute(pathname)) return null;
 
   return (
     // The footer sits directly on the page background (no translucent
