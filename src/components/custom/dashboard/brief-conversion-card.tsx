@@ -60,43 +60,57 @@ export function BriefConversionCard() {
               ? b.brief
               : `${b.brief.slice(0, 180)}${b.brief.length > 180 ? '…' : ''}`}
           </p>
-          {/* Real user testing feedback (2026-09-04): "what does build
-              visually try to achieve and what does start governed mission
-              instead try to achieve... it takes me to sections which make
-              no sense... what is the business process here?" — these two
-              buttons are the exact decision point that question is about,
-              and neither said what it actually does. Fixed here, at the
-              fork itself, rather than only on the two destination pages —
-              the choice has to make sense BEFORE you click, not after. */}
-          <p className="mt-3 text-small text-muted-foreground">
-            Two different things, not two steps of the same one:{' '}
-            <span className="font-medium text-foreground">Build visually</span> sketches this as
-            steps on a canvas you can test-run yourself, right away.{' '}
-            <span className="font-medium text-foreground">Start a governed mission</span> instead
-            sends it through a formal review — a named human signs off at every stage, nothing runs,
-            but every decision is recorded.
+          {/* Real user testing feedback (2026-09-04, TWICE): "what does
+              build visually try to achieve and what does start governed
+              mission instead try to achieve..." and later, after a first
+              fix (a shared paragraph above the buttons explaining both):
+              "what is build visually, what is start a governed mission
+              instead, dont know what is happening here and its not user
+              friendly." One paragraph above two buttons apparently still
+              reads as boilerplate to skip past — restructured into two
+              separate, self-contained option cards, each with its own
+              one-line answer directly attached to its own button, so
+              there's nothing to cross-reference. */}
+          <p className="mt-3 text-small font-medium text-foreground">
+            What do you want to do with it?
           </p>
-          <div className="mt-3 flex flex-wrap items-center gap-3">
-            <Button asChild className="glass-cta">
-              <Link href={`/forge?draft=${encodeURIComponent(b.brief.slice(0, 4800))}`}>
-                Build visually
-              </Link>
-            </Button>
-            <Button asChild variant="secondary" className="glass-outline-cta">
-              <Link
-                href={`/missions/new?intake=${encodeURIComponent(b.brief.slice(0, 4800))}&lead=${encodeURIComponent(b.id)}`}
-              >
-                Start a governed mission instead
-              </Link>
-            </Button>
-            <Button
-              type="button"
-              variant="ghost"
-              onClick={() => setExpanded((cur) => (cur === b.id ? null : b.id))}
-            >
-              {expanded === b.id ? 'Collapse brief' : 'View brief'}
-            </Button>
+          <div className="mt-2 grid gap-3 sm:grid-cols-2">
+            <div className="flex flex-col gap-2 rounded-xl border border-border p-3">
+              <p className="text-small font-semibold text-foreground">Build it yourself, now</p>
+              <p className="text-caption text-muted-foreground">
+                Sketch the steps on a canvas and test-run it right away. Nobody else reviews it.
+              </p>
+              <Button asChild className="glass-cta mt-1 self-start">
+                <Link href={`/forge?draft=${encodeURIComponent(b.brief.slice(0, 4800))}`}>
+                  Build visually
+                </Link>
+              </Button>
+            </div>
+            <div className="flex flex-col gap-2 rounded-xl border border-border p-3">
+              <p className="text-small font-semibold text-foreground">
+                Send it for formal sign-off
+              </p>
+              <p className="text-caption text-muted-foreground">
+                Nothing runs yet. A named human approves every stage before anything is built.
+              </p>
+              <Button asChild variant="secondary" className="glass-outline-cta mt-1 self-start">
+                <Link
+                  href={`/missions/new?intake=${encodeURIComponent(b.brief.slice(0, 4800))}&lead=${encodeURIComponent(b.id)}`}
+                >
+                  Start a governed mission
+                </Link>
+              </Button>
+            </div>
           </div>
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            className="mt-2"
+            onClick={() => setExpanded((cur) => (cur === b.id ? null : b.id))}
+          >
+            {expanded === b.id ? 'Collapse brief' : 'View brief'}
+          </Button>
         </section>
       ))}
     </div>

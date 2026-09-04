@@ -26,6 +26,12 @@ import {
   GlassSectionHeader,
 } from '@/components/custom/glass';
 import { WorkflowConfigurator } from '@/components/custom/workflow-configurator';
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from '@/components/ui/accordion';
 import { siteName } from '@/lib/site';
 
 export const metadata: Metadata = {
@@ -151,23 +157,43 @@ export default function HowItWorksPage() {
           /api/configurator (src/lib/business/configurator.ts), gracefully
           degrading to a plain nudge toward the real form if
           ANTHROPIC_API_KEY isn't configured or the call fails. */}
+      {/* Real user feedback (2026-09-04): "i gave a brief but dont know
+          what is the difference with what do you want to build?" — this
+          section used to sit open, right below the real front-door form,
+          as a second full-size "describe your idea" box. Someone who had
+          just submitted the real form scrolled straight into what looked
+          like the same question again. Collapsed behind an explicit,
+          differently-worded trigger so nothing competes with the real form
+          by default — this only appears if you deliberately ask for it. */}
       <section id="configurator" className="section relative overflow-hidden section-aurora">
-        <div className="container-page grid gap-10 lg:grid-cols-[0.9fr_1.1fr] lg:items-start">
-          <div className="flex flex-col gap-3">
-            <GlassChip tone="brand" className="self-start">
-              Try it first
-            </GlassChip>
-            <h2 className="font-display text-h3 tracking-tight text-foreground">
-              Get an instant read before you apply.
-            </h2>
-            <p className="text-body text-muted-foreground">
-              One minute, nothing saved. When you&rsquo;re ready, the form above is what a named
-              human actually reads.
-            </p>
-          </div>
-          <GlassCard tone="surface" padding="lg">
-            <WorkflowConfigurator />
-          </GlassCard>
+        <div className="container-page">
+          <Accordion type="single" collapsible className="mx-auto w-full max-w-2xl">
+            <AccordionItem value="configurator" className="border-none">
+              <AccordionTrigger className="justify-center gap-2 rounded-full border border-border bg-secondary/60 px-5 py-2.5 text-small font-medium text-foreground hover:no-underline">
+                Not ready to submit? Get a private, no-commitment gut-check first
+              </AccordionTrigger>
+              <AccordionContent className="pt-6">
+                <div className="grid gap-6 lg:grid-cols-[0.9fr_1.1fr] lg:items-start">
+                  <div className="flex flex-col gap-3">
+                    <GlassChip tone="brand" className="self-start">
+                      Try it first
+                    </GlassChip>
+                    <h2 className="font-display text-h3 tracking-tight text-foreground">
+                      Get an instant read before you apply.
+                    </h2>
+                    <p className="text-body text-muted-foreground">
+                      One minute, nothing saved, no account needed. This is a sandbox — it never
+                      becomes a real submission. When you&rsquo;re ready for that, use the form
+                      above instead; that&rsquo;s the one a named human actually reads.
+                    </p>
+                  </div>
+                  <GlassCard tone="surface" padding="lg">
+                    <WorkflowConfigurator />
+                  </GlassCard>
+                </div>
+              </AccordionContent>
+            </AccordionItem>
+          </Accordion>
         </div>
       </section>
 

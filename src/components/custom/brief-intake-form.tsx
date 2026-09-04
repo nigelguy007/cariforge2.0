@@ -93,9 +93,17 @@ function BriefDashboardCta() {
     // override found on /missions/new during 2026-09-04 testing ("a light
     // blue circle not visible"). Same fix: .glass-inset.
     <div className="glass-inset flex flex-col gap-2 p-4">
+      {/* Real user feedback (2026-09-04): "what is start a governed
+          mission instead, dont know what is happening here." This CTA
+          used to name "a governed mission" with zero explanation — the
+          first place a brand-new, not-yet-signed-up visitor could hit
+          that term, before seeing any explanation of what it means. Said
+          in plain terms instead; what "governed mission" actually names
+          is explained later, at the point it's an actual choice
+          (BriefConversionCard, once signed in). */}
       <p className="text-small text-foreground">
-        Create an account to track this brief and convert it into a governed mission the moment we
-        reply.
+        Create an account and this brief will be waiting for you — track our reply, then decide
+        whether to build it yourself or send it through a full review.
       </p>
       <div className="flex flex-wrap gap-2">
         <a
