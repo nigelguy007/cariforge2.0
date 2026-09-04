@@ -12,6 +12,7 @@ import type {
   ObjectionItemT,
 } from '@/lib/contracts/forge';
 import { StageNameValues } from '@/lib/contracts/forge';
+import type { DocumentSpec } from '@/lib/pdf/schema';
 import { DECISION_UI, humanise, humaniseCopy, REASON_UI, stageUiForIndex } from '@/lib/ui-terms';
 
 export interface EvidenceMeasure {
@@ -354,4 +355,36 @@ export function buildEvidenceView(detail: MissionDetailT): EvidenceView {
 export function evidenceIndexLine(currentStageIndex: number): string {
   const step = stageUiForIndex(currentStageIndex);
   return `At Step ${step.number}, ${step.title.toLowerCase()}`;
+}
+
+// --- PDF export ---------------------------------------------------------
+// DocumentSpec (src/lib/pdf/schema.ts) is invoice-shaped — title/subtitle,
+// label/value meta rows, one free-text notes block — so the five questions
+// become meta rows (label = the question, value = the summary plus its
+// facts) rather than a bespoke layout. Pure and testable without pdf-lib.
+
+function factLine(fact: EvidenceFact): string {
+  return fact.meta ? `${fact.label}: ${fact.value} (${fact.meta})` : `${fact.label}: ${fact.value}`;
+}
+
+function questionValue(q: EvidenceQuestion): string {
+  if (q.facts.length === 0) return q.empty;
+  return [q.summary, ...q.facts.map(factLine)].join('. ');
+}
+
+/** Renders the same record as the page — for the "Evidence record (PDF)" export. */
+export function evidenceViewToDocumentSpec(view: EvidenceView): DocumentSpec {
+  return {
+    title: view.project.name,
+    subtitle: 'Evidence record — decision coverage, checks passed and unresolved concerns',
+    meta: [
+      ...view.measures.map((m) => ({ label: m.label, value: `${m.value} — ${m.detail}` })),
+      ...view.questions.map((q) => ({ label: q.question, value: questionValue(q) })),
+    ],
+    notes:
+      'This is an approved runnable prototype package: a prototype with its Project plan, ' +
+      'Operating guide and this evidence receipt — not a production deployment. Verify this ' +
+      "record's hash chain in the app before relying on it.",
+    footer: `Generated ${new Date().toLocaleString()}.`,
+  };
 }

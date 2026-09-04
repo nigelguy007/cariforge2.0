@@ -8,6 +8,7 @@
 
 'use client';
 
+import Link from 'next/link';
 import * as React from 'react';
 import { MissionAutonomyCard } from '@/components/custom/forge-telemetry/mission-autonomy-card';
 import { MissionCostCard } from '@/components/custom/forge-telemetry/mission-cost-card';
@@ -267,6 +268,11 @@ export function SupportingDetail({
           </p>
           <ul className="mt-3 flex flex-wrap gap-x-4 gap-y-2">
             <li>
+              <Link href={`/evidence/${missionSlug}`} className="app-link app-small">
+                Open the full evidence record
+              </Link>
+            </li>
+            <li>
               <a
                 className="app-link app-small"
                 href={`/api/forge/missions/${mission.id}/blueprint`}
@@ -293,6 +299,14 @@ export function SupportingDetail({
                 href={`/api/forge/missions/${mission.id}/export?format=csv`}
               >
                 Decision record (CSV)
+              </a>
+            </li>
+            <li>
+              <a
+                className="app-link app-small"
+                href={`/api/forge/missions/${mission.id}/export?format=pdf`}
+              >
+                Evidence record (PDF)
               </a>
             </li>
           </ul>

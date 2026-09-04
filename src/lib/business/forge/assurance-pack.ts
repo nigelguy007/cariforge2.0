@@ -126,7 +126,7 @@ async function sha256Hex(input: string): Promise<string> {
     .join('');
 }
 
-async function computeAuditHashChain(
+export async function computeAuditHashChain(
   audits: MissionDetailT['audits'],
 ): Promise<AssurancePackAuditEntry[]> {
   // audits arrive newest-first (service.ts orders by { at: 'desc' }) — the
