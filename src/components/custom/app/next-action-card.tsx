@@ -13,6 +13,7 @@
 import Link from 'next/link';
 import * as React from 'react';
 import { Button } from '@/components/ui/button';
+import { useIsAdmin } from '@/lib/auth-client';
 import type { MissionDetailT } from '@/lib/contracts/forge';
 import { humaniseCopy, PROTOTYPE_PACKAGE, STAGE_UI, stepNumberLabel } from '@/lib/ui-terms';
 import { DecisionDialog } from './decision-dialog';
@@ -33,7 +34,7 @@ interface Plan {
   readonly button?: { label: string; section?: DetailSection; opensDialog?: boolean };
 }
 
-function planFor(view: ProjectWorkspaceView): Plan {
+function planFor(view: ProjectWorkspaceView, isAdmin: boolean): Plan {
   const action = view.nextAction.view;
   switch (action.kind) {
     case 'ApproveGate': {
@@ -42,9 +43,10 @@ function planFor(view: ProjectWorkspaceView): Plan {
       if (!gate?.currentStageHandoffId) {
         return {
           heading: step.title,
-          sentence:
-            'CariForge has not produced a step output for this step yet, so there is nothing to approve. Add one, or wait for it to arrive.',
-          button: { label: 'Add the step output', section: 'outputs' },
+          sentence: isAdmin
+            ? 'CariForge has not produced a step output for this step yet, so there is nothing to approve. Add one, or wait for it to arrive.'
+            : 'CariForge has not produced a step output for this step yet, so there is nothing to approve yet. Check back soon.',
+          button: isAdmin ? { label: 'Add the step output', section: 'outputs' } : undefined,
         };
       }
       return {
@@ -89,8 +91,10 @@ function planFor(view: ProjectWorkspaceView): Plan {
     case 'ArrangeWorkItem':
       return {
         heading: 'A task needs an owner',
-        sentence: humaniseCopy(action.title),
-        button: { label: 'Assign the task', section: 'tasks' },
+        sentence: isAdmin
+          ? humaniseCopy(action.title)
+          : 'A task on this project needs an owner assigned. This is arranged by the delivery team, not from this page.',
+        button: isAdmin ? { label: 'Assign the task', section: 'tasks' } : undefined,
       };
     case 'Released':
     case 'Complete':
@@ -116,7 +120,8 @@ export function NextActionCard({
   detailId,
 }: NextActionCardProps) {
   const [dialogOpen, setDialogOpen] = React.useState(false);
-  const plan = planFor(view);
+  const isAdmin = useIsAdmin();
+  const plan = planFor(view, isAdmin);
   const action = view.nextAction.view;
   const blockers = view.nextAction.blockers;
   const isTerminal = view.nextAction.isTerminal;

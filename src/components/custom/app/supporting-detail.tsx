@@ -1,19 +1,24 @@
 // @polsia:user-owned — the single collapsed "Supporting detail" region
-// (brief, Step 4 + 7). Closed, it is one row that summarises Council,
-// evidence and the decision record. Open, it lists the existing governance
-// components one column deep, grouped under plain-language headings. Every
-// group is its own native <details> so keyboard, screen readers and
-// reduced-motion all work without extra script. Nothing here fetches the
-// mission again — the reused components receive the same MissionDetail.
+// (brief, Step 4 + 7). Closed, it is one row that summarises concerns,
+// evidence and the decision record. Open, it lists only what a submitter
+// (or, for admin-only groups, an admin) has something to do or read about:
+// raise/view concerns, attach evidence, sign off as a specialist, decide a
+// pending requested action, review the per-step decision history, and
+// export the prototype. Purely internal/ops tooling (raw step-output
+// forms, work-item tracking, replay/rollback, audit-trail telemetry) is
+// admin-only or gone from this page entirely — that record lives, already
+// translated, on the Evidence page (real finding, 2026-09-04 user review:
+// several of these groups showed raw internal jargon, an admin mutation
+// form, or pure telemetry to every signed-in user regardless of role).
+// Every remaining group is its own native <details> so keyboard, screen
+// readers and reduced-motion all work without extra script. Nothing here
+// fetches the mission again — the reused components receive the same
+// MissionDetail.
 
 'use client';
 
 import Link from 'next/link';
 import * as React from 'react';
-import { MissionAutonomyCard } from '@/components/custom/forge-telemetry/mission-autonomy-card';
-import { MissionCostCard } from '@/components/custom/forge-telemetry/mission-cost-card';
-import { AssurancePackCard } from '@/components/custom/missions/assurance-pack-card';
-import { MissionAuditTimeline } from '@/components/custom/missions/mission-audit-timeline';
 import { MissionBlockersPanel } from '@/components/custom/missions/mission-blockers-panel';
 import { MissionBuildPanel } from '@/components/custom/missions/mission-build-panel';
 import { MissionEvidenceForm } from '@/components/custom/missions/mission-evidence-form';
@@ -36,43 +41,7 @@ import { QAReviewCard } from '@/components/custom/missions/qa-review-card';
 import { useIsAdmin } from '@/lib/auth-client';
 import type { MissionDetailT } from '@/lib/contracts/forge';
 import { DECISION_UI, reasonLabel, STEPS, stageUiForIndex } from '@/lib/ui-terms';
-import { buildEvidenceView } from './evidence-view';
 import type { ProjectWorkspaceView } from './use-project-workspace';
-
-// A plain-language stand-in for OracleCouncilCard (below) for anyone who
-// isn't an admin. Real finding (2026-09-04 user review): OracleCouncilCard
-// shows raw gate indexes ("Gate 0", "Gate 4"), the internal DB stage/state
-// enums, an internal error code, and an actual "appoint the Elder Oracle"
-// admin mutation form — none of which belongs in front of the person who
-// submitted the project. Reuses buildEvidenceView's "who approved" question,
-// which already does exactly this translation for the Evidence page.
-function CouncilPlainSummary({ detail }: { detail: MissionDetailT }) {
-  const who = React.useMemo(
-    () => buildEvidenceView(detail).questions.find((q) => q.key === 'who'),
-    [detail],
-  );
-  if (!who) return null;
-  return (
-    <div className="app-panel">
-      <p className="app-small text-[var(--app-text-muted)]">{who.summary}</p>
-      {who.facts.length > 0 ? (
-        <ul className="mt-2 space-y-2">
-          {who.facts.map((fact) => (
-            <li key={fact.id}>
-              <p className="app-small font-medium text-[var(--app-text)]">{fact.label}</p>
-              <p className="app-small text-[var(--app-text-muted)]">{fact.value}</p>
-              {fact.meta ? (
-                <p className="app-caption text-[var(--app-text-muted)]">{fact.meta}</p>
-              ) : null}
-            </li>
-          ))}
-        </ul>
-      ) : (
-        <p className="app-small mt-1 text-[var(--app-text-muted)]">{who.empty}</p>
-      )}
-    </div>
-  );
-}
 
 export type DetailSection =
   | 'council'
@@ -83,7 +52,6 @@ export type DetailSection =
   | 'tasks'
   | 'decisions'
   | 'controls'
-  | 'record'
   | 'export';
 
 export interface DetailRequest {
@@ -120,7 +88,7 @@ function summaryLine(view: ProjectWorkspaceView): string {
 }
 
 const GROUP_ORDER: readonly { key: DetailSection; title: string }[] = [
-  { key: 'council', title: 'Council' },
+  { key: 'council', title: 'Specialist review' },
   { key: 'concerns', title: 'Concerns' },
   { key: 'evidence', title: 'Evidence' },
   { key: 'outputs', title: 'Step outputs' },
@@ -128,7 +96,6 @@ const GROUP_ORDER: readonly { key: DetailSection; title: string }[] = [
   { key: 'tasks', title: 'Tasks' },
   { key: 'decisions', title: 'Decisions by step' },
   { key: 'controls', title: 'Pause, run again or restore' },
-  { key: 'record', title: 'Decision record' },
   { key: 'export', title: 'Export and prototype package' },
 ];
 
@@ -164,6 +131,21 @@ export function SupportingDetail({
   const awaitingGate = detail.gates.find(
     (g) => g.state === 'Awaiting' && g.gateIndex === mission.currentStageIndex,
   );
+  const atBuildGate = mission.currentStageIndex >= 4;
+  const hasPendingToolAction = detail.toolActions.some((t) => t.decision === null);
+
+  // Real finding (2026-09-04 user review): several groups here only ever
+  // held internal ops/testing tooling for a non-admin viewer, or a form
+  // that was already admin-gated with nothing left to show — an empty,
+  // pointless heading is still clutter. Groups render only when there is
+  // something in them for the person actually looking: an admin, or a
+  // genuine pending decision / step that has been reached.
+  const visibleGroups = GROUP_ORDER.filter((group) => {
+    if (group.key === 'outputs') return isAdmin;
+    if (group.key === 'actions') return isAdmin || hasPendingToolAction;
+    if (group.key === 'tasks') return isAdmin || atBuildGate;
+    return true;
+  });
 
   function toggleGroup(key: DetailSection, open: boolean) {
     setOpenGroups((prev) => {
@@ -177,11 +159,7 @@ export function SupportingDetail({
   const content: Record<DetailSection, React.ReactNode> = {
     council: (
       <>
-        {isAdmin ? (
-          <OracleCouncilCard detail={detail} onWritten={onWritten} />
-        ) : (
-          <CouncilPlainSummary detail={detail} />
-        )}
+        {isAdmin ? <OracleCouncilCard detail={detail} onWritten={onWritten} /> : null}
         {latestHandoff ? (
           <div className="app-panel">
             <p className="app-small text-[var(--app-text-muted)]">
@@ -298,71 +276,34 @@ export function SupportingDetail({
         ) : null}
       </>
     ),
-    record: (
-      <>
-        <MissionAuditTimeline audits={detail.audits} />
-        <MissionAutonomyCard missionSlug={missionSlug} />
-        <MissionCostCard missionSlug={missionSlug} />
-      </>
-    ),
     export: (
-      <>
-        <div className="app-panel">
-          <p className="app-body font-medium text-[var(--app-text)]">
-            Approved runnable prototype package
-          </p>
-          <p className="app-small mt-1 text-[var(--app-text-muted)]">
-            The prototype, its Project plan (Blueprint in exports), its Operating guide (Runbook in
-            exports) and the evidence receipt. This is a prototype boundary, not a production
-            deployment.
-          </p>
-          <ul className="mt-3 flex flex-wrap gap-x-4 gap-y-2">
-            <li>
-              <Link href={`/evidence/${missionSlug}`} className="app-link app-small">
-                Open the full evidence record
-              </Link>
-            </li>
-            <li>
-              <a
-                className="app-link app-small"
-                href={`/api/forge/missions/${mission.id}/blueprint`}
-              >
-                Project plan (JSON)
-              </a>
-            </li>
-            <li>
-              <a className="app-link app-small" href={`/api/forge/missions/${mission.id}/runbook`}>
-                Operating guide (JSON)
-              </a>
-            </li>
-            <li>
-              <a
-                className="app-link app-small"
-                href={`/api/forge/missions/${mission.id}/export?format=json`}
-              >
-                Decision record (JSON)
-              </a>
-            </li>
-            <li>
-              <a
-                className="app-link app-small"
-                href={`/api/forge/missions/${mission.id}/export?format=csv`}
-              >
-                Decision record (CSV)
-              </a>
-            </li>
-            <li>
-              <a
-                className="app-link app-small"
-                href={`/api/forge/missions/${mission.id}/export?format=pdf`}
-              >
-                Evidence record (PDF)
-              </a>
-            </li>
-          </ul>
-        </div>
-        <AssurancePackCard missionId={mission.id} />
-      </>
+      <div className="app-panel">
+        <p className="app-body font-medium text-[var(--app-text)]">
+          Approved runnable prototype package
+        </p>
+        <p className="app-small mt-1 text-[var(--app-text-muted)]">
+          The prototype, its Project plan and its Operating guide. This is a prototype boundary, not
+          a production deployment. The full decision record — why this exists, who approved each
+          step, what changed — is on the Evidence page for this project.
+        </p>
+        <ul className="mt-3 flex flex-wrap gap-x-4 gap-y-2">
+          <li>
+            <Link href={`/evidence/${missionSlug}`} className="app-link app-small">
+              Open the full evidence record
+            </Link>
+          </li>
+          <li>
+            <a className="app-link app-small" href={`/api/forge/missions/${mission.id}/blueprint`}>
+              Project plan (JSON)
+            </a>
+          </li>
+          <li>
+            <a className="app-link app-small" href={`/api/forge/missions/${mission.id}/runbook`}>
+              Operating guide (JSON)
+            </a>
+          </li>
+        </ul>
+      </div>
     ),
   };
 
@@ -380,7 +321,7 @@ export function SupportingDetail({
         </span>
       </summary>
       <div className="mt-2 space-y-2">
-        {GROUP_ORDER.map((group) => (
+        {visibleGroups.map((group) => (
           <details
             key={group.key}
             id={`${id}-${group.key}`}
