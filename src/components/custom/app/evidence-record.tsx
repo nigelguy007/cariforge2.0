@@ -41,7 +41,7 @@ function QuestionDisclosure({ question }: { question: EvidenceQuestion }) {
         ) : (
           <ul className="space-y-3">
             {question.facts.map((fact) => (
-              <li key={`${question.key}-${fact.label}`} className="app-panel px-3 py-2.5">
+              <li key={fact.id} className="app-panel px-3 py-2.5">
                 <p className="app-small font-medium text-[var(--app-text)]">{fact.label}</p>
                 <p className="app-body mt-0.5 whitespace-pre-wrap text-[var(--app-text)]">
                   {fact.value}
@@ -58,16 +58,23 @@ function QuestionDisclosure({ question }: { question: EvidenceQuestion }) {
   );
 }
 
-function VerifyHashChain({ missionId, detail }: { missionId: string; detail: MissionDetailT }) {
+function VerifyHashChain({ missionId }: { missionId: string }) {
   const [state, setState] = React.useState<VerifyState>({ status: 'idle' });
 
   const verify = async () => {
     setState({ status: 'checking' });
     try {
-      const [pack, local] = await Promise.all([
+      // Fetch the mission detail fresh here, rather than reusing the
+      // page's own (possibly stale, mounted-earlier) copy: the assurance
+      // pack below is always built from the current audit rows, so
+      // comparing it against an old audits snapshot would read routine
+      // new activity (another decision recorded while this page was
+      // open) as a broken chain.
+      const [pack, freshDetail] = await Promise.all([
         apiFetch(`/api/forge/missions/${missionId}/assurance-pack`, { schema: AssurancePack }),
-        computeAuditHashChain(detail.audits),
+        apiFetch(`/api/forge/missions/${missionId}`, { schema: MissionDetail }),
       ]);
+      const local = await computeAuditHashChain(freshDetail.audits);
       const byId = new Map(pack.auditTrail.map((e) => [e.id, e]));
       const ok =
         pack.auditTrail.length === local.length &&
@@ -225,7 +232,7 @@ export function EvidenceRecord({ missionSlug }: { missionSlug: string }) {
             </a>
           </li>
         </ul>
-        <VerifyHashChain missionId={detail.mission.id} detail={detail} />
+        <VerifyHashChain missionId={detail.mission.id} />
       </section>
     </div>
   );

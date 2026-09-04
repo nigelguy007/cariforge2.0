@@ -221,6 +221,89 @@ describe('buildEvidenceView', () => {
     expect(JSON.stringify(changed?.facts)).not.toContain('GateApproved');
   });
 
+  it('gives every fact a unique id even when several share a label (React key safety)', () => {
+    // Two audit rows of the same event type render the identical label
+    // ("Step approved") — a real, common case, not an edge case. The id
+    // must still be unique or React silently drops/reuses list items.
+    const changedView = buildEvidenceView(
+      detail({
+        audits: [
+          {
+            id: 'ev1',
+            event: 'GateApproved',
+            payload: {},
+            at: T1,
+            actorId: 'u1',
+            missionVersionAtEvent: 1,
+          },
+          {
+            id: 'ev2',
+            event: 'GateApproved',
+            payload: {},
+            at: T2,
+            actorId: 'u1',
+            missionVersionAtEvent: 2,
+          },
+        ],
+      }),
+    );
+    const changedFacts = changedView.questions.find((q) => q.key === 'changed')?.facts ?? [];
+    expect(changedFacts.map((f) => f.label)).toEqual(['Step approved', 'Step approved']);
+    expect(new Set(changedFacts.map((f) => f.id)).size).toBe(changedFacts.length);
+
+    // Two current (non-superseded) ApproveWithControls decisions at the
+    // same step likewise share a label ("Conditions set at Step N").
+    const mayDoView = buildEvidenceView(
+      detail({
+        handoffs: [handoff()],
+        approvals: [
+          approval({
+            id: 'a1',
+            decision: 'ApproveWithControls',
+            controls: 'Read-only for now',
+            at: T1,
+          }),
+          approval({
+            id: 'a2',
+            decision: 'ApproveWithControls',
+            controls: 'Read-only, escalate weekly',
+            at: T2,
+          }),
+        ],
+      }),
+    );
+    const mayDoFacts = mayDoView.questions.find((q) => q.key === 'may-do')?.facts ?? [];
+    const conditionFacts = mayDoFacts.filter((f) => f.label.startsWith('Conditions set at'));
+    expect(conditionFacts).toHaveLength(2);
+    expect(new Set(mayDoFacts.map((f) => f.id)).size).toBe(mayDoFacts.length);
+  });
+
+  it('excludes a superseded ApproveWithControls decision from "what may the prototype do"', () => {
+    const view = buildEvidenceView(
+      detail({
+        handoffs: [handoff()],
+        approvals: [
+          approval({
+            id: 'a1',
+            decision: 'ApproveWithControls',
+            controls: 'Old conditions',
+            supersedesApprovalId: null,
+          }),
+          approval({
+            id: 'a2',
+            decision: 'ApproveWithControls',
+            controls: 'New conditions',
+            supersedesApprovalId: 'a1',
+          }),
+        ],
+      }),
+    );
+    const facts = view.questions.find((q) => q.key === 'may-do')?.facts ?? [];
+    const values = facts.map((f) => f.value);
+    expect(values).toContain('New conditions');
+    expect(values).not.toContain('Old conditions');
+  });
+
   it('says plainly when a question has nothing recorded yet, instead of an empty list', () => {
     const view = buildEvidenceView(detail());
     const who = view.questions.find((q) => q.key === 'who');

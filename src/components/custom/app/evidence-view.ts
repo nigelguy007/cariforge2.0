@@ -22,6 +22,10 @@ export interface EvidenceMeasure {
 }
 
 export interface EvidenceFact {
+  /** Stable, unique within its question — a React key, never the label
+   *  (several facts can legitimately share a label, e.g. two "Step
+   *  approved" audit rows or two conditions set at the same step). */
+  readonly id: string;
   readonly label: string;
   readonly value: string;
   /** Optional second line — who / when. */
@@ -131,17 +135,23 @@ function whyQuestion(detail: MissionDetailT): EvidenceQuestion {
     .sort((a, b) => b.version - a.version)[0];
   const facts: EvidenceFact[] = [
     {
+      id: 'need-stated',
       label: 'The need, as stated',
       value: mission.intake,
       meta: `Recorded ${when(mission.createdAt)}`,
     },
   ];
   if (mission.normalizedNeed.trim().length > 0 && mission.normalizedNeed !== mission.intake) {
-    facts.push({ label: 'The need, as confirmed', value: mission.normalizedNeed });
+    facts.push({
+      id: 'need-confirmed',
+      label: 'The need, as confirmed',
+      value: mission.normalizedNeed,
+    });
   }
   const problem = need ? payloadText(need.payload, ['problemStatement', 'summary', 'need']) : null;
   if (problem && need) {
     facts.push({
+      id: 'problem-statement',
       label: 'Problem statement',
       value: humaniseCopy(problem),
       meta: `Step 1 output, version ${need.version}`,
@@ -161,6 +171,7 @@ function approvalFact(a: ApprovalItemT): EvidenceFact {
   const who = a.approverName ?? 'A named approver';
   const controls = a.controls ? ` Conditions: ${a.controls}` : '';
   return {
+    id: a.id,
     label: `Step ${step.number} · ${step.title}`,
     value: `${DECISION_UI[a.decision]} — ${a.reasonText}${controls}`,
     meta: `${who} · ${REASON_UI[a.reasonCode]} · ${when(a.at)}`,
@@ -191,6 +202,7 @@ function whatUsedQuestion(detail: MissionDetailT): EvidenceQuestion {
     .slice()
     .sort((a, b) => a.capturedAt.localeCompare(b.capturedAt))
     .map((e) => ({
+      id: e.id,
       label: e.label,
       value: e.ref,
       meta: `${humanise(e.kind)} · Captured ${when(e.capturedAt)}`,
@@ -201,6 +213,7 @@ function whatUsedQuestion(detail: MissionDetailT): EvidenceQuestion {
   const missing = readiness?.missingEvidence ?? [];
   if (missing.length > 0) {
     facts.push({
+      id: 'missing-evidence',
       label: 'Still missing',
       value: missing.map((m) => (typeof m === 'string' ? m : JSON.stringify(m))).join('; '),
       meta: 'Named at Step 2 · Check readiness',
@@ -227,23 +240,41 @@ function mayDoQuestion(detail: MissionDetailT): EvidenceQuestion {
     const decision = payloadText(governance.payload, ['decisionControl', 'humanCheckpoint']);
     const data = payloadText(governance.payload, ['dataControl', 'dataAccess']);
     const retention = payloadText(governance.payload, ['evidenceRetention', 'retention']);
-    if (decision) facts.push({ label: 'Decisions it may take', value: humaniseCopy(decision) });
-    if (data) facts.push({ label: 'Data it may touch', value: humaniseCopy(data) });
+    if (decision)
+      facts.push({
+        id: 'may-decisions',
+        label: 'Decisions it may take',
+        value: humaniseCopy(decision),
+      });
+    if (data) facts.push({ id: 'may-data', label: 'Data it may touch', value: humaniseCopy(data) });
     if (retention)
-      facts.push({ label: 'How long evidence is kept', value: humaniseCopy(retention) });
+      facts.push({
+        id: 'may-retention',
+        label: 'How long evidence is kept',
+        value: humaniseCopy(retention),
+      });
   }
   const approvedTools = detail.toolActions.filter((t) => t.decision === 'Approved');
   if (approvedTools.length > 0) {
     facts.push({
+      id: 'approved-actions',
       label: 'Approved actions',
       value: approvedTools.map((t) => `${humanise(t.tool)} (${humanise(t.scope)})`).join('; '),
       meta: `${plural(approvedTools.length, 'action')} approved by a person before running`,
     });
   }
-  const withConditions = detail.approvals.filter((a) => a.decision === 'ApproveWithControls');
+  // Only the current (non-superseded) approve-with-controls decisions —
+  // mirrors whoQuestion's own filter, so a re-approved gate doesn't show
+  // conditions that no longer hold.
+  const withConditions = detail.approvals.filter(
+    (a) =>
+      a.decision === 'ApproveWithControls' &&
+      !detail.approvals.some((b) => b.supersedesApprovalId === a.id),
+  );
   for (const a of withConditions) {
     if (a.controls) {
       facts.push({
+        id: `condition-${a.id}`,
         label: `Conditions set at Step ${stageUiForIndex(a.gateIndex).number}`,
         value: a.controls,
         meta: `${a.approverName ?? 'Approver'} · ${when(a.at)}`,
@@ -251,6 +282,7 @@ function mayDoQuestion(detail: MissionDetailT): EvidenceQuestion {
     }
   }
   facts.push({
+    id: 'production-boundary',
     label: 'Production boundary',
     value:
       'The output is an approved runnable prototype package for review. Nothing here is deployed to production; that is a separate, later decision by your own team.',
@@ -302,6 +334,7 @@ function changedQuestion(detail: MissionDetailT): EvidenceQuestion {
     .sort((a, b) => b.at.localeCompare(a.at))
     .slice(0, 12)
     .map((e) => ({
+      id: e.id,
       label: changeLabel(e.event),
       value: changeMeta(e) || when(e.at),
       meta: `Version ${e.missionVersionAtEvent}`,
