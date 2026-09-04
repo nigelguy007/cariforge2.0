@@ -9,6 +9,7 @@ import 'server-only';
 import { NextResponse } from 'next/server';
 import { draftStepOutput } from '@/lib/business/forge/ai-draft';
 import { forgeErrorResponse, requireForgeAuth } from '@/lib/business/forge/api-helpers';
+import { reviewAndMaybeAdvance } from '@/lib/business/forge/auto-advance';
 import { getMissionDetail, submitHandoff } from '@/lib/business/forge/service';
 import { StageNameValues } from '@/lib/contracts/forge';
 
@@ -61,7 +62,28 @@ export async function POST(req: Request, ctx: { params: Promise<{ id: string }> 
       missingEvidence: [...result.draft.missingEvidence],
       toolRefs: [],
     });
-    return NextResponse.json(updated, { status: 201 });
+
+    // The new handoff — the latest, non-superseded one for this stage.
+    const newHandoff = updated.handoffs.find((h) => h.stage === stage && h.supersededById === null);
+    if (newHandoff) {
+      const draftSummary =
+        (result.draft.payload.summary as string | undefined) ??
+        (result.draft.payload.problemStatement as string | undefined) ??
+        JSON.stringify(result.draft.payload);
+      await reviewAndMaybeAdvance({
+        missionId: id,
+        ownerUserId: updated.mission.createdById,
+        gateIndex: newHandoff.gateIndexThatApproves,
+        stage,
+        handoffId: newHandoff.id,
+        draftSummary,
+        draftConfidence: result.draft.confidence,
+        draftMissingEvidence: result.draft.missingEvidence,
+      });
+    }
+
+    const final = (await getMissionDetail(id, auth.user.id, auth.isAdmin)) ?? updated;
+    return NextResponse.json(final, { status: 201 });
   } catch (err) {
     return forgeErrorResponse(err);
   }
