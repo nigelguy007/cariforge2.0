@@ -32,7 +32,21 @@ const STAGES = ['Discovery', 'Readiness', 'Workflow', 'Governance', 'SoftwareBui
 // though the same credentials worked fine standalone — loading the
 // already-issued session cookie sidesteps that entirely and is the
 // standard Playwright pattern besides (https://playwright.dev/docs/auth).
-test('full journey: brief -> mission -> five governed gates -> completed build spec', async () => {
+// Playwright requires the first callback argument to be a destructuring
+// pattern (even empty) to detect which fixtures a test uses via static
+// analysis — a plain named parameter here is a runtime error, not just a
+// style choice.
+// biome-ignore lint/correctness/noEmptyPattern: see comment above
+test('full journey: brief -> mission -> five governed gates -> completed build spec', async ({}, testInfo) => {
+  // This test genuinely makes ~13 sequential real HTTP round-trips (brief,
+  // mission, elder-oracle, 5x[handoff + attest + decide], next-action,
+  // blueprint, runbook) against production, one of them a real AI call.
+  // Playwright's 30s default is comfortable running this spec alone but
+  // gets tight running concurrently with the rest of the suite's workers
+  // hitting the same API — hit that exact timeout once. Every other spec
+  // in this suite is a handful of requests and stays well under a minute
+  // regardless, so this override is scoped to just this test.
+  testInfo.setTimeout(90000);
   const submitter = await playwrightRequest.newContext({
     baseURL,
     storageState: 'tests/e2e/.auth/submitter.json',

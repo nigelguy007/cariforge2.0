@@ -56,3 +56,28 @@ async function cookieHeader(): Promise<string> {
     .map((c: { name: string; value: string }) => `${c.name}=${c.value}`)
     .join('; ');
 }
+
+test('dashboard hides the redundant quick-capture box once a brief exists', async ({
+  page,
+  request,
+}) => {
+  // Real user feedback (2026-09-04, with a screenshot): "look u can see
+  // the two nonsensical your brief and then askign what do you want to
+  // build. remove the what do you want to build because u would have
+  // added it in the your brief." Self-contained: submits a fresh brief
+  // right here rather than depending on leftover state from other test
+  // runs, so this passes or fails on its own regardless of run order.
+  const res = await request.post('/api/leads', {
+    data: {
+      brief: `E2E dashboard-dedupe check (${new Date().toISOString()}): a workflow that reads inbound support tickets and routes them by urgency.`,
+      email: 'qa-submitter@cariforge.test',
+    },
+  });
+  expect(res.status()).toBe(201);
+
+  await page.goto('/dashboard');
+  await expect(page.getByText('Your brief', { exact: false }).first()).toBeVisible();
+  // The quick-capture box's own H1 — must not render once a brief covers
+  // the same question.
+  await expect(page.getByRole('heading', { name: 'What do you want to build?' })).toHaveCount(0);
+});
