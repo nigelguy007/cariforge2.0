@@ -29,6 +29,7 @@ import {
   type MissionDetailT,
 } from '@/lib/contracts/forge';
 import { applyServerErrors } from '@/lib/forms';
+import { humanise } from '@/lib/ui-terms';
 
 export function MissionEvidenceForm({
   detail,
@@ -86,7 +87,7 @@ export function MissionEvidenceForm({
                 <SelectContent>
                   {EVIDENCE_KIND_VALUES.map((k) => (
                     <SelectItem key={k} value={k}>
-                      {k}
+                      {humanise(k)}
                     </SelectItem>
                   ))}
                 </SelectContent>
