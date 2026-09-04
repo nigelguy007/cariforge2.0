@@ -43,6 +43,7 @@
     "@radix-ui/react-tabs": "1.1.21",
     "@radix-ui/react-tooltip": "1.2.16",
     "@t3-oss/env-nextjs": "0.13.11",
+    "@vercel/functions": "^3.9.5",
     "@xyflow/react": "^12.11.5",
     "better-auth": "1.7.1",
     "class-variance-authority": "0.7.1",

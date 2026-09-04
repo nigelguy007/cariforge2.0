@@ -27,10 +27,13 @@ export interface FormatBriefAckOptions {
   triage?: ConfiguratorResultT;
 }
 
+// Same fix, same reason as brief-intake-form.tsx's FIT_STYLE (2026-09-04
+// user feedback: "this should state pending review instead") — keep this
+// template's wording identical to what the visitor already saw on-screen.
 const FIT_LABEL: Record<ConfiguratorResultT['fit'], string> = {
-  strong: 'Strong fit',
-  possible: 'Possible fit',
-  unlikely: 'Unlikely fit — for now',
+  strong: 'Pending review (strong fit)',
+  possible: 'Pending review (possible fit)',
+  unlikely: 'Pending review (fit unclear)',
 };
 
 export function formatBriefAckEmail(opts: FormatBriefAckOptions): EmailContent {

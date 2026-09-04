@@ -115,10 +115,18 @@ function BriefDashboardCta() {
   );
 }
 
+// Real user feedback (2026-09-04): "it says unlikely fit - for now - this
+// should state pending review instead." The automated read is real,
+// useful signal (the AI classification underneath it doesn't change), but
+// showing an unqualified verdict — "Unlikely fit" — the instant a brief is
+// submitted reads as a final rejection before any human has looked at it.
+// "Pending review" now leads every tier, with the automated read kept as a
+// qualifier rather than dropped — nothing here is a real decision until
+// Discovery's actual gate.
 const FIT_STYLE: Record<ConfiguratorResultT['fit'], { label: string; className: string }> = {
-  strong: { label: 'Strong fit', className: 'bg-emerald-500/15 text-emerald-800' },
-  possible: { label: 'Possible fit', className: 'bg-amber-500/15 text-amber-800' },
-  unlikely: { label: 'Unlikely fit — for now', className: 'bg-rose-500/15 text-rose-800' },
+  strong: { label: 'Pending review (strong fit)', className: 'bg-emerald-500/15 text-emerald-800' },
+  possible: { label: 'Pending review (possible fit)', className: 'bg-amber-500/15 text-amber-800' },
+  unlikely: { label: 'Pending review (fit unclear)', className: 'bg-rose-500/15 text-rose-800' },
 };
 
 // Product decision (2026-08-29): the front-door brief's first response is

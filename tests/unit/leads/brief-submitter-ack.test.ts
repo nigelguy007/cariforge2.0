@@ -51,7 +51,7 @@ describe('formatBriefAckEmail', () => {
       },
     });
     const text = textOf(email);
-    expect(text).toContain('Possible fit');
+    expect(text).toContain('Pending review (possible fit)');
     expect(text).toContain('Bounded single-team workflow');
     expect(text.toLowerCase()).toContain('indicative');
     expect(text.toLowerCase()).toContain('not a binding ruling');
