@@ -26,9 +26,10 @@ import {
   createObjection,
   decideGate,
   getMissionDetail,
+  resolveObjection,
 } from '@/lib/business/forge/service';
-import type { StageName } from '@/lib/contracts/forge';
-import { reviewStepDraft } from './oracle-review';
+import type { SpecialistRole, StageName } from '@/lib/contracts/forge';
+import { reconcileConcerns, reviewStepDraft } from './oracle-review';
 
 // Below this, a human decides even with zero Oracle concerns — the draft
 // itself said it wasn't confident. No number was specified in the brief;
@@ -68,7 +69,7 @@ export async function reviewAndMaybeAdvance(args: {
     return { reviewed: false, advanced: false, concernCount: 0 };
   }
 
-  let concernCount = 0;
+  const raised: { role: SpecialistRole; note: string; objectionId: string }[] = [];
   for (const v of review.verdicts) {
     if (v.verdict === 'clear') {
       await addHandoffAttester({
@@ -78,8 +79,7 @@ export async function reviewAndMaybeAdvance(args: {
         role: v.role,
       });
     } else {
-      concernCount += 1;
-      await createObjection({
+      const withObjection = await createObjection({
         missionId: args.missionId,
         userId: args.ownerUserId,
         isAdmin: false,
@@ -87,8 +87,46 @@ export async function reviewAndMaybeAdvance(args: {
         raisedByRole: v.role,
         text: v.note,
       });
+      const newObjection = withObjection.objections
+        .filter((o) => o.stageHandoffId === args.handoffId && o.raisedByRole === v.role)
+        .sort((a, b) => b.raisedAt.localeCompare(a.raisedAt))[0];
+      if (newObjection) raised.push({ role: v.role, note: v.note, objectionId: newObjection.id });
     }
   }
+
+  // The Council Chair: try to reconcile each concern before giving up on
+  // this step entirely. Only concerns it genuinely resolves get closed —
+  // anything it declines to touch (including every concern, if this call
+  // itself is unavailable) stays open and blocks auto-advance below,
+  // exactly as it would have before reconciliation existed.
+  if (raised.length > 0) {
+    const reconciliation = await reconcileConcerns({
+      stage: args.stage,
+      draftSummary: args.draftSummary,
+      concerns: raised.map((r) => ({ role: r.role, note: r.note })),
+    });
+    if (reconciliation.status === 'ok') {
+      for (const r of raised) {
+        const verdict = reconciliation.resolutions.find((res) => res.role === r.role);
+        if (verdict?.resolved) {
+          await resolveObjection({
+            missionId: args.missionId,
+            userId: args.ownerUserId,
+            isAdmin: false,
+            objectionId: r.objectionId,
+            resolution: 'Overruled',
+            resolutionText: `Resolved by the Council Chair: ${verdict.rationale}`,
+          });
+        }
+      }
+    }
+  }
+
+  const stillOpen = await getMissionDetail(args.missionId, args.ownerUserId, false);
+  const concernCount =
+    stillOpen?.objections.filter(
+      (o) => o.stageHandoffId === args.handoffId && o.resolution === null,
+    ).length ?? raised.length;
 
   if (concernCount > 0) return { reviewed: true, advanced: false, concernCount };
   if (args.draftConfidence < AUTO_ADVANCE_CONFIDENCE_THRESHOLD) {
@@ -101,10 +139,10 @@ export async function reviewAndMaybeAdvance(args: {
   // Re-check against the mission's OTHER real state — an unresolved
   // concern raised elsewhere, or a tool action still awaiting a decision,
   // blocks auto-advance exactly as it would block a human's decision.
-  const detail = await getMissionDetail(args.missionId, args.ownerUserId, false);
-  if (!detail) return { reviewed: true, advanced: false, concernCount: 0 };
-  const hasOtherUnresolvedConcern = detail.objections.some((o) => o.resolution === null);
-  const hasPendingToolAction = detail.toolActions.some((t) => t.decision === null);
+  // Reuses the same fetch used to check this step's own concerns above.
+  if (!stillOpen) return { reviewed: true, advanced: false, concernCount: 0 };
+  const hasOtherUnresolvedConcern = stillOpen.objections.some((o) => o.resolution === null);
+  const hasPendingToolAction = stillOpen.toolActions.some((t) => t.decision === null);
   if (hasOtherUnresolvedConcern || hasPendingToolAction) {
     return { reviewed: true, advanced: false, concernCount: 0 };
   }

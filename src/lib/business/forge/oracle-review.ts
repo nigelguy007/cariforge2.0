@@ -59,6 +59,78 @@ export type OracleReviewResult =
   | { status: 'ok'; verdicts: readonly OracleVerdict[] }
   | { status: 'unavailable' };
 
+const ReconciliationV4 = z4.object({
+  resolutions: z4.array(
+    z4.object({
+      role: z4.enum(SPECIALIST_ROLE_VALUES),
+      resolved: z4.boolean(),
+      rationale: z4.string(),
+    }),
+  ),
+});
+
+export interface ConcernResolution {
+  readonly role: SpecialistRole;
+  readonly resolved: boolean;
+  readonly rationale: string;
+}
+
+export type ReconcileResult =
+  | { status: 'ok'; resolutions: readonly ConcernResolution[] }
+  | { status: 'unavailable' };
+
+// The "Council Chair" from the architecture doc: reviews concerns a
+// specialist reviewer raised and decides, per concern, whether it's
+// genuinely minor/already-addressed (resolve it now) or needs a human's
+// judgment (leave it open — the existing unresolved-objection check
+// already blocks auto-advance for exactly this reason). Deliberately
+// conservative: this never touches the objection it can't resolve, it
+// only ever resolves the ones it can, so an unavailable/failed call
+// leaves every concern open for the human, same as before this existed.
+export async function reconcileConcerns(args: {
+  stage: StageName;
+  draftSummary: string;
+  concerns: readonly { role: SpecialistRole; note: string }[];
+}): Promise<ReconcileResult> {
+  const client = getClient();
+  if (!client || args.concerns.length === 0) return { status: 'unavailable' };
+
+  const system = `You are the Council Chair, reconciling concerns specialist reviewers raised
+on a draft "${args.stage}" step of a governed business project, before a
+human decides whether to approve it. For EACH concern below, decide:
+
+- resolved: true — ONLY if the concern is minor, already addressed
+  elsewhere in the draft, or genuinely not worth a human's time to weigh
+  in on. Say why in rationale.
+- resolved: false — if it names a real risk, cost, scope mismatch, or
+  anything that should genuinely reach a human's judgment. Say why it
+  still needs a human in rationale.
+
+Be conservative: when unsure, leave it for the human. A wrongly-resolved
+real concern is worse than an unnecessary human review.`;
+
+  const userMessage = `Draft step output:\n${args.draftSummary}\n\nConcerns raised:\n${args.concerns
+    .map((c, i) => `${i + 1}. [${c.role}] ${c.note}`)
+    .join('\n')}`;
+
+  try {
+    const response = await client.messages.parse({
+      model: 'anthropic/claude-sonnet-5',
+      max_tokens: 1536,
+      output_config: { effort: 'medium', format: zodOutputFormat(ReconciliationV4) },
+      system,
+      messages: [{ role: 'user', content: userMessage }],
+    });
+    if (!response.parsed_output) return { status: 'unavailable' };
+    const parsed = ReconciliationV4.safeParse(response.parsed_output);
+    if (!parsed.success) return { status: 'unavailable' };
+    return { status: 'ok', resolutions: parsed.data.resolutions };
+  } catch (err) {
+    console.error('[forge] reconcileConcerns failed:', err);
+    return { status: 'unavailable' };
+  }
+}
+
 export async function reviewStepDraft(args: {
   stage: StageName;
   draftSummary: string;
