@@ -12,9 +12,11 @@
 
 import Link from 'next/link';
 import * as React from 'react';
+import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
-import { useIsAdmin } from '@/lib/auth-client';
-import type { MissionDetailT } from '@/lib/contracts/forge';
+import { apiFetch } from '@/lib/api-client';
+import { useIsAdmin, useSession } from '@/lib/auth-client';
+import { MissionDetail, type MissionDetailT } from '@/lib/contracts/forge';
 import { humaniseCopy, PROTOTYPE_PACKAGE, STAGE_UI, stepNumberLabel } from '@/lib/ui-terms';
 import { DecisionDialog } from './decision-dialog';
 import type { DetailSection } from './supporting-detail';
@@ -31,10 +33,15 @@ export interface NextActionCardProps {
 interface Plan {
   readonly heading: string;
   readonly sentence: string;
-  readonly button?: { label: string; section?: DetailSection; opensDialog?: boolean };
+  readonly button?: {
+    label: string;
+    section?: DetailSection;
+    opensDialog?: boolean;
+    draftWithAi?: boolean;
+  };
 }
 
-function planFor(view: ProjectWorkspaceView, isAdmin: boolean): Plan {
+function planFor(view: ProjectWorkspaceView, isAdmin: boolean, canDraft: boolean): Plan {
   const action = view.nextAction.view;
   switch (action.kind) {
     case 'ApproveGate': {
@@ -43,10 +50,10 @@ function planFor(view: ProjectWorkspaceView, isAdmin: boolean): Plan {
       if (!gate?.currentStageHandoffId) {
         return {
           heading: step.title,
-          sentence: isAdmin
-            ? 'CariForge has not produced a step output for this step yet, so there is nothing to approve. Add one, or wait for it to arrive.'
+          sentence: canDraft
+            ? 'CariForge has not produced a step output for this step yet. Have it draft one now, then review and decide.'
             : 'CariForge has not produced a step output for this step yet, so there is nothing to approve yet. Check back soon.',
-          button: isAdmin ? { label: 'Add the step output', section: 'outputs' } : undefined,
+          button: canDraft ? { label: 'Draft with AI', draftWithAi: true } : undefined,
         };
       }
       return {
@@ -120,8 +127,14 @@ export function NextActionCard({
   detailId,
 }: NextActionCardProps) {
   const [dialogOpen, setDialogOpen] = React.useState(false);
+  const [drafting, setDrafting] = React.useState(false);
   const isAdmin = useIsAdmin();
-  const plan = planFor(view, isAdmin);
+  const { data: session } = useSession();
+  // Matches submitHandoff's own server-side rule exactly (isAdmin OR the
+  // mission's own creator) — the button only ever appears for someone the
+  // API will actually let draft this step.
+  const canDraft = isAdmin || detail.mission.createdById === session?.user?.id;
+  const plan = planFor(view, isAdmin, canDraft);
   const action = view.nextAction.view;
   const blockers = view.nextAction.blockers;
   const isTerminal = view.nextAction.isTerminal;
@@ -129,6 +142,22 @@ export function NextActionCard({
     action.kind === 'ApproveGate'
       ? (detail.gates.find((g) => g.gateIndex === action.gateIndex) ?? null)
       : null;
+
+  const draftWithAi = async () => {
+    setDrafting(true);
+    try {
+      await apiFetch(`/api/forge/missions/${detail.mission.id}/draft`, {
+        method: 'POST',
+        schema: MissionDetail,
+      });
+      toast.success('CariForge drafted this step — review it below.');
+      await onWritten();
+    } catch (err) {
+      toast.error((err as Error).message ?? 'Could not draft this step. Try again shortly.');
+    } finally {
+      setDrafting(false);
+    }
+  };
 
   return (
     <section
@@ -163,12 +192,14 @@ export function NextActionCard({
             type="button"
             className="min-h-11 px-5"
             aria-controls={plan.button.section ? detailId : undefined}
+            disabled={plan.button.draftWithAi && drafting}
             onClick={() => {
               if (plan.button?.opensDialog) setDialogOpen(true);
+              else if (plan.button?.draftWithAi) void draftWithAi();
               else if (plan.button?.section) onOpenSection(plan.button.section);
             }}
           >
-            {plan.button.label}
+            {plan.button.draftWithAi && drafting ? 'Drafting…' : plan.button.label}
           </Button>
           <Link href="/missions" className="app-link app-small inline-flex min-h-11 items-center">
             Save for later
