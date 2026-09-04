@@ -307,6 +307,14 @@ export const CanvasTaskItem = z.object({
   // What the approver must see before deciding (handover §17): the
   // upstream evidence — latest agent output preceding this approval.
   evidence: z.unknown().nullable(),
+  // Real user testing feedback (2026-09-04): an admin's Approvals inbox
+  // shows every task system-wide (listTasks: `where: isAdmin ? {} : {...}`)
+  // with nothing distinguishing "yours" from "everyone's, because you're an
+  // admin" — pre-existing demo/seed runs ("Judge Demo", "QA E2E") read as
+  // unexplained noise mixed into the user's own real activity. No other
+  // user's identity is exposed (email/name), only this boolean, computed
+  // server-side against the requesting user's own id.
+  isOwn: z.boolean(),
 });
 export type CanvasTaskItemT = z.infer<typeof CanvasTaskItem>;
 

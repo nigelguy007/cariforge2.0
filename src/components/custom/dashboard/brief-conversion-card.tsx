@@ -13,7 +13,7 @@ import * as React from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { apiFetch } from '@/lib/api-client';
-import { OpenBriefList, type OpenBriefItem } from '@/lib/contracts/leads';
+import { type OpenBriefItem, OpenBriefList } from '@/lib/contracts/leads';
 
 export function BriefConversionCard() {
   const [briefs, setBriefs] = React.useState<OpenBriefItem[] | null>(null);
@@ -56,15 +56,27 @@ export function BriefConversionCard() {
             </span>
           </div>
           <p className="mt-2 text-body text-muted-foreground">
-            {expanded === b.id ? b.brief : `${b.brief.slice(0, 180)}${b.brief.length > 180 ? '…' : ''}`}
+            {expanded === b.id
+              ? b.brief
+              : `${b.brief.slice(0, 180)}${b.brief.length > 180 ? '…' : ''}`}
           </p>
-          <div className="mt-4 flex flex-wrap items-center gap-3">
-            {/* 2026-09-01, direct user feedback: "Convert to mission" was
-                the ONLY option, forcing everyone through the full 9-field
-                governance intake just to get started — same overweight
-                pattern already fixed on the dashboard, missed here. Build
-                visually is now primary; the governed path (which does
-                carry the lead id through, unlike this one) is secondary. */}
+          {/* Real user testing feedback (2026-09-04): "what does build
+              visually try to achieve and what does start governed mission
+              instead try to achieve... it takes me to sections which make
+              no sense... what is the business process here?" — these two
+              buttons are the exact decision point that question is about,
+              and neither said what it actually does. Fixed here, at the
+              fork itself, rather than only on the two destination pages —
+              the choice has to make sense BEFORE you click, not after. */}
+          <p className="mt-3 text-small text-muted-foreground">
+            Two different things, not two steps of the same one:{' '}
+            <span className="font-medium text-foreground">Build visually</span> sketches this as
+            steps on a canvas you can test-run yourself, right away.{' '}
+            <span className="font-medium text-foreground">Start a governed mission</span> instead
+            sends it through a formal review — a named human signs off at every stage, nothing runs,
+            but every decision is recorded.
+          </p>
+          <div className="mt-3 flex flex-wrap items-center gap-3">
             <Button asChild className="glass-cta">
               <Link href={`/forge?draft=${encodeURIComponent(b.brief.slice(0, 4800))}`}>
                 Build visually

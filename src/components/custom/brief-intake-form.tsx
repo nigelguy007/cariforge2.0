@@ -89,7 +89,10 @@ function BriefDashboardCta() {
     );
   }
   return (
-    <div className="flex flex-col gap-2 rounded-xl border border-brand-300/60 bg-brand-50 p-4">
+    // Was `bg-brand-50` — same light-mode-only surface with no dark-mode
+    // override found on /missions/new during 2026-09-04 testing ("a light
+    // blue circle not visible"). Same fix: .glass-inset.
+    <div className="glass-inset flex flex-col gap-2 p-4">
       <p className="text-small text-foreground">
         Create an account to track this brief and convert it into a governed mission the moment we
         reply.

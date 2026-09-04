@@ -482,6 +482,10 @@ export async function listTasks(
         decidedAt: t.decidedAt?.toISOString() ?? null,
         blueprintName: t.run.blueprint.name,
         evidence,
+        // 2026-09-04: see the CanvasTaskItem schema comment — lets an
+        // admin's system-wide inbox distinguish their own activity from
+        // everyone else's without exposing who "everyone else" is.
+        isOwn: t.run.createdById === userId,
       };
     }),
   };

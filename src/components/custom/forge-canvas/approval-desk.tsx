@@ -55,6 +55,20 @@ function TaskCard({ task, onDecided }: { task: CanvasTaskItemT; onDecided: () =>
           <p className="text-xs text-muted-foreground">
             {task.blueprintName} · {new Date(task.createdAt).toLocaleString()}
           </p>
+          {/* Real user testing feedback (2026-09-04): "I see run decisions
+              then I see code?? When I click run I see judge demo - why???"
+              Root cause traced to listTasks: an admin's inbox shows every
+              task system-wide with nothing marking that. "Judge Demo" and
+              "QA E2E" are pre-existing demo/QA runs, not the tester's own
+              activity — this label is the difference between "the app is
+              broken" and "I'm seeing more than just my own work, on
+              purpose." */}
+          {!task.isOwn ? (
+            <p className="mt-1 text-xs text-muted-foreground">
+              <span className="font-medium">Not yours</span> — visible because you have admin
+              access; this isn&rsquo;t something you created.
+            </p>
+          ) : null}
         </div>
         <Badge
           className={cn(
