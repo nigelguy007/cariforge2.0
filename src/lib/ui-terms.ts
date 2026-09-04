@@ -148,6 +148,19 @@ export function statusLabel(status: MissionStatus): string {
   return STATUS_UI[status];
 }
 
+// A distinct enum from MissionStatus (ReleaseRead.releaseStatus) — the
+// release panel's own view of where the build stands. Same "never a raw
+// enum on screen" rule.
+export const RELEASE_STATUS_UI: Readonly<Record<string, string>> = {
+  Released: 'Released',
+  BuildApprovedNotReleased: 'Approved, not yet released',
+  Paused: 'Paused',
+  RolledBack: 'Earlier version restored',
+  WalkedAway: 'Not proceeding',
+  Blocked: 'Needs information',
+  InProgress: 'In progress',
+};
+
 // === Decisions ================================================================
 
 /** What the four decision choices are called on screen. Sent to the API as the raw enum. */
