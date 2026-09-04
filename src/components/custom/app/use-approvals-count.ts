@@ -19,12 +19,24 @@ export interface ApprovalsCount {
 
 const EMPTY: ApprovalsCount = { total: 0, projects: 0, runs: 0, loaded: false };
 
+// Dispatched on window by any surface that records a decision (the project
+// workspace, the approvals queue). The nav badge listens and refetches, so
+// the count is right without a page reload or prop-drilling a refresh key.
+export const APPROVALS_CHANGED_EVENT = 'cariforge:approvals-changed';
+
 export function useApprovalsCount(refreshKey = 0): ApprovalsCount {
   const [count, setCount] = React.useState<ApprovalsCount>(EMPTY);
+  const [tick, setTick] = React.useState(0);
+
+  React.useEffect(() => {
+    const onChanged = () => setTick((t) => t + 1);
+    window.addEventListener(APPROVALS_CHANGED_EVENT, onChanged);
+    return () => window.removeEventListener(APPROVALS_CHANGED_EVENT, onChanged);
+  }, []);
 
   // refreshKey is a caller-owned tick: bumping it re-runs the fetch after a
   // decision lands, so the badge and heading update without a reload.
-  // biome-ignore lint/correctness/useExhaustiveDependencies: refreshKey is an intentional trigger
+  // biome-ignore lint/correctness/useExhaustiveDependencies: refreshKey and tick are intentional triggers
   React.useEffect(() => {
     let cancelled = false;
     Promise.all([
@@ -41,7 +53,7 @@ export function useApprovalsCount(refreshKey = 0): ApprovalsCount {
     return () => {
       cancelled = true;
     };
-  }, [refreshKey]);
+  }, [refreshKey, tick]);
 
   return count;
 }

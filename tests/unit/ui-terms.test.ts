@@ -47,18 +47,26 @@ describe('STAGE_UI', () => {
   });
 
   it('uses the brief’s exact labels', () => {
-    expect(STAGE_UI.Discovery).toEqual({
+    expect(STAGE_UI.Discovery).toMatchObject({
       number: 1,
       short: 'Need',
       title: 'Define the need',
       action: 'Confirm need and continue',
     });
-    expect(STAGE_UI.SoftwareBuild).toEqual({
+    expect(STAGE_UI.SoftwareBuild).toMatchObject({
       number: 5,
       short: 'Prototype',
       title: 'Approve the prototype',
       action: 'Approve prototype package',
     });
+  });
+
+  it('gives every step one sentence that never claims a production deployment', () => {
+    for (const step of STEPS) {
+      expect(step.sentence.length, step.stage).toBeGreaterThan(20);
+      expect(step.sentence, step.stage).not.toMatch(/deploy(ed|able)? (to )?production/i);
+    }
+    expect(STAGE_UI.SoftwareBuild.sentence).toMatch(/prototype/i);
   });
 
   it('maps a zero-based gate index to a one-based step, safely', () => {

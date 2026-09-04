@@ -7,6 +7,7 @@ import 'server-only';
 import { Prisma } from '@prisma/client';
 import {
   type ApprovalDecision,
+  GATE_DEFS,
   isApproveDecision,
   type MissionDetailT,
   type MissionListItemT,
@@ -410,7 +411,7 @@ function computeGateStates(
       currentStageHandoffId: latest ? latest.id : null,
       currentHandoffVersion: latest ? latest.version : null,
       lastApprovalId: lastApproval ? lastApproval.id : null,
-      allowedReasonCodes: [],
+      allowedReasonCodes: [...(GATE_DEFS[gateIndex]?.allowedReasonCodes ?? [])],
     };
   });
 }

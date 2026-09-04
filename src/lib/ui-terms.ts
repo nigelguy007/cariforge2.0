@@ -32,6 +32,8 @@ export interface StageUi {
   readonly title: string;
   /** Label of the single primary button when this step needs approval. */
   readonly action: string;
+  /** The one sentence under the step heading on the project workspace. */
+  readonly sentence: string;
 }
 
 export const STAGE_UI: Readonly<Record<StageName, StageUi>> = {
@@ -40,30 +42,36 @@ export const STAGE_UI: Readonly<Record<StageName, StageUi>> = {
     short: 'Need',
     title: 'Define the need',
     action: 'Confirm need and continue',
+    sentence: 'Agree what the business needs before anything is designed.',
   },
   Readiness: {
     number: 2,
     short: 'Ready',
     title: 'Check readiness',
     action: 'Confirm readiness and continue',
+    sentence: 'Confirm the people, data and constraints are in place to go ahead.',
   },
   Workflow: {
     number: 3,
     short: 'Workflow',
     title: 'Design the workflow',
     action: 'Approve workflow and continue',
+    sentence: 'Review the proposed steps, roles and handovers for the work.',
   },
   Governance: {
     number: 4,
     short: 'Controls',
     title: 'Set the controls',
     action: 'Confirm controls and continue',
+    sentence: 'Decide what the prototype may do, who approves it and what evidence it must keep.',
   },
   SoftwareBuild: {
     number: 5,
     short: 'Prototype',
     title: 'Approve the prototype',
     action: 'Approve prototype package',
+    sentence:
+      'Approve the runnable prototype package — a prototype with its plan, operating guide and evidence, not a production deployment.',
   },
 };
 

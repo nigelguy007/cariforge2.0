@@ -1,27 +1,32 @@
-// @polsia:user-owned — Mission list page (Server Component shell).
+// @polsia:user-owned — Projects list page (Server Component shell). The URL
+// stays /missions so nothing bookmarked breaks; the page reads "Projects".
 import type { Metadata } from 'next';
-import { MissionList } from '@/components/custom/missions/mission-list';
+import Link from 'next/link';
+import { ProjectList } from '@/components/custom/app/project-list';
+import { BriefConversionCard } from '@/components/custom/dashboard/brief-conversion-card';
+import { Button } from '@/components/ui/button';
 
 export const metadata: Metadata = {
-  title: 'Missions',
-  description:
-    'Capture plain-English organisational needs as governed, testable software-delivery missions.',
+  title: 'Projects',
+  description: 'Your projects, each moving through five approved steps.',
 };
 
 export default function MissionsIndexPage() {
   return (
-    <section className="container-page py-section">
-      <header className="glass-panel rounded-2xl p-6">
-        <p className="text-eyebrow text-brand-700">Mission Control</p>
-        <h1 className="text-h1 text-foreground">Missions</h1>
-        <p className="mt-2 text-body text-muted-foreground">
-          Every mission is an attested, versioned journey through five named human gates with typed
-          reason codes and an exportable evidence trail.
-        </p>
+    <div className="app-content space-y-5">
+      <header className="flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <h1 className="app-h1 text-[var(--app-text)]">Projects</h1>
+          <p className="app-body mt-1 text-[var(--app-text-muted)]">
+            Each project moves through five steps. You approve every one.
+          </p>
+        </div>
+        <Button asChild className="min-h-11">
+          <Link href="/missions/new">Start a project</Link>
+        </Button>
       </header>
-      <div className="mt-8">
-        <MissionList />
-      </div>
-    </section>
+      <BriefConversionCard />
+      <ProjectList showEmptyCta={false} />
+    </div>
   );
 }
