@@ -21,8 +21,10 @@
 // documented, not silently assumed away.
 
 import 'server-only';
+import { draftStepOutput } from '@/lib/business/forge/ai-draft';
 import {
   addHandoffAttester,
+  correctHandoff,
   createObjection,
   decideGate,
   getMissionDetail,
@@ -30,6 +32,11 @@ import {
 } from '@/lib/business/forge/service';
 import type { SpecialistRole, StageName } from '@/lib/contracts/forge';
 import { reconcileConcerns, reviewStepDraft } from './oracle-review';
+
+function summarise(payload: Record<string, unknown>): string {
+  const summary = payload.summary ?? payload.problemStatement;
+  return typeof summary === 'string' && summary.trim() ? summary.trim() : JSON.stringify(payload);
+}
 
 // Below this, a human decides even with zero Oracle concerns — the draft
 // itself said it wasn't confident. No number was specified in the brief;
@@ -63,6 +70,9 @@ export async function reviewAndMaybeAdvance(args: {
   draftSummary: string;
   draftConfidence: number;
   draftMissingEvidence: readonly string[];
+  /** Internal — true once this step has already been sent back for one
+   *  automatic redraft. Caps the retry at exactly one round, never a loop. */
+  retried?: boolean;
 }): Promise<AutoAdvanceOutcome> {
   const review = await reviewStepDraft({ stage: args.stage, draftSummary: args.draftSummary });
   if (review.status === 'unavailable') {
@@ -123,10 +133,70 @@ export async function reviewAndMaybeAdvance(args: {
   }
 
   const stillOpen = await getMissionDetail(args.missionId, args.ownerUserId, false);
-  const concernCount =
+  const unresolvedOnThisStep =
     stillOpen?.objections.filter(
       (o) => o.stageHandoffId === args.handoffId && o.resolution === null,
-    ).length ?? raised.length;
+    ) ?? [];
+  const concernCount = stillOpen ? unresolvedOnThisStep.length : raised.length;
+
+  // "The Supervisor sends failed work back to the responsible agent" — one
+  // bounded redraft, never a loop. Only attempted once (args.retried guards
+  // it), only when there's something to hand back (real objection text and
+  // enough mission context to redraft with), and it still only ever produces
+  // ANOTHER draft for the same human to review — it can't itself resolve a
+  // concern or approve anything.
+  if (concernCount > 0 && !args.retried && stillOpen) {
+    const priorContext = stillOpen.handoffs
+      .filter((h) => h.supersededById === null && h.stage !== args.stage)
+      .sort((a, b) => a.createdAt.localeCompare(b.createdAt))
+      .map((h) => {
+        const p = h.payload as Record<string, unknown>;
+        const s = p.summary ?? p.problemStatement;
+        return typeof s === 'string' && s.trim() ? s.trim() : null;
+      })
+      .filter((s): s is string => s !== null);
+
+    const redraft = await draftStepOutput({
+      stage: args.stage,
+      intake: stillOpen.mission.intake,
+      normalizedNeed: stillOpen.mission.normalizedNeed,
+      priorContext,
+      feedback: unresolvedOnThisStep.map((o) => o.text),
+    });
+
+    if (redraft.status === 'ok') {
+      try {
+        const corrected = await correctHandoff({
+          missionId: args.missionId,
+          userId: args.ownerUserId,
+          isAdmin: false,
+          handoffId: args.handoffId,
+          payload: redraft.draft.payload,
+          confidence: redraft.draft.confidence,
+          missingEvidence: [...redraft.draft.missingEvidence],
+          reasonCode: 'ReplayRequired',
+          reasonText:
+            'Automatically sent back to the responsible agent to address reviewer concerns; redrafted and resubmitted for review.',
+        });
+        const newHandoff = corrected.handoffs.find(
+          (h) => h.stage === args.stage && h.supersededById === null,
+        );
+        if (newHandoff) {
+          return reviewAndMaybeAdvance({
+            ...args,
+            handoffId: newHandoff.id,
+            draftSummary: summarise(redraft.draft.payload),
+            draftConfidence: redraft.draft.confidence,
+            draftMissingEvidence: redraft.draft.missingEvidence,
+            retried: true,
+          });
+        }
+      } catch {
+        // Falls through to human escalation below, same as any other
+        // precondition this session doesn't know about.
+      }
+    }
+  }
 
   if (concernCount > 0) return { reviewed: true, advanced: false, concernCount };
   if (args.draftConfidence < AUTO_ADVANCE_CONFIDENCE_THRESHOLD) {

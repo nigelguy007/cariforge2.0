@@ -91,6 +91,10 @@ export async function draftStepOutput(args: {
   normalizedNeed: string;
   /** Plain-language summary of earlier steps' outputs, oldest first. Empty for Discovery. */
   priorContext: readonly string[];
+  /** Unresolved reviewer concerns from a prior attempt at THIS same step,
+   *  if this is a redraft ("Supervisor sends failed work back to the
+   *  responsible agent"). Empty on a first attempt. */
+  feedback?: readonly string[];
 }): Promise<DraftStepResult> {
   const client = getClient();
   if (!client) return { status: 'unavailable' };
@@ -100,6 +104,10 @@ export async function draftStepOutput(args: {
   const contextBlock =
     args.priorContext.length > 0
       ? `\n\nWhat earlier steps already established:\n${args.priorContext.map((c, i) => `${i + 1}. ${c}`).join('\n')}`
+      : '';
+  const feedbackBlock =
+    args.feedback && args.feedback.length > 0
+      ? `\n\nA prior attempt at this same step had these unresolved reviewer concerns — address them directly this time, don't just repeat the same draft:\n${args.feedback.map((c, i) => `${i + 1}. ${c}`).join('\n')}`
       : '';
 
   const system = `You are CariForge, drafting the "${args.stage}" step of a governed project for
@@ -117,7 +125,7 @@ ${STAGE_FOCUS[args.stage]}
 Set confidence (0-1) honestly: lower if the described need is vague or
 this step depends on information not yet available.`;
 
-  const userMessage = `The need, as described: ${need}${contextBlock}`;
+  const userMessage = `The need, as described: ${need}${contextBlock}${feedbackBlock}`;
 
   try {
     const response = await client.messages.parse({
