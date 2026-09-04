@@ -229,19 +229,23 @@ export function SupportingDetail({
     outputs: (
       <>
         <MissionHandoffTimeline detail={detail} />
-        <MissionHandoffForm missionId={mission.id} onWritten={onWritten} />
-        <MissionHandoffCorrectForm detail={detail} onWritten={onWritten} />
+        {isAdmin ? (
+          <>
+            <MissionHandoffForm missionId={mission.id} onWritten={onWritten} />
+            <MissionHandoffCorrectForm detail={detail} onWritten={onWritten} />
+          </>
+        ) : null}
       </>
     ),
     actions: (
       <>
         <MissionToolActionsTimeline detail={detail} onWritten={onWritten} />
-        <MissionToolActionForm detail={detail} onWritten={onWritten} />
+        {isAdmin ? <MissionToolActionForm detail={detail} onWritten={onWritten} /> : null}
       </>
     ),
     tasks: (
       <>
-        <MissionWorkItemsPanel missionId={mission.id} />
+        {isAdmin ? <MissionWorkItemsPanel missionId={mission.id} /> : null}
         <MissionBuildPanel missionId={mission.id} currentStageIndex={mission.currentStageIndex} />
         <MissionReleasePanel missionId={mission.id} />
       </>
@@ -286,8 +290,12 @@ export function SupportingDetail({
       <>
         <MissionBlockersPanel missionSlug={missionSlug} />
         <MissionPauseResume detail={detail} onWritten={onWritten} />
-        <MissionReplayForm detail={detail} onWritten={onWritten} />
-        <MissionRollbackForm detail={detail} onWritten={onWritten} />
+        {isAdmin ? (
+          <>
+            <MissionReplayForm detail={detail} onWritten={onWritten} />
+            <MissionRollbackForm detail={detail} onWritten={onWritten} />
+          </>
+        ) : null}
       </>
     ),
     record: (
