@@ -14,6 +14,13 @@
 // gate approvals, the hash chain — all real, already built earlier this
 // project), never a claim about a third-party integration or deployment
 // mode this codebase doesn't actually have.
+//
+// `boundary` is OPTIONAL (2026-09-04, real user feedback: "this is giving
+// away the app functionality to everyone"). GET /api/agents now omits it for
+// unauthenticated requests — the public /how-it-works page shows only
+// role/roleLong/mandate (a brief explanation of what each agent does); full
+// operational-boundary detail is signed-in-only, on /dashboard/pipeline.
+// Present (never undefined) whenever the caller is authenticated.
 
 import { z } from 'zod';
 
@@ -42,7 +49,7 @@ export const CoreAgent = z.object({
     'Wraparound',
   ]),
   scope: z.enum(['Pipeline', 'Wraparound']),
-  boundary: AgentBoundary,
+  boundary: AgentBoundary.optional(),
 });
 
 export const CoreAgents = z.object({

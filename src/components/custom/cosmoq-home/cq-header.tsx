@@ -10,13 +10,25 @@
 //
 // Same auth seam as site-nav.tsx: this page opts out of the global SiteNav
 // (see the `pathname === '/'` check there), so it needs its own check to
-// show "Log in" to signed-out visitors and "Dashboard" to signed-in ones.
+// show "Log in" to signed-out visitors and "Sign out" to signed-in ones.
+//
+// Real user testing feedback (2026-09-04): "when I'm logged in there's no
+// log out of the system" + "on the homepage there is a log in at the bottom
+// but don't see it at the top, all I see is submit a brief." Two separate
+// bugs, both real: (1) this header never offered a sign-out action at all —
+// signed in, it only ever linked to /dashboard, which does have a sign-out
+// button in DashboardShell, but that's a second hop, not "no log out"; (2)
+// cosmoq-home.css hid .cq-header-link below 620px, so on a phone this
+// secondary action disappeared completely and only "Submit a brief"
+// remained. Fixed here (sign out added) and in cosmoq-home.css (mobile
+// hide rule removed).
 
 'use client';
 
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { BrandMark } from '@/components/custom/brand-mark';
-import { useSession } from '@/lib/auth-client';
+import { signOut, useSession } from '@/lib/auth-client';
 
 const NAV_ITEMS = [
   { label: 'How it works', href: '/how-it-works' },
@@ -27,7 +39,14 @@ const NAV_ITEMS = [
 
 export function CqHeader() {
   const { data: session, isPending } = useSession();
+  const router = useRouter();
   const isAuthenticated = !isPending && Boolean(session?.user);
+
+  async function handleSignOut() {
+    await signOut();
+    router.replace('/');
+    router.refresh();
+  }
 
   return (
     <header className="cq-header">
@@ -46,9 +65,9 @@ export function CqHeader() {
 
       <div className="cq-header-end">
         {isAuthenticated ? (
-          <Link href="/dashboard" className="cq-header-link">
-            Dashboard
-          </Link>
+          <button type="button" onClick={handleSignOut} className="cq-header-link cq-header-btn">
+            Sign out
+          </button>
         ) : (
           <Link href="/login" className="cq-header-link">
             Log in
@@ -60,4 +79,28 @@ export function CqHeader() {
       </div>
     </header>
   );
+}
+
+// Same fix, footer instance: the footer's "Governance" column had a
+// hardcoded `<Link href="/login">Log in</Link>` — always showed "Log in"
+// even when already signed in, with no sign-out path from the footer either.
+export function CqFooterAuthLink() {
+  const { data: session, isPending } = useSession();
+  const router = useRouter();
+  const isAuthenticated = !isPending && Boolean(session?.user);
+
+  async function handleSignOut() {
+    await signOut();
+    router.replace('/');
+    router.refresh();
+  }
+
+  if (isAuthenticated) {
+    return (
+      <button type="button" onClick={handleSignOut} className="cq-footer-link-btn">
+        Sign out
+      </button>
+    );
+  }
+  return <Link href="/login">Log in</Link>;
 }

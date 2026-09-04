@@ -297,7 +297,10 @@ export function ForgeCanvasBuilder() {
       },
     ]);
     if (canAutoChain && selectedNode) {
-      setEdges((es) => [...es, { id: `e-${selectedNode.id}-out-${id}`, source: selectedNode.id, target: id }]);
+      setEdges((es) => [
+        ...es,
+        { id: `e-${selectedNode.id}-out-${id}`, source: selectedNode.id, target: id },
+      ]);
     }
     setSelectedId(id);
   };

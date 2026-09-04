@@ -32,7 +32,7 @@
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import Link from 'next/link';
-import { CqHeader } from '@/components/custom/cosmoq-home/cq-header';
+import { CqFooterAuthLink, CqHeader } from '@/components/custom/cosmoq-home/cq-header';
 import { JsonLd } from '@/components/custom/json-ld';
 import { organization, website } from '@/lib/jsonld';
 import { siteDescription, siteName } from '@/lib/site';
@@ -201,20 +201,17 @@ export default function Home() {
 
         {/* === HERO ========================================================= */}
         <main className="cq-hero cq-container" id="top">
-          {/* COMPLIANCE WORDING (2026-09-03, per rebuild-brief review): was
-              "EU AI Act · Article 12 & 14 ready" — an unqualified readiness
-              claim this product cannot actually make (readiness depends on
-              the BUYER's system, role, and their own legal assessment, not
-              on this product alone). Every other page that touches this
-              topic already hedges it ("Articles 12 & 14 timeline",
-              "readiness memo") — this badge was the one unqualified
-              instance on the whole site, and the most prominent, being the
-              first thing on the homepage. Narrowed to what the product
-              actually does: supports the two controls, doesn't certify
-              compliance with them. */}
+          {/* Real user feedback (2026-09-04): "remove this statement [EU AI
+              Act Art. 12 & 14], it's not needed." Compliance-wording history
+              (2026-09-03) is moot now the claim itself is gone; replaced with
+              a strapline that states the objective without repeating or
+              contradicting the H1 below ("Software the AI can't sign off
+              on.") — reuses the exact phrase the Stages section already uses
+              elsewhere on the site, so it's not a new, separately-verified
+              claim. */}
           <span className="cq-badge cq-rise" style={{ ['--cq-d' as string]: '0.05s' }}>
             <SparkIcon />
-            Built to support EU AI Act Art. 12 &amp; 14
+            Five stages. Five named approvals. No hidden steps.
           </span>
 
           <h1 className="cq-display cq-rise" style={{ ['--cq-d' as string]: '0.12s' }}>
@@ -431,7 +428,14 @@ export default function Home() {
                   and the last; the three in between are signed by that stage&rsquo;s named
                   specialist. No gate clears itself.
                 </p>
-                <Link href="/how-it-works#stages" className="cq-row-link">
+                {/* Real user feedback (2026-09-04): "this is giving away the
+                    app functionality to everyone" — the full stage/gate
+                    detail moved off the public /how-it-works page to the
+                    signed-in-only /dashboard/pipeline. Points there now;
+                    an unauthenticated click bounces to /login like every
+                    other (dashboard) route (DashboardShell's own redirect,
+                    same as /forge, /missions, /approvals). */}
+                <Link href="/dashboard/pipeline" className="cq-row-link">
                   See the stages <span>&rarr;</span>
                 </Link>
               </div>
@@ -731,7 +735,7 @@ export default function Home() {
                   <Link href="/how-the-council-works">The council</Link>
                   <Link href="/pilot/oracle-council">The Oracles</Link>
                   <Link href="/faq">FAQ</Link>
-                  <Link href="/login">Log in</Link>
+                  <CqFooterAuthLink />
                 </div>
               </div>
             </div>
@@ -739,7 +743,6 @@ export default function Home() {
               <span>
                 &copy; {new Date().getFullYear()} {siteName}
               </span>
-              <span>Built to support EU AI Act Art. 12 &amp; 14</span>
             </div>
           </div>
         </footer>

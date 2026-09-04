@@ -45,7 +45,7 @@ export default function RequestWalkthroughPage() {
           <GlassSectionHeader
             eyebrow="Procurement-grade — for buyers who have moved past the front door"
             title="Request a council walkthrough."
-            lede="The one-line brief on the home page is the front door — about what you would tell the chairman before the council kicked off. This form is for buyers who are past that and ready to start a real procurement engagement: a segment choice from the four pre-approved engagement tracks, a named role, an organisation, and a 2–3 sentence problem statement. Each submission lands on the leads dashboard and fires a notification email to a CARI Forge operator; a named human replies within 48 hours during working weeks."
+            lede="The one-line brief on the home page is the front door — about what you would tell the chairman before the council kicked off. This form is for buyers who are past that and ready to start a real procurement engagement: a segment choice from the four pre-approved engagement tracks, a named role, an organisation, and a 2–3 sentence problem statement. Each submission lands on the leads dashboard and fires a notification email to a CARI Forge operator; a named human replies within 48 hours during the working week."
           />
 
           <div className="grid gap-8 lg:grid-cols-[1.4fr_1fr]">
@@ -91,7 +91,7 @@ export default function RequestWalkthroughPage() {
                     3
                   </span>
                   <span>
-                    A named human replies within 48 hours during working weeks with the next
+                    A named human replies within 48 hours during the working week with the next
                     concrete step — usually a 30-minute read-out, a sample brief, or a kick
                     candidate.
                   </span>

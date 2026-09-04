@@ -180,23 +180,38 @@ describe('agents contract — seven-agent core', () => {
     expect(names).not.toContain('Software Build');
   });
 
-  it('requires every agent to publish non-empty operational boundaries', () => {
+  it('requires every agent to publish non-empty operational boundaries, when present', () => {
+    // boundary went optional 2026-09-04 (real user feedback: "this is
+    // giving away the app functionality to everyone" — GET /api/agents now
+    // omits it for unauthenticated callers). This fixture always supplies
+    // it, so `toBeDefined` never fails here; it exists to satisfy strict
+    // narrowing before the field-by-field assertions below.
     for (const agent of items) {
-      expect(agent.boundary.inputs.length).toBeGreaterThan(0);
-      expect(agent.boundary.tools.length).toBeGreaterThan(0);
-      expect(agent.boundary.outputs.length).toBeGreaterThan(0);
-      expect(agent.boundary.prohibited.length).toBeGreaterThan(0);
-      expect(agent.boundary.humanApproval.length).toBeGreaterThan(0);
-      expect(agent.boundary.evidence.length).toBeGreaterThan(0);
-      expect(agent.boundary.successMeasures.length).toBeGreaterThan(0);
+      const { boundary } = agent;
+      expect(boundary).toBeDefined();
+      if (!boundary) continue;
+      expect(boundary.inputs.length).toBeGreaterThan(0);
+      expect(boundary.tools.length).toBeGreaterThan(0);
+      expect(boundary.outputs.length).toBeGreaterThan(0);
+      expect(boundary.prohibited.length).toBeGreaterThan(0);
+      expect(boundary.humanApproval.length).toBeGreaterThan(0);
+      expect(boundary.evidence.length).toBeGreaterThan(0);
+      expect(boundary.successMeasures.length).toBeGreaterThan(0);
     }
   });
 
-  it('rejects an agent missing the boundary field entirely', () => {
-    const missingBoundary = { ...FIXTURE.items[0] } as Partial<CoreAgent>;
-    delete missingBoundary.boundary;
-    expect(() =>
-      CoreAgents.parse({ items: [missingBoundary, ...FIXTURE.items.slice(1)] }),
-    ).toThrow();
+  // Was "rejects an agent missing the boundary field entirely" — inverted
+  // 2026-09-04: boundary is now OPTIONAL, precisely so GET /api/agents can
+  // omit it for an unauthenticated caller (route.ts strips it before the
+  // public /how-it-works page's summary view ever sees it). A missing
+  // boundary is the correct, intended anonymous-response shape now, not a
+  // contract violation.
+  it('accepts an agent with boundary omitted — the anonymous /api/agents response shape', () => {
+    const withoutBoundary = { ...FIXTURE.items[0] } as Partial<CoreAgent>;
+    delete withoutBoundary.boundary;
+    const parsed = CoreAgents.parse({ items: [withoutBoundary, ...FIXTURE.items.slice(1)] });
+    expect(parsed.items[0]?.boundary).toBeUndefined();
+    // Everything else on that item still round-trips.
+    expect(parsed.items[0]?.role).toBe(FIXTURE.items[0]?.role);
   });
 });

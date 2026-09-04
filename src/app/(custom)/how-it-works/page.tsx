@@ -1,16 +1,23 @@
 // @polsia:user-owned — /how-it-works. Holds the Oracles council, the
-// seven-agent core, the five-stage pipeline, and the real brief-intake form
-// — everything that used to live on the homepage below the hero, before the
+// seven-agent core (brief summary only), and the real brief-intake form —
+// everything that used to live on the homepage below the hero, before the
 // homepage became a single fixed-viewport hero (see src/app/(setup)/page.tsx
-// and its own comment for why). Nothing here is new copy; it's the same
-// sections, moved so the working BriefIntakeForm and the Oracles/Stages
-// explanation aren't lost, not replaced.
+// and its own comment for why).
+//
+// The five-stage gate breakdown, "what governed actually means here,"
+// systems of record, and the technical architecture diagram used to live
+// here too, until real user feedback (2026-09-04): "this is giving away the
+// app functionality to everyone." That detail — plus the full agent
+// operational-boundary breakdown (CoreAgentsSection) — moved to the
+// signed-in-only /dashboard/pipeline; see that file for what actually moved.
+// This page keeps CoreAgentsSummary (name + one-line mandate per agent, no
+// boundary detail) so a visitor still learns what the seven agents are.
 
 import { ArrowRight } from 'lucide-react';
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { BriefIntakeForm } from '@/components/custom/brief-intake-form';
-import { CoreAgentsSection } from '@/components/custom/core-agents-section';
+import { CoreAgentsSummary } from '@/components/custom/core-agents-section';
 import {
   GlassCard,
   GlassChip,
@@ -19,12 +26,6 @@ import {
   GlassSectionHeader,
 } from '@/components/custom/glass';
 import { WorkflowConfigurator } from '@/components/custom/workflow-configurator';
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from '@/components/ui/accordion';
 import { siteName } from '@/lib/site';
 
 export const metadata: Metadata = {
@@ -84,53 +85,6 @@ const COUNCIL: Array<{
   },
 ];
 
-const STAGES: Array<{
-  ordinal: string;
-  name: string;
-  goal: string;
-  gate: string;
-  agentBadge?: string;
-}> = [
-  {
-    ordinal: 'I',
-    name: 'Need Discovery',
-    goal: 'Translate the submitted requirements into a testable problem statement.',
-    gate: 'Approve · Return · Refuse',
-  },
-  {
-    ordinal: 'II',
-    name: 'Readiness Review',
-    goal: 'Audit data, integrations, and the regulatory regime before code.',
-    gate: 'Approve · Return · Refuse',
-  },
-  {
-    ordinal: 'III',
-    name: 'Workflow Design',
-    goal: 'Map the human checkpoints, escalation paths, and rollback.',
-    gate: 'Approve · Return · Refuse',
-  },
-  {
-    ordinal: 'IV',
-    name: 'Governance Check',
-    goal: 'Confirm the logging, oversight, and stop-the-line controls hold.',
-    gate: 'Approve · Return · Refuse',
-  },
-  {
-    ordinal: 'V',
-    // COPY ACCURACY (2026-09-03, rebuild-brief review, same evidence as the
-    // homepage fix in the same commit range): this stage's real gate in
-    // src/lib/contracts/forge.ts (GATE_DEFS[4]) is named 'Prototype spec
-    // approved', and that file's own comment states its output is "a pair
-    // of schema-versioned *specification* documents, not deployable code."
-    // "Produce the runnable... software build" overclaimed against the
-    // product's own contract. Described here as what it actually is.
-    name: 'Software Build',
-    goal: 'Produce the approved Blueprint and Runbook — the schema-versioned build spec Agent 5 (AI Build) hands off.',
-    gate: 'Approve · Return · Refuse — final approve releases the spec.',
-    agentBadge: 'Agent 5 · AI Build',
-  },
-];
-
 function StanceBadge({ tone }: { tone: 'objection' | 'support' | 'qualify' }) {
   const label = tone === 'objection' ? 'Objection' : tone === 'support' ? 'Supports' : 'Qualifies';
   return (
@@ -171,15 +125,18 @@ export default function HowItWorksPage() {
               <h2 className="font-display text-h3 tracking-tight text-foreground">
                 What do you want to build using AI?
               </h2>
+              {/* Real user feedback (2026-09-04): "change this language to
+                  make sense / human." Same facts, plainer sentence
+                  structure — no change in meaning. */}
               <p className="text-small text-card-foreground/80">
-                A regulated buyer&rsquo;s question is enough to start — write as much as the problem
-                needs. The Oracles read it verbatim before any code is written; the Elder Oracle
-                rules on what they disagree about.
+                A regulated buyer&rsquo;s question is all it takes to get started — write as much
+                detail as the problem needs. The Oracles read every submission in full before any
+                code is written, and the Elder Oracle settles anything they can&rsquo;t agree on.
               </p>
             </header>
             <BriefIntakeForm />
             <p className="mt-3 text-caption text-muted-foreground">
-              A real human will reply — within 48 hours during working weeks.
+              A real human will reply — within 48 hours during the working week.
             </p>
           </GlassCard>
         </div>
@@ -344,256 +301,40 @@ export default function HowItWorksPage() {
         </div>
       </section>
 
-      {/* CORE AGENTS — the seven-agent core that operates the pipeline (distinct from The Oracles) */}
-      <CoreAgentsSection />
+      {/* CORE AGENTS — brief summary only (name + one-line mandate); full
+          operational-boundary detail is signed-in-only, see the teaser
+          section right below. */}
+      <CoreAgentsSummary />
 
-      {/* STAGES — five-step pipeline with explicit human gates */}
-      <section id="stages" className="section relative overflow-hidden section-aurora">
-        <div className="container-page flex flex-col gap-10">
-          <GlassSectionHeader
-            eyebrow="The stages"
-            title="Five stages. Five named approvals. No hidden steps."
-            lede="Every stage advances only after a human authorises it by name, with a typed reason attached and recorded. Return is cheap; stopping is free. Nothing jumps a gate."
-          />
-
-          <ol className="grid gap-4 md:grid-cols-5">
-            {STAGES.map((stage, idx) => (
-              <li key={stage.ordinal} className="h-full">
-                <GlassCard tone="surface" padding="md" interactive className="h-full">
-                  <div className="mb-2 flex items-center justify-between">
-                    <span className="font-display text-caption font-semibold tracking-[0.1em] text-brand-700">
-                      {stage.agentBadge ?? `Stage ${stage.ordinal}`}
-                    </span>
-                    <span className="font-display text-caption text-muted-foreground">
-                      {String(idx + 1).padStart(2, '0')}/05
-                    </span>
-                  </div>
-                  <h3 className="font-display text-h4 tracking-tight text-foreground">
-                    {stage.name}
-                  </h3>
-                  <p className="text-small text-card-foreground/80">{stage.goal}</p>
-                  <div className="my-1 h-px w-full bg-gradient-to-r from-transparent via-brand-700/30 to-transparent" />
-                  <div className="flex flex-col gap-1">
-                    <p className="text-[10px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">
-                      Human gate
-                    </p>
-                    <p className="text-small text-card-foreground">{stage.gate}</p>
-                  </div>
-                </GlassCard>
-              </li>
-            ))}
-          </ol>
-
-          {/* Explicit governance controls, named — turns "governed" into
-              verifiable mechanisms instead of a single adjective. Every
-              item here is something this system actually does (named gate
-              approvals, typed reasons, the append-only audit trail and hash
-              chain from the AI Build agent's own mandate), not aspirational. */}
+      {/* GATED-DETAIL TEASER — replaces the old public STAGES /
+          SYSTEMS-OF-RECORD / ARCHITECTURE sections. Real user feedback
+          (2026-09-04): "this is giving away the app functionality to
+          everyone." That detail didn't disappear — it moved to
+          /dashboard/pipeline, signed-in only. This section tells a visitor
+          it exists and where, rather than silently vanishing. */}
+      <section className="section relative overflow-hidden section-aurora">
+        <div className="container-page">
           <GlassPanel tone="panel" padding="lg" className="section-aurora">
             <GlassChip tone="brand" className="self-start">
-              What &ldquo;governed&rdquo; actually means here
+              Sign in for the full detail
             </GlassChip>
-            <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              <div>
-                <p className="font-display text-h4 tracking-tight text-foreground">
-                  Named approvers
-                </p>
-                <p className="text-small text-card-foreground/80">
-                  Every gate names the human who approved, returned, or refused it &mdash; never an
-                  anonymous system action.
-                </p>
-              </div>
-              <div>
-                <p className="font-display text-h4 tracking-tight text-foreground">Typed reasons</p>
-                <p className="text-small text-card-foreground/80">
-                  Approve, return, and refuse all require a written reason, recorded in the case
-                  file at the moment of decision.
-                </p>
-              </div>
-              <div>
-                <p className="font-display text-h4 tracking-tight text-foreground">
-                  Append-only audit trail
-                </p>
-                <p className="text-small text-card-foreground/80">
-                  Every gate decision writes an immutable record &mdash; nothing in the case file
-                  history can be edited after the fact.
-                </p>
-              </div>
-              <div>
-                <p className="font-display text-h4 tracking-tight text-foreground">Hash chain</p>
-                <p className="text-small text-card-foreground/80">
-                  The audit trail is chained by hash, so a tampered or reordered record would be
-                  detectable, not just discouraged.
-                </p>
-              </div>
-              <div>
-                <p className="font-display text-h4 tracking-tight text-foreground">
-                  No gate-skipping
-                </p>
-                <p className="text-small text-card-foreground/80">
-                  Agents 1&ndash;5 cannot approve their own gate, and AI Build cannot ship without
-                  the Software Build gate&rsquo;s final approval.
-                </p>
-              </div>
-              <div>
-                <p className="font-display text-h4 tracking-tight text-foreground">
-                  Full gate history
-                </p>
-                <p className="text-small text-card-foreground/80">
-                  Every prior gate&rsquo;s decision and reasoning stays attached to the case file
-                  for the agents and humans that come after it.
-                </p>
-              </div>
-            </div>
-          </GlassPanel>
-        </div>
-      </section>
-
-      {/* SYSTEMS OF RECORD — CARI Forge doesn't replace what a buyer already
-          runs; grounded directly in the Readiness agent's real mandate
-          (audits the buyer's actual data sources and regulatory regime,
-          locks a data-minimisation clause) rather than naming specific
-          third-party integrations (Salesforce, SAP, M365) this system
-          doesn't actually connect to yet. */}
-      <section id="systems-of-record" className="section relative overflow-hidden section-aurora">
-        <div className="container-page grid gap-10 lg:grid-cols-[1fr_1fr] lg:items-center">
-          <div className="flex flex-col gap-3">
-            <GlassChip tone="brand" className="self-start">
-              Systems of record
-            </GlassChip>
-            <h2 className="font-display text-h3 tracking-tight text-foreground">
-              CARI Forge doesn&rsquo;t ask you to replace what you already run.
+            <h2 className="mt-3 font-display text-h3 tracking-tight text-foreground">
+              The five-stage gate breakdown, systems of record, and technical architecture live
+              inside the platform.
             </h2>
-            {/* Trimmed 2026-09-03 (rebuild-brief review, "explain a fact once"):
-                this paragraph was restating the same three facts the bullet
-                list two lines below it already covers in full — audit, the
-                build-vs-buy comparison, the data-minimisation clause. Kept
-                the claim, dropped the duplicate detail; the specifics now
-                live in exactly one place. */}
-            <p className="text-body text-muted-foreground">
-              Your systems stay authoritative &mdash; the pipeline works with what you already have,
-              not instead of it.
+            <p className="mt-2 max-w-2xl text-body text-card-foreground/85">
+              What each of the five gates checks, how the audit trail and hash chain work, what CARI
+              Forge does and doesn&rsquo;t touch in your own systems, and the five-layer
+              architecture diagram &mdash; all visible once you&rsquo;re signed in, not published
+              for anyone who visits.
             </p>
-          </div>
-          <GlassCard tone="highlight" padding="lg">
-            <p className="font-display text-h4 tracking-tight text-foreground">
-              What this means in practice
-            </p>
-            <ul className="mt-2 flex flex-col gap-2 text-small text-card-foreground/85">
-              <li>&middot; The Readiness agent only sees data you explicitly supply or name</li>
-              <li>
-                &middot; A build-versus-buy comparison is written before a line of code exists
-              </li>
-              <li>
-                &middot; The data-minimisation clause is locked in the case file, not a promise
-              </li>
-              <li>
-                &middot; Deeper, connector-level integration into a specific system of record is
-                scoped per engagement in Production Forge, not assumed by default
-              </li>
-            </ul>
-          </GlassCard>
-        </div>
-      </section>
-
-      {/* ARCHITECTURE — Priority-10 item from the handoff doc. Shows only
-          layers this system actually has: no "identity and access (SSO/
-          RBAC)" layer (not verified real), no named third-party
-          integration layer (Salesforce/SAP/M365 — not built), no
-          "Caribbean Intelligence Graph" (not a real component here). Five
-          real layers, top to bottom: where a case starts, the pipeline +
-          council that rules on it, the seven agents that run it, the
-          assurance records every gate produces, and the two wraparound
-          agents that hand a case to production. */}
-      <section id="architecture" className="section relative overflow-hidden section-aurora">
-        <div className="container-page flex flex-col gap-10">
-          <GlassSectionHeader
-            eyebrow="Technical architecture"
-            title="What actually runs a case, layer by layer."
-          />
-          {/* Collapsed-by-default disclosure (rebuild-brief review: "move
-              technical control details to... expandable disclosures" rather
-              than leaving them in the default scroll). Radix's Accordion —
-              already used on /faq — keeps the content in server-rendered
-              HTML at all times (just visually/ARIA-hidden while closed), so
-              this stays reachable to a11y tooling and to anyone who expands
-              it; it just isn't forced on every visitor by default. */}
-          <Accordion type="single" collapsible className="mx-auto w-full max-w-3xl">
-            <AccordionItem value="architecture" className="border-none">
-              <AccordionTrigger className="justify-center gap-2 rounded-full border border-border bg-secondary/60 px-5 py-2.5 text-small font-medium text-foreground hover:no-underline">
-                Show the five-layer architecture
-              </AccordionTrigger>
-              <AccordionContent className="pt-6">
-                <div className="mx-auto flex w-full max-w-3xl flex-col items-stretch">
-                  {(
-                    [
-                      {
-                        label: 'Where a case starts',
-                        items: ['Front-door brief', 'Workflow configurator (indicative)'],
-                      },
-                      {
-                        label: 'Council & orchestration',
-                        items: [
-                          'The Oracles (5 voices)',
-                          'Elder Oracle ruling',
-                          '5-stage gated pipeline',
-                        ],
-                      },
-                      {
-                        label: 'Agent layer',
-                        items: [
-                          'Discovery',
-                          'Readiness',
-                          'Workflow',
-                          'Governance',
-                          'AI Build',
-                          'Partner',
-                          'Impact',
-                        ],
-                      },
-                      {
-                        label: 'Assurance',
-                        items: [
-                          'Case file',
-                          'Typed gate decisions',
-                          'Append-only audit trail',
-                          'Hash chain',
-                        ],
-                      },
-                      {
-                        label: 'Production handoff',
-                        items: [
-                          'Partner → buyer infrastructure',
-                          'Impact → realised-value read-out',
-                        ],
-                      },
-                    ] as const
-                  ).map((layer, idx, arr) => (
-                    <div key={layer.label} className="flex flex-col items-center">
-                      <GlassPanel tone="surface" padding="md" className="w-full">
-                        <p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">
-                          {layer.label}
-                        </p>
-                        <div className="flex flex-wrap gap-2">
-                          {layer.items.map((item) => (
-                            <GlassChip key={item} tone="outline" size="sm">
-                              {item}
-                            </GlassChip>
-                          ))}
-                        </div>
-                      </GlassPanel>
-                      {idx < arr.length - 1 && (
-                        <div
-                          className="h-6 w-px bg-gradient-to-b from-brand-700/40 to-brand-700/10"
-                          aria-hidden="true"
-                        />
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </AccordionContent>
-            </AccordionItem>
-          </Accordion>
+            <GlassCta asChild tone="brand" size="md" className="mt-4 self-start">
+              <Link href="/dashboard/pipeline">
+                Sign in to see the pipeline detail
+                <ArrowRight className="size-4" />
+              </Link>
+            </GlassCta>
+          </GlassPanel>
         </div>
       </section>
 

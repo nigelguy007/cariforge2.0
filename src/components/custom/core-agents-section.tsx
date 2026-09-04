@@ -1,4 +1,4 @@
-// @polsia:user-owned — home-page client island. Loads the seven-agent core model
+// @polsia:user-owned — client island. Loads the seven-agent core model
 // (1 Discovery, 2 Readiness, 3 Workflow, 4 Governance, 5 AI Build, 6 Partner,
 // 7 Impact) from /api/agents through apiFetch + the shared CoreAgents
 // contract, then renders it as a 4-3 grid (or 7-grid on lg) of <GlassCard>
@@ -7,10 +7,22 @@
 // that operates the 21-day delivery pipeline (Agents 1..5) plus wraparound
 // (Agents 6..7). Loading / empty / error guards mirror CouncilSections and
 // FaqAccordion.
+//
+// Two exports since 2026-09-04 (real user feedback: "mention the types of
+// agents, brief explanation, but not all this criteria ie operational
+// boundaries — that should be visible only when you log into the
+// platform"). CoreAgentsSection (full, with the boundary toggle) now lives
+// only on the signed-in /dashboard/pipeline page. CoreAgentsSummary (name +
+// one-line mandate, no toggle) is what the public /how-it-works page shows.
+// GET /api/agents itself is session-gated (route.ts) — an anonymous request
+// gets `boundary: undefined` on every item regardless of which component
+// renders it, so AgentCard's toggle guards for that and simply doesn't
+// render when there's nothing to show.
 
 'use client';
 
 import { ChevronDown } from 'lucide-react';
+import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { GlassCard, GlassChip, GlassPanel, GlassSectionHeader } from '@/components/custom/glass';
 import { apiFetch } from '@/lib/api-client';
@@ -79,21 +91,27 @@ function AgentCard({ agent }: { agent: Agent }) {
         <span className="font-semibold">{agent.roleLong}.</span> {agent.mandate}
       </p>
 
-      <button
-        type="button"
-        onClick={() => setOpen((v) => !v)}
-        aria-expanded={open}
-        aria-controls={detailId}
-        className="mt-3 flex items-center gap-1.5 self-start text-caption font-semibold text-brand-700 hover:text-brand-800"
-      >
-        {open ? 'Hide operational boundaries' : 'Show operational boundaries'}
-        <ChevronDown
-          className={`size-3.5 transition-transform ${open ? 'rotate-180' : ''}`}
-          aria-hidden="true"
-        />
-      </button>
+      {/* boundary is undefined for an unauthenticated caller (route.ts) —
+          this component is only ever mounted post-login now, but guarding
+          here too means it degrades safely rather than crashing if that
+          ever changes. */}
+      {agent.boundary && (
+        <button
+          type="button"
+          onClick={() => setOpen((v) => !v)}
+          aria-expanded={open}
+          aria-controls={detailId}
+          className="mt-3 flex items-center gap-1.5 self-start text-caption font-semibold text-brand-700 hover:text-brand-800"
+        >
+          {open ? 'Hide operational boundaries' : 'Show operational boundaries'}
+          <ChevronDown
+            className={`size-3.5 transition-transform ${open ? 'rotate-180' : ''}`}
+            aria-hidden="true"
+          />
+        </button>
+      )}
 
-      {open && (
+      {open && agent.boundary && (
         <div id={detailId} className="mt-3 flex flex-col gap-3 border-t border-border pt-3">
           <BoundaryList label="Inputs" items={agent.boundary.inputs} />
           <BoundaryList label="Tools" items={agent.boundary.tools} />
@@ -220,6 +238,109 @@ export function CoreAgentsSection() {
 
         <GlassPanel tone="panel" padding="lg" backdrop="soft">
           <FooterNote />
+        </GlassPanel>
+      </div>
+    </section>
+  );
+}
+
+// Public-page card: name, stage pill, and the one-line mandate — no
+// operational-boundary toggle. `agent.boundary` is undefined here anyway
+// (the API strips it for anonymous requests), so this simply never renders
+// what it never receives.
+function AgentSummaryCard({ agent }: { agent: Agent }) {
+  const pill = stagePill(agent);
+  return (
+    <GlassCard tone="surface" padding="md" className="h-full">
+      <div className="mb-2 flex items-baseline justify-between gap-2">
+        <span className="font-display text-caption font-semibold tracking-[0.1em] text-brand-700">
+          {ordinalPill(agent.ordinal)}
+        </span>
+        <GlassChip tone={pill.tone} size="sm">
+          {pill.label}
+        </GlassChip>
+      </div>
+      <h3 className="font-display text-h4 tracking-tight text-foreground">{agent.role}</h3>
+      <p className="text-small text-card-foreground/80">
+        <span className="font-semibold">{agent.roleLong}.</span> {agent.mandate}
+      </p>
+    </GlassCard>
+  );
+}
+
+// Public /how-it-works version of the seven-agent grid: what each agent is
+// and does, nothing about how it's actually bounded and evidenced — that's
+// signed-in-only, on /dashboard/pipeline (see the file header comment for
+// why). Same data source, same loading/error handling as CoreAgentsSection.
+export function CoreAgentsSummary() {
+  const [data, setData] = useState<CoreAgentsType | null>(null);
+  const [loadError, setLoadError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let active = true;
+    apiFetch('/api/agents', { schema: CoreAgentsSchema })
+      .then((payload) => {
+        if (active) setData(payload);
+      })
+      .catch(() => {
+        if (active) setLoadError('Could not load the seven-agent core.');
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  const items = data?.items ?? [];
+  const isLoading = data === null;
+
+  return (
+    <section
+      id="core-agents"
+      className="section relative overflow-hidden section-aurora"
+      aria-labelledby="core-agents-heading"
+    >
+      <div className="container-page flex flex-col gap-10">
+        <GlassSectionHeader
+          eyebrow="Core agents"
+          title="Seven specialised agents operate the pipeline — distinct from The Oracles."
+          lede={<SectionLede />}
+        />
+
+        {loadError && (
+          <GlassPanel tone="surface" padding="md">
+            <p className="text-small text-destructive">{loadError}</p>
+          </GlassPanel>
+        )}
+
+        <ol className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+          {isLoading
+            ? ['01', '02', '03', '04', '05', '06', '07'].map((o) => (
+                <li key={o} className="h-full">
+                  <AgentSkeleton ordinal={o} />
+                </li>
+              ))
+            : items.map((agent) => (
+                <li key={agent.id} className="h-full">
+                  <AgentSummaryCard agent={agent} />
+                </li>
+              ))}
+        </ol>
+
+        <GlassPanel tone="panel" padding="lg" backdrop="soft" className="flex flex-col gap-3">
+          <FooterNote />
+          {/* Real user feedback (2026-09-04): full operational detail (what
+              each agent can read, what it's forbidden from doing, what
+              evidence it produces) moved behind login rather than sitting
+              open on the public page. */}
+          <p className="text-small text-card-foreground/80">
+            Each agent&rsquo;s full operational boundaries — inputs, tools, outputs, prohibited
+            actions, and success measures — along with the five-stage gate detail and technical
+            architecture, are visible once you&rsquo;re signed in, on the{' '}
+            <Link href="/dashboard/pipeline" className="link-brand">
+              pipeline detail page
+            </Link>
+            .
+          </p>
         </GlassPanel>
       </div>
     </section>

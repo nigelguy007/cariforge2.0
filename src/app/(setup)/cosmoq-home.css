@@ -436,6 +436,16 @@ body {
 .cq-header-link:hover {
   color: var(--cq-text);
 }
+/* Sign-out is a <button>, not a <Link> — reset its chrome to read identically
+   to the .cq-header-link it replaces when signed in. */
+.cq-header-btn {
+  border: none;
+  background: none;
+  padding: 0;
+  margin: 0;
+  font: inherit;
+  cursor: pointer;
+}
 
 /* === BUTTONS ================================================================
    .cq-btn-primary is the reference's signature control: a near-black pill
@@ -1352,6 +1362,27 @@ body {
 .cq-footer-links a:hover {
   color: var(--cq-text);
 }
+/* Real user feedback (2026-09-04): "no log out of the system" — the footer's
+   Governance column had a hardcoded "Log in" link with no signed-in state at
+   all. .cq-footer-link-btn is a <button> styled to match .cq-footer-links a
+   exactly, used only when signed in (CqFooterAuthLink in cq-header.tsx). */
+.cq-footer-link-btn {
+  display: block;
+  width: 100%;
+  border: none;
+  background: none;
+  padding: 0;
+  margin: 0;
+  text-align: left;
+  font: inherit;
+  cursor: pointer;
+  color: var(--cq-dim);
+  font-size: 0.9rem;
+  transition: color 180ms var(--cq-ease);
+}
+.cq-footer-link-btn:hover {
+  color: var(--cq-text);
+}
 .cq-footer-base {
   display: flex;
   flex-wrap: wrap;
@@ -1435,9 +1466,14 @@ body {
   .cq-stats {
     grid-template-columns: minmax(0, 1fr);
   }
-  .cq-header-link {
-    display: none;
-  }
+  /* Real user feedback (2026-09-04): "on the homepage there is a log in at
+     the bottom but don't see it at the top all I see is submit a brief."
+     This rule used to hide .cq-header-link below 620px on the theory that
+     it's "also reachable from the footer" — but the footer's own version of
+     this link was a static "Log in" that never even reflected being signed
+     in (see CqFooterAuthLink), so on a phone there was no way to reach
+     login/sign-out from either place. Removed; both items comfortably fit
+     next to the compact "Submit a brief" pill at this width. */
 }
 
 @media (prefers-reduced-motion: reduce) {
