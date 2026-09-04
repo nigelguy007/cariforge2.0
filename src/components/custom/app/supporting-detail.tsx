@@ -33,9 +33,46 @@ import { MissionWorkItemsPanel } from '@/components/custom/missions/mission-work
 import { OracleAttestationList } from '@/components/custom/missions/oracle-attestation-list';
 import { OracleCouncilCard } from '@/components/custom/missions/oracle-council-card';
 import { QAReviewCard } from '@/components/custom/missions/qa-review-card';
+import { useIsAdmin } from '@/lib/auth-client';
 import type { MissionDetailT } from '@/lib/contracts/forge';
 import { DECISION_UI, reasonLabel, STEPS, stageUiForIndex } from '@/lib/ui-terms';
+import { buildEvidenceView } from './evidence-view';
 import type { ProjectWorkspaceView } from './use-project-workspace';
+
+// A plain-language stand-in for OracleCouncilCard (below) for anyone who
+// isn't an admin. Real finding (2026-09-04 user review): OracleCouncilCard
+// shows raw gate indexes ("Gate 0", "Gate 4"), the internal DB stage/state
+// enums, an internal error code, and an actual "appoint the Elder Oracle"
+// admin mutation form — none of which belongs in front of the person who
+// submitted the project. Reuses buildEvidenceView's "who approved" question,
+// which already does exactly this translation for the Evidence page.
+function CouncilPlainSummary({ detail }: { detail: MissionDetailT }) {
+  const who = React.useMemo(
+    () => buildEvidenceView(detail).questions.find((q) => q.key === 'who'),
+    [detail],
+  );
+  if (!who) return null;
+  return (
+    <div className="app-panel">
+      <p className="app-small text-[var(--app-text-muted)]">{who.summary}</p>
+      {who.facts.length > 0 ? (
+        <ul className="mt-2 space-y-2">
+          {who.facts.map((fact) => (
+            <li key={fact.id}>
+              <p className="app-small font-medium text-[var(--app-text)]">{fact.label}</p>
+              <p className="app-small text-[var(--app-text-muted)]">{fact.value}</p>
+              {fact.meta ? (
+                <p className="app-caption text-[var(--app-text-muted)]">{fact.meta}</p>
+              ) : null}
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p className="app-small mt-1 text-[var(--app-text-muted)]">{who.empty}</p>
+      )}
+    </div>
+  );
+}
 
 export type DetailSection =
   | 'council'
@@ -105,6 +142,7 @@ export function SupportingDetail({
 }: SupportingDetailProps) {
   const [openGroups, setOpenGroups] = React.useState<ReadonlySet<DetailSection>>(() => new Set());
   const [rootOpen, setRootOpen] = React.useState(false);
+  const isAdmin = useIsAdmin();
 
   // Programmatic open from the next-action card or a completed step.
   React.useEffect(() => {
@@ -139,7 +177,11 @@ export function SupportingDetail({
   const content: Record<DetailSection, React.ReactNode> = {
     council: (
       <>
-        <OracleCouncilCard detail={detail} onWritten={onWritten} />
+        {isAdmin ? (
+          <OracleCouncilCard detail={detail} onWritten={onWritten} />
+        ) : (
+          <CouncilPlainSummary detail={detail} />
+        )}
         {latestHandoff ? (
           <div className="app-panel">
             <p className="app-small text-[var(--app-text-muted)]">
