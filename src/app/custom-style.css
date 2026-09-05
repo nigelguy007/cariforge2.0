@@ -1113,8 +1113,13 @@
      first pass's alphas (max 0.3 in dark mode) were nowhere near strong
      enough to survive this much blur spread over this much near-black
      area; cut from 90px to 64px so the colour keeps more presence instead
-     of diffusing into nothing. */
-  filter: blur(64px);
+     of diffusing into nothing. Cut again to 48px (2026-09-05, third pass,
+     live authenticated screenshot: "cariforge does not have the same
+     effect at the other image") — even after boosting alpha a second
+     time, 64px of blur was still smearing the five colour stops into one
+     indistinct greenish wash instead of the readable, contrasting bands
+     the cosmoq reference has; less blur keeps more of that separation. */
+  filter: blur(48px);
 }
 /* Primary glow — a wide band anchored to the TOP of the viewport (not a
    corner circle) so it reads across the header/logo on every page
@@ -1185,24 +1190,38 @@
    saturated alphas (this is also the app's default for new visitors, so
    it's the presentation most people actually see). */
 .app-shell.dark .app-halo::before {
+  /* Third pass (2026-09-05, live authenticated screenshot: "cariforge
+     does not have the same effect at the other image" — a real,
+     panel-dense project page next to cosmoq's own /about, near-empty of
+     opaque content). Two real, confirmed causes: (1) even after the
+     second pass's alphas, the result read as one flattish greenish wash
+     rather than distinct colour bands — the warm sun accent in
+     particular was still far too faint under everything else to read as
+     a second, contrasting hue the way it does on the reference; boosted
+     hardest of all the stops here. (2) most of the viewport here is
+     opaque `--app-surface` panels the reference never has to contend
+     with — the halo can only ever be as visible as the open canvas
+     allows, so pushing intensity higher in that canvas is the honest
+     lever actually available, short of making panels themselves
+     translucent (out of scope here — a separate, bigger decision). */
   background:
-    radial-gradient(circle at 38% 34%, oklch(0.88 0.16 72 / 0.3) 0%, transparent 45%),
+    radial-gradient(circle at 38% 34%, oklch(0.88 0.16 72 / 0.55) 0%, transparent 55%),
     radial-gradient(
       circle,
-      oklch(0.95 0.07 185 / 0.46) 0%,
-      oklch(0.8 0.15 178 / 0.52) 22%,
-      oklch(var(--brand-l) var(--brand-c) var(--brand-h) / 0.5) 42%,
-      oklch(0.58 0.15 200 / 0.38) 62%,
-      oklch(0.42 0.16 240 / 0.24) 82%,
+      oklch(0.95 0.07 185 / 0.62) 0%,
+      oklch(0.8 0.15 178 / 0.68) 22%,
+      oklch(var(--brand-l) var(--brand-c) var(--brand-h) / 0.66) 42%,
+      oklch(0.58 0.15 200 / 0.52) 62%,
+      oklch(0.42 0.16 240 / 0.34) 82%,
       transparent 100%
     );
 }
 .app-shell.dark .app-halo::after {
   background: radial-gradient(
     circle,
-    oklch(0.42 0.16 240 / 0.34) 0%,
-    oklch(0.58 0.15 200 / 0.3) 40%,
-    oklch(var(--brand-l) calc(var(--brand-c) * 0.9) var(--brand-h) / 0.24) 68%,
+    oklch(0.42 0.16 240 / 0.46) 0%,
+    oklch(0.58 0.15 200 / 0.4) 40%,
+    oklch(var(--brand-l) calc(var(--brand-c) * 0.9) var(--brand-h) / 0.34) 68%,
     transparent 88%
   );
 }
