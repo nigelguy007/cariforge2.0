@@ -6,9 +6,10 @@
 // manual fallback.
 //
 // Document attachment: no mission exists yet during the conversation (unlike
-// a Lead, which exists from the first POST), so the file is held client-side
-// through the whole chat and uploaded only once onStartProject actually
-// creates the mission — POSTed to that mission's own evidence endpoint
+// a Lead, which exists from the first POST), so files are held client-side
+// through the whole chat (multiple, of any allowed document/image/video
+// type) and uploaded one by one only once onStartProject actually creates
+// the mission — each POSTed to that mission's own evidence endpoint
 // (/api/forge/missions/[id]/evidence, extended to accept a real file the
 // same way POST /api/leads/[id]/attachment does; see that route). Same MIME
 // allowlist/size cap and the same plain `fetch`-with-`FormData` pattern
@@ -50,6 +51,8 @@ async function uploadEvidenceFile(missionId: string, file: File): Promise<boolea
   }
 }
 
+const ATTACHMENT_TYPES_LABEL = 'PDF, Word, text, CSV, image, or video';
+
 const OPENING_MESSAGE =
   "Hi, I'm CariForge. Tell me about the business problem you're trying to solve — " +
   "in your own words, no need to structure it. What's not working today, and for whom?";
@@ -85,30 +88,45 @@ export function MissionIntakeChat({
   const [sending, setSending] = React.useState(false);
   const [extraction, setExtraction] = React.useState<IntakeChatResponseT | null>(null);
   const [starting, setStarting] = React.useState(false);
-  const [file, setFile] = React.useState<File | null>(null);
+  const [files, setFiles] = React.useState<File[]>([]);
   const [fileError, setFileError] = React.useState<string | null>(null);
   const listRef = React.useRef<HTMLDivElement>(null);
   const seededRef = React.useRef(false);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
+  const textareaRef = React.useRef<HTMLTextAreaElement>(null);
+
+  function removeFile(index: number) {
+    setFiles((prev) => prev.filter((_, i) => i !== index));
+  }
 
   function handleFileChange(event: React.ChangeEvent<HTMLInputElement>) {
-    const picked = event.target.files?.[0];
+    const picked = Array.from(event.target.files ?? []);
     event.target.value = ''; // allow re-picking the same file after removing it
-    if (!picked) return;
-    if (picked.size > MAX_ATTACHMENT_BYTES) {
-      setFileError(`That file is too large — cap is ${MAX_ATTACHMENT_MB} MB.`);
-      return;
+    // The native file-picker dialog steals focus from the chat textarea;
+    // hand it back so typing immediately after choosing files keeps working.
+    textareaRef.current?.focus();
+    if (picked.length === 0) return;
+    const accepted: File[] = [];
+    let error: string | null = null;
+    for (const candidate of picked) {
+      if (candidate.size > MAX_ATTACHMENT_BYTES) {
+        error = `"${candidate.name}" is too large — cap is ${MAX_ATTACHMENT_MB} MB per file.`;
+        continue;
+      }
+      if (
+        !ALLOWED_ATTACHMENT_MIME_TYPES.includes(
+          candidate.type as (typeof ALLOWED_ATTACHMENT_MIME_TYPES)[number],
+        )
+      ) {
+        error = `"${candidate.name}" isn't a supported type — ${ATTACHMENT_TYPES_LABEL} only.`;
+        continue;
+      }
+      accepted.push(candidate);
     }
-    if (
-      !ALLOWED_ATTACHMENT_MIME_TYPES.includes(
-        picked.type as (typeof ALLOWED_ATTACHMENT_MIME_TYPES)[number],
-      )
-    ) {
-      setFileError('PDF, Word, text, CSV, PNG, or JPEG only.');
-      return;
+    setFileError(error);
+    if (accepted.length > 0) {
+      setFiles((prev) => [...prev, ...accepted]);
     }
-    setFileError(null);
-    setFile(picked);
   }
 
   const sendTurn = React.useCallback(async (nextMessages: IntakeChatMessageT[]) => {
@@ -191,11 +209,16 @@ export function MissionIntakeChat({
         body: JSON.stringify(parsed),
         schema: MissionDetail,
       });
-      if (file) {
-        const ok = await uploadEvidenceFile(detail.mission.id, file);
-        if (!ok) {
+      if (files.length > 0) {
+        const results = await Promise.all(
+          files.map((f) => uploadEvidenceFile(detail.mission.id, f)),
+        );
+        const failedCount = results.filter((ok) => !ok).length;
+        if (failedCount > 0) {
           toast.error(
-            'Your project was started, but the attachment failed to upload. You can attach it from the project page instead.',
+            failedCount === files.length
+              ? 'Your project was started, but the attachments failed to upload. You can attach them from the project page instead.'
+              : `Your project was started, but ${failedCount} of ${files.length} attachments failed to upload. You can attach the rest from the project page.`,
           );
         }
       }
@@ -234,6 +257,7 @@ export function MissionIntakeChat({
         </div>
         <div className="flex items-end gap-2 border-t border-[var(--app-border)] p-3 sm:p-4">
           <Textarea
+            ref={textareaRef}
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={onKeyDown}
@@ -255,45 +279,53 @@ export function MissionIntakeChat({
 
       <div className="app-panel space-y-1.5 p-4 sm:p-5">
         <span className="app-small font-medium text-[var(--app-text)]">
-          Attach a document{' '}
+          Attach documents, images, or videos{' '}
           <span className="font-normal text-[var(--app-text-muted)]">(optional)</span>
         </span>
         <input
           ref={fileInputRef}
           type="file"
+          multiple
           accept={ALLOWED_ATTACHMENT_MIME_TYPES.join(',')}
           className="sr-only"
           onChange={handleFileChange}
-          aria-label="Attach a document"
+          aria-label="Attach documents, images, or videos"
         />
-        {file ? (
-          <div className="flex items-center justify-between gap-2 rounded-[var(--app-radius-sm)] border border-[var(--app-border)] bg-[var(--app-surface-muted)] px-3.5 py-2.5">
-            <span className="app-small flex items-center gap-2 truncate text-[var(--app-text)]">
-              <Paperclip className="size-4 shrink-0" aria-hidden="true" />
-              <span className="truncate">{file.name}</span>
-              <span className="app-caption shrink-0 text-[var(--app-text-muted)]">
-                ({Math.ceil(file.size / 1024)} KB)
-              </span>
-            </span>
-            <button
-              type="button"
-              onClick={() => setFile(null)}
-              className="shrink-0 text-[var(--app-text-muted)] hover:text-[var(--app-text)]"
-              aria-label="Remove attachment"
-            >
-              <X className="size-4" aria-hidden="true" />
-            </button>
-          </div>
-        ) : (
-          <button
-            type="button"
-            onClick={() => fileInputRef.current?.click()}
-            className="app-small flex items-center justify-center gap-2 rounded-[var(--app-radius-sm)] border border-dashed border-[var(--app-border)] bg-[var(--app-surface-muted)] px-3.5 py-2.5 text-[var(--app-text-muted)] transition-colors hover:border-[var(--app-accent-border)] hover:text-[var(--app-text)]"
-          >
-            <Paperclip className="size-4" aria-hidden="true" />
-            Choose a file — PDF, Word, text, CSV, PNG, or JPEG, up to {MAX_ATTACHMENT_MB} MB
-          </button>
-        )}
+        {files.length > 0 ? (
+          <ul className="space-y-1.5">
+            {files.map((f, i) => (
+              <li
+                key={`${f.name}-${f.lastModified}-${i}`}
+                className="flex items-center justify-between gap-2 rounded-[var(--app-radius-sm)] border border-[var(--app-border)] bg-[var(--app-surface-muted)] px-3.5 py-2.5"
+              >
+                <span className="app-small flex items-center gap-2 truncate text-[var(--app-text)]">
+                  <Paperclip className="size-4 shrink-0" aria-hidden="true" />
+                  <span className="truncate">{f.name}</span>
+                  <span className="app-caption shrink-0 text-[var(--app-text-muted)]">
+                    ({Math.ceil(f.size / 1024)} KB)
+                  </span>
+                </span>
+                <button
+                  type="button"
+                  onClick={() => removeFile(i)}
+                  className="shrink-0 text-[var(--app-text-muted)] hover:text-[var(--app-text)]"
+                  aria-label={`Remove ${f.name}`}
+                >
+                  <X className="size-4" aria-hidden="true" />
+                </button>
+              </li>
+            ))}
+          </ul>
+        ) : null}
+        <button
+          type="button"
+          onClick={() => fileInputRef.current?.click()}
+          className="app-small flex items-center justify-center gap-2 rounded-[var(--app-radius-sm)] border border-dashed border-[var(--app-border)] bg-[var(--app-surface-muted)] px-3.5 py-2.5 text-[var(--app-text-muted)] transition-colors hover:border-[var(--app-accent-border)] hover:text-[var(--app-text)]"
+        >
+          <Paperclip className="size-4" aria-hidden="true" />
+          {files.length > 0 ? 'Add another file' : 'Choose files'} — {ATTACHMENT_TYPES_LABEL}, up
+          to {MAX_ATTACHMENT_MB} MB each
+        </button>
         {fileError ? <p className="app-caption text-destructive">{fileError}</p> : null}
       </div>
 

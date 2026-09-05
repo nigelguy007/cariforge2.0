@@ -1072,9 +1072,24 @@
    carry a multi-layer star field + masked horizon curve; this shell is
    full of dense, functional UI (forms, lists, buttons) that has to stay
    readable, so it's cut down to two large, heavily blurred radial glows
-   fixed behind everything — same --brand-h/--brand-c tokens as the rest
-   of the app, no new colour. Rendered once, as a single div, by AppShell
+   fixed behind everything. Rendered once, as a single div, by AppShell
    (app-shell.tsx) — not duplicated per page.
+
+   COLOUR (explicit user request, 2026-09-05): "the colour of the home page
+   need to be replicated across the entire platform ... give it an effect
+   like this halo effect in the caribbean colours" — pointing at cosmoq's
+   own /about and /contact pages as the "halo heaven" reference alongside
+   the home page's sunrise hero. Rather than the flat single-hue glow this
+   used before, each blob now carries the SAME five-stop Caribbean-sea ramp
+   as cosmoq-home.css's .cq-sunrise::before (shallow turquoise -> vivid
+   aquamarine -> CariForge brand hue -> sea green/teal -> deep ocean blue),
+   plus a small warm sun-core accent layered on the primary blob the way
+   .cq-sun sits on top of .cq-sunrise there. Every stop still reads off
+   --brand-h with the same fixed offsets cosmoq-home.css uses, so a future
+   brand-seed change moves this glow too. Alphas are far lower than the
+   marketing page's (that page owns a black hero with no UI to protect;
+   this shell has to stay readable), which is the actual "quieter
+   descendant" relationship — same recipe, turned down.
 
    Positioned via `z-index: -1` against the `isolation: isolate` on
    .app-shell above, so it's guaranteed to sit behind the header/content/
@@ -1096,7 +1111,9 @@
      reads as atmosphere instead of a flat coloured patch. */
   filter: blur(90px);
 }
-/* Primary glow — upper-left, the app's aquamarine. */
+/* Primary glow — upper-left. Two stacked radial-gradients on one blob: a
+   small warm sun-core (cosmoq-home.css's oklch(0.88 0.16 72) sun colour,
+   kept tiny and faint here) sitting over the full Caribbean-sea ramp. */
 .app-shell .app-halo::before {
   top: -18vw;
   left: -12vw;
@@ -1104,16 +1121,22 @@
   height: 62vw;
   max-width: 820px;
   max-height: 820px;
-  background: radial-gradient(
-    circle,
-    oklch(var(--brand-l) var(--brand-c) var(--brand-h) / 0.16) 0%,
-    transparent 70%
-  );
+  background:
+    radial-gradient(circle at 38% 34%, oklch(0.88 0.16 72 / 0.1) 0%, transparent 45%),
+    radial-gradient(
+      circle,
+      oklch(0.95 0.07 185 / 0.14) 0%,
+      oklch(0.8 0.15 178 / 0.16) 24%,
+      oklch(var(--brand-l) var(--brand-c) var(--brand-h) / 0.15) 46%,
+      oklch(0.58 0.15 200 / 0.12) 68%,
+      oklch(0.42 0.16 240 / 0.08) 86%,
+      transparent 100%
+    );
 }
-/* Secondary glow — lower-right, hue-shifted toward indigo (same +90 offset
-   the two-tone CTA gradients above already use) and kept fainter, so it
-   reads as depth behind the primary glow rather than a second focal
-   point. */
+/* Secondary glow — lower-right. Same ramp run in reverse (deep ocean at the
+   core, warming back toward the brand hue at the edge) so the pair reads as
+   one continuous sea rather than two unrelated blobs, kept fainter so it's
+   depth behind the primary glow, not a second focal point. */
 .app-shell .app-halo::after {
   right: -14vw;
   bottom: -22vw;
@@ -1123,8 +1146,10 @@
   max-height: 680px;
   background: radial-gradient(
     circle,
-    oklch(var(--brand-l) calc(var(--brand-c) * 0.85) calc(var(--brand-h) + 90) / 0.1) 0%,
-    transparent 72%
+    oklch(0.42 0.16 240 / 0.1) 0%,
+    oklch(0.58 0.15 200 / 0.09) 40%,
+    oklch(var(--brand-l) calc(var(--brand-c) * 0.9) var(--brand-h) / 0.08) 68%,
+    transparent 88%
   );
 }
 /* Slow ambient drift, matching the marketing page's own restraint (it
@@ -1149,19 +1174,29 @@
 }
 /* Dark mode: the near-black field (see .dark.dark's --background above)
    needs a visibly stronger core than the near-white light field to read
-   at all — same shape and position, just more saturated alpha. */
+   at all — same shape, position and Caribbean-sea ramp, just more
+   saturated alphas (this is also the app's default for new visitors, so
+   it's the presentation most people actually see). */
 .app-shell.dark .app-halo::before {
-  background: radial-gradient(
-    circle,
-    oklch(var(--brand-l) var(--brand-c) var(--brand-h) / 0.32) 0%,
-    transparent 70%
-  );
+  background:
+    radial-gradient(circle at 38% 34%, oklch(0.88 0.16 72 / 0.16) 0%, transparent 45%),
+    radial-gradient(
+      circle,
+      oklch(0.95 0.07 185 / 0.26) 0%,
+      oklch(0.8 0.15 178 / 0.3) 24%,
+      oklch(var(--brand-l) var(--brand-c) var(--brand-h) / 0.3) 46%,
+      oklch(0.58 0.15 200 / 0.24) 68%,
+      oklch(0.42 0.16 240 / 0.16) 86%,
+      transparent 100%
+    );
 }
 .app-shell.dark .app-halo::after {
   background: radial-gradient(
     circle,
-    oklch(var(--brand-l) calc(var(--brand-c) * 0.85) calc(var(--brand-h) + 90) / 0.2) 0%,
-    transparent 72%
+    oklch(0.42 0.16 240 / 0.2) 0%,
+    oklch(0.58 0.15 200 / 0.18) 40%,
+    oklch(var(--brand-l) calc(var(--brand-c) * 0.9) var(--brand-h) / 0.16) 68%,
+    transparent 88%
   );
 }
 

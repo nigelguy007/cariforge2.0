@@ -61,12 +61,23 @@ export type LeadItem = z.infer<typeof LeadItem>;
 // server-side (the only cap that actually matters). 4 MiB stays safely under
 // Vercel's serverless function request-body limit (4.5 MB) with headroom for
 // multipart overhead and the rest of the form fields.
-export const MAX_ATTACHMENT_BYTES = 4 * 1024 * 1024;
+// Real user request (2026-09-05): the chat intake needed to accept
+// "documents and videos and images", not just small reference documents.
+// Raised from 4 MB (sized for a document/photo) to 25 MB — enough for a
+// short video clip or several photos, still comfortably under Vercel
+// Functions' 100 MB request-body ceiling. Files are stored directly in
+// Postgres as bytea (see EvidenceFile/LeadAttachment) — appropriate at
+// pilot scale for a handful of short clips per project, NOT a general
+// video-hosting solution; a real multi-minute/high-resolution video
+// would need real object storage (S3/Blob), a separate, larger change,
+// not silently done here.
+export const MAX_ATTACHMENT_BYTES = 25 * 1024 * 1024;
 
-// Deliberately narrow: document formats a regulated buyer would plausibly
-// attach to a requirements brief. No executables, no archives (a zip could
-// smuggle anything past this check), no raw HTML/SVG (XSS if ever rendered
-// inline). Extend this list deliberately, not by widening it to '*/*'.
+// Deliberately narrow: document, image and short-video formats a regulated
+// buyer would plausibly attach to a requirements brief. No executables, no
+// archives (a zip could smuggle anything past this check), no raw HTML/SVG
+// (XSS if ever rendered inline). Extend this list deliberately, not by
+// widening it to '*/*'.
 export const ALLOWED_ATTACHMENT_MIME_TYPES = [
   'application/pdf',
   'application/msword',
@@ -75,6 +86,11 @@ export const ALLOWED_ATTACHMENT_MIME_TYPES = [
   'text/csv',
   'image/png',
   'image/jpeg',
+  'image/gif',
+  'image/webp',
+  'video/mp4',
+  'video/quicktime', // .mov
+  'video/webm',
 ] as const;
 
 export const LeadAttachmentMeta = z.object({
