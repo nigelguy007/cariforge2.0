@@ -450,6 +450,15 @@ export const MissionListItem = z.object({
   // UX review C1: Lead id this mission was converted from (null for
   // missions started directly). Optional so older cached payloads parse.
   sourceLeadId: z.string().nullable().optional(),
+  // Real bug found live (2026-09-05): mission.status only ever leaves
+  // 'Draft' once gate 0 is actually DECIDED (see decideGate in service.ts)
+  // — submitting/reviewing a step output never touches it. Approvals
+  // queue and the nav badge filtered on status === 'AwaitingApproval'
+  // alone, so a brand-new project sitting on a real, AI-raised objection
+  // (now the common case, since Oracle review exists) never showed up
+  // anywhere a person would look for it. Optional so older cached
+  // payloads and hand-built test fixtures still parse.
+  hasOpenConcern: z.boolean().optional(),
 });
 
 export const MissionList = z.object({ items: z.array(MissionListItem) });

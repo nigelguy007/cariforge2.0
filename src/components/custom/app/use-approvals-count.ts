@@ -1,7 +1,8 @@
 // @polsia:user-owned — one small hook behind the Approvals nav badge and the
 // queue heading: how many decisions need the signed-in person right now.
-// Counts projects sitting at AwaitingApproval plus open canvas approval
-// tasks — the same two sources the /approvals queue renders. Read-only.
+// Counts projects at AwaitingApproval OR sitting on a real open concern
+// (see the 2026-09-05 fix below), plus open canvas approval tasks — the
+// same sources the /approvals queue renders. Read-only.
 
 'use client';
 
@@ -40,8 +41,12 @@ export function useApprovalsCount(refreshKey = 0): ApprovalsCount {
   React.useEffect(() => {
     let cancelled = false;
     Promise.all([
+      // Same fix as approvals-queue.tsx (2026-09-05): status alone misses
+      // every Draft-status project sitting on a real open concern.
       apiFetch('/api/forge/missions', { schema: MissionList })
-        .then((r) => r.items.filter((m) => m.status === 'AwaitingApproval').length)
+        .then(
+          (r) => r.items.filter((m) => m.status === 'AwaitingApproval' || m.hasOpenConcern).length,
+        )
         .catch(() => 0),
       apiFetch('/api/forge-canvas/tasks', { schema: CanvasTaskList })
         .then((r) => r.items.filter((t) => t.status === 'Open').length)

@@ -169,8 +169,13 @@ export function ApprovalsQueue() {
         apiFetch('/api/forge/missions', { schema: MissionList }),
         apiFetch('/api/forge-canvas/tasks', { schema: CanvasTaskList }),
       ]);
+      // Real bug fix (2026-09-05): status === 'AwaitingApproval' alone
+      // missed every project still sitting at 'Draft' (status only moves
+      // on an actual gate decision) with a real, AI-raised concern waiting
+      // for an answer — the single most common case now that Oracle
+      // review exists. hasOpenConcern is the second real signal.
       const projects = missions.items
-        .filter((m) => m.status === 'AwaitingApproval')
+        .filter((m) => m.status === 'AwaitingApproval' || m.hasOpenConcern)
         .sort((a, b) => a.updatedAt.localeCompare(b.updatedAt));
       const runs = tasks.items
         .filter((t) => t.status === 'Open')

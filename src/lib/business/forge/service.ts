@@ -66,6 +66,7 @@ function missionListItem(row: {
   domainTags: string[];
   elderOracleUserId?: string | null;
   sourceLeadId?: string | null;
+  hasOpenConcern?: boolean;
 }): MissionListItemT {
   return {
     id: row.id,
@@ -79,6 +80,7 @@ function missionListItem(row: {
     domainTags: row.domainTags,
     elderOracleUserId: row.elderOracleUserId ?? null,
     sourceLeadId: row.sourceLeadId ?? null,
+    hasOpenConcern: row.hasOpenConcern ?? false,
   };
 }
 
@@ -116,14 +118,34 @@ async function enrichMissionsWithElderOracle(
   }>,
 ): Promise<MissionListItemT[]> {
   if (rows.length === 0) return [];
-  const assignments = await prisma.missionOracleAssignment.findMany({
-    where: { missionId: { in: rows.map((r) => r.id) }, role: 'ElderOracle' },
-  });
+  const ids = rows.map((r) => r.id);
+  const [assignments, openObjections] = await Promise.all([
+    prisma.missionOracleAssignment.findMany({
+      where: { missionId: { in: ids }, role: 'ElderOracle' },
+    }),
+    // Real bug fix (2026-09-05): mission.status alone can't tell a caller
+    // "this needs your attention" — it only changes on an actual gate
+    // decision (decideGate), never on drafting/review activity. A brand-new
+    // project sitting on a real, AI-raised objection stayed 'Draft'
+    // forever and never showed up in Approvals. One cheap distinct query
+    // (Objection has its own scalar missionId, no join needed) rather than
+    // a per-mission detail fetch.
+    prisma.objection.findMany({
+      where: { missionId: { in: ids }, resolution: null },
+      select: { missionId: true },
+      distinct: ['missionId'],
+    }),
+  ]);
   const elderByMission = new Map<string, string>(
     assignments.map((a) => [a.missionId, a.userId] as const),
   );
+  const concernByMission = new Set(openObjections.map((o) => o.missionId));
   return rows.map((r) =>
-    missionListItem({ ...r, elderOracleUserId: elderByMission.get(r.id) ?? null }),
+    missionListItem({
+      ...r,
+      elderOracleUserId: elderByMission.get(r.id) ?? null,
+      hasOpenConcern: concernByMission.has(r.id),
+    }),
   );
 }
 
