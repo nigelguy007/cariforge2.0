@@ -593,7 +593,16 @@ export function MissionOfficeFloor({
       wall: readToken(wrapper, '--app-surface-muted', '#e7ebee'),
       baseboard: readToken(wrapper, '--app-border-strong', '#c4ccd1'),
       windowFrame: readToken(wrapper, '--app-text-muted', '#5c6570'),
-      deskWood: readToken(wrapper, '--app-accent-soft', '#cbb994'),
+      // Hardcoded, not a theme token: `--app-accent-soft` looked right in
+      // light mode (a pale, warm tint) but resolves to a DARK, low-
+      // lightness teal in this app's dark theme (oklch(.22 .06 169)) —
+      // confirmed by reading the actual computed value off a live
+      // deployment, where the desk's front panel was rendering nearly
+      // invisible against the equally-dark wall/floor behind it. Wood is
+      // a real-world material color, not an adaptive UI surface, so it
+      // gets a literal value like skin/plantPot below, not a token that
+      // was never designed to mean "wood" and happens to flip dark.
+      deskWood: '#cbb994',
       deskWoodDark: '#a68a5f',
       chair: readToken(wrapper, '--app-text-muted', '#5c6570'),
       plantPot: '#a6673f',
