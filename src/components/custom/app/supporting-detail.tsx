@@ -83,18 +83,23 @@ function plural(n: number, noun: string): string {
 // mission redrafted several times that reads as a wall of contradictory-
 // looking statuses even when every individual one is accurate. Split by
 // whether the objection's own handoff is still the live one for its
-// stage (not superseded) — the historical group is exactly what
-// service.ts's carryForwardStaleObjections now auto-resolves going
-// forward, so it should mostly show settled, "carried forward" concerns,
-// not open ones.
+// stage — not superseded AND not invalidated (a downstream stage after a
+// redraft/replay/rollback is left with supersededById: null but a real
+// invalidationReasonCode; its own concerns are exactly as stale as a
+// superseded handoff's, just on a different stage — see
+// carryForwardStaleObjections's call sites in service.ts). The historical
+// group should mostly show settled, "carried forward" concerns now that
+// all four of those write paths carry them forward, not open ones.
 export function partitionObjections(detail: MissionDetailT) {
-  const supersededHandoffIds = new Set(
-    detail.handoffs.filter((h) => h.supersededById !== null).map((h) => h.id),
+  const staleHandoffIds = new Set(
+    detail.handoffs
+      .filter((h) => h.supersededById !== null || h.invalidationReasonCode !== null)
+      .map((h) => h.id),
   );
   const current: typeof detail.objections = [];
   const historical: typeof detail.objections = [];
   for (const o of detail.objections) {
-    (supersededHandoffIds.has(o.stageHandoffId) ? historical : current).push(o);
+    (staleHandoffIds.has(o.stageHandoffId) ? historical : current).push(o);
   }
   return { current, historical };
 }

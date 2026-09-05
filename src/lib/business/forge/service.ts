@@ -854,6 +854,18 @@ export async function correctHandoff(args: {
         where: { id: h.id },
         data: { invalidationReasonCode: args.reasonCode },
       });
+      // Real user report (2026-09-05): "all say resolution closed yet
+      // showing 3 unresolved concerns" — carryForwardStaleObjections
+      // above only covered the ONE handoff being directly superseded
+      // (`prior`); it missed every DOWNSTREAM handoff invalidated right
+      // here. An invalidated handoff is just as stale as a superseded
+      // one — its own objections are about a step output that's now
+      // built on outdated upstream information — so they need the same
+      // treatment or they orphan exactly the same way, just on a
+      // different stage the person isn't looking at (they're checking
+      // the step they just redrafted, not Readiness/Workflow/Governance
+      // three stages ahead).
+      await carryForwardStaleObjections(tx, args.missionId, h.id);
     }
 
     await writeAudit(
@@ -1239,6 +1251,13 @@ export async function replayMission(args: {
           where: { id: r.id },
           data: { invalidationReasonCode: args.reasonCode },
         });
+        // Same fix as correctHandoff's downstream loop (2026-09-05): a
+        // replay invalidates every stage ahead of the restart point, and
+        // any of THEIR objections need to stop blocking too, or the
+        // mission comes back from replay looking clean on the stage
+        // being redone while still silently stuck behind concerns raised
+        // on stages that no longer even apply.
+        await carryForwardStaleObjections(tx, args.missionId, r.id);
       }
     }
     await tx.mission.update({
@@ -1296,6 +1315,11 @@ export async function rollbackMission(args: {
           where: { id: r.id },
           data: { invalidationReasonCode: 'StaleInformation' },
         });
+        // Same fix as correctHandoff/replayMission (2026-09-05): rolling
+        // back to an earlier handoff invalidates every stage after it —
+        // their objections need to stop blocking the mission too, for
+        // the exact same reason.
+        await carryForwardStaleObjections(tx, args.missionId, r.id);
       }
     }
     const statusOrder: MissionStatus[] = [

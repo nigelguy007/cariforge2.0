@@ -129,6 +129,23 @@ describe('partitionObjections', () => {
     expect(historical.map((o) => o.id)).toEqual(['stale']);
   });
 
+  it('puts an objection on an INVALIDATED (not superseded) downstream handoff in "historical" too', () => {
+    // Real user report (2026-09-05): "all say resolution closed yet
+    // showing 3 unresolved concerns" — after a redraft/replay/rollback,
+    // downstream stage handoffs get invalidationReasonCode set but
+    // supersededById stays null (they weren't replaced, just marked
+    // stale). Their own objections need the same "not current" treatment
+    // or they're invisible next to the step someone's actually redrafted,
+    // yet still permanently block the mission.
+    const d = detail({
+      handoffs: [handoff({ id: 'h1', invalidationReasonCode: 'StaleInformation' })],
+      objections: [objection({ id: 'stale-downstream', stageHandoffId: 'h1', resolution: null })],
+    });
+    const { current, historical } = partitionObjections(d);
+    expect(current).toEqual([]);
+    expect(historical.map((o) => o.id)).toEqual(['stale-downstream']);
+  });
+
   it('separates a real mixed history: resolved-on-old-drafts vs genuinely open on the current one', () => {
     const d = detail({
       handoffs: [
