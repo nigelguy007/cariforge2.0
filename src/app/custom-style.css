@@ -1220,7 +1220,14 @@
    just stops fully blocking what's happening behind it. */
 .app-shell > header,
 .app-shell > .fixed.bottom-0 {
-  background: color-mix(in oklab, var(--app-surface) 78%, transparent);
+  /* 85%, not lower — cosmoq-home.css's own nav pill hit exactly this
+     tradeoff (see its "Alpha raised from 0.66 ... stops anything still
+     showing through the pill itself" comment) and settled at 0.88 after
+     finding lower values let scrolling content bleed through and clash
+     with the nav's own text. This header only ever has the halo's soft
+     colour behind it, not readable content, so it can sit slightly lower
+     than cosmoq's value and still keep full contrast for the logo/menu. */
+  background: color-mix(in oklab, var(--app-surface) 85%, transparent);
   backdrop-filter: blur(16px) saturate(140%);
   -webkit-backdrop-filter: blur(16px) saturate(140%);
 }
