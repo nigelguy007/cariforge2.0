@@ -10,6 +10,7 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { apiFetch } from '@/lib/api-client';
+import { apiErrorMessage } from '@/lib/api-error-message';
 import { AssurancePack, type AssurancePackT } from '@/lib/contracts/assurance-pack';
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
@@ -141,7 +142,7 @@ export function AssurancePackCard({ missionId }: { missionId: string }) {
       });
       setPack(result);
     } catch (err) {
-      setError((err as Error).message || 'Could not generate the assurance pack.');
+      setError(apiErrorMessage(err, 'Could not generate the assurance pack.'));
     } finally {
       setLoading(false);
     }

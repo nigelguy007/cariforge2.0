@@ -22,6 +22,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { apiFetch } from '@/lib/api-client';
+import { apiErrorMessage } from '@/lib/api-error-message';
 import {
   EVIDENCE_KIND_VALUES,
   EvidenceCreate,
@@ -56,7 +57,7 @@ export function MissionEvidenceForm({
       toast.success('Evidence attached');
       onWritten();
     } catch (err) {
-      const message = (err as Error).message ?? 'Could not attach evidence';
+      const message = apiErrorMessage(err, 'Could not attach evidence');
       const cause = (err as { cause?: { errors?: Record<string, string> } }).cause;
       if (cause?.errors) {
         if (!applyServerErrors(cause, form.setError)) toast.error(message);

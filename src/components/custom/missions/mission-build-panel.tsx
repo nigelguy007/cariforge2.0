@@ -14,11 +14,8 @@ import * as React from 'react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { apiFetch } from '@/lib/api-client';
-import {
-  BlueprintItem,
-  BlueprintList,
-  CanvasRunList,
-} from '@/lib/contracts/forge-canvas';
+import { apiErrorMessage } from '@/lib/api-error-message';
+import { BlueprintItem, BlueprintList, CanvasRunList } from '@/lib/contracts/forge-canvas';
 
 interface LinkedBlueprint {
   slug: string;
@@ -79,7 +76,7 @@ export function MissionBuildPanel({
       toast.success(`Blueprint ${bp.slug} v${bp.version} created`);
       router.push(`/forge?slug=${encodeURIComponent(bp.slug)}`);
     } catch (err) {
-      toast.error((err as Error).message || 'Could not create the blueprint');
+      toast.error(apiErrorMessage(err, 'Could not create the blueprint'));
       setCreating(false);
     }
   }
@@ -112,8 +109,8 @@ export function MissionBuildPanel({
       ) : (
         <>
           <p className="mt-2 text-body text-muted-foreground">
-            No blueprint yet. Create one from this mission — its name, slug and authority
-            boundary carry over, with the boundary enforced as a human-approval node.
+            No blueprint yet. Create one from this mission — its name, slug and authority boundary
+            carry over, with the boundary enforced as a human-approval node.
           </p>
           <Button className="glass-cta mt-4" onClick={createFromMission} disabled={creating}>
             {creating ? 'Creating…' : 'Create blueprint from mission'}

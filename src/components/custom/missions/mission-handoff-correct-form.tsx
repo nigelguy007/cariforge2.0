@@ -22,6 +22,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { apiFetch } from '@/lib/api-client';
+import { apiErrorMessage } from '@/lib/api-error-message';
 import type { MissionDetailT } from '@/lib/contracts/forge';
 import { GATE_REASON_CODES, HandoffCorrect, MissionDetail } from '@/lib/contracts/forge';
 import { applyServerErrors } from '@/lib/forms';
@@ -67,7 +68,7 @@ export function MissionHandoffCorrectForm({
       toast.success('Handoff corrected');
       onWritten();
     } catch (err) {
-      const message = (err as Error).message ?? 'Could not correct handoff';
+      const message = apiErrorMessage(err, 'Could not correct handoff');
       const cause = (err as { cause?: { errors?: Record<string, string> } }).cause;
       if (cause?.errors) {
         if (!applyServerErrors(cause, form.setError)) toast.error(message);

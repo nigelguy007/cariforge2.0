@@ -5,6 +5,7 @@ import { useState } from 'react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { apiFetch } from '@/lib/api-client';
+import { apiErrorMessage } from '@/lib/api-error-message';
 import { useIsAdmin } from '@/lib/auth-client';
 import {
   GATE_REASON_CODES,
@@ -69,7 +70,7 @@ function ToolActionCard({
       toast.success(`Tool action ${decision === 'Approved' ? 'approved' : 'denied'}`);
       onWritten();
     } catch (err) {
-      toast.error((err as Error).message ?? 'Could not record decision');
+      toast.error(apiErrorMessage(err, 'Could not record decision'));
     }
   };
 
@@ -83,7 +84,7 @@ function ToolActionCard({
       toast.success('Tool action run');
       onWritten();
     } catch (err) {
-      toast.error((err as Error).message ?? 'Could not execute');
+      toast.error(apiErrorMessage(err, 'Could not execute'));
     }
   };
 
@@ -104,7 +105,7 @@ function ToolActionCard({
       toast.success('Rollback recorded');
       onWritten();
     } catch (err) {
-      toast.error((err as Error).message ?? 'Could not record rollback');
+      toast.error(apiErrorMessage(err, 'Could not record rollback'));
     }
   };
 

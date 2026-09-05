@@ -6,6 +6,7 @@
 
 import * as React from 'react';
 import { apiFetch } from '@/lib/api-client';
+import { apiErrorMessage } from '@/lib/api-error-message';
 import { type MissionCostT, MissionTelemetryRead } from '@/lib/contracts/telemetry';
 
 function formatCents(cents: number): string {
@@ -33,7 +34,7 @@ export function MissionCostCard({ missionSlug }: { missionSlug: string }) {
         });
         if (!cancelled) setCost(t.cost);
       } catch (err) {
-        if (!cancelled) setError((err as Error).message);
+        if (!cancelled) setError(apiErrorMessage(err, 'Cost telemetry could not be loaded.'));
       }
     })();
     return () => {

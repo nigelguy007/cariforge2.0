@@ -23,6 +23,7 @@ import {
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { apiFetch } from '@/lib/api-client';
+import { apiErrorMessage } from '@/lib/api-error-message';
 import { MissionDetail, type MissionDetailT, ObjectionCreate } from '@/lib/contracts/forge';
 import { applyServerErrors } from '@/lib/forms';
 import { stepLabel } from '@/lib/ui-terms';
@@ -57,7 +58,7 @@ export function MissionObjectionCreateForm({
       toast.success('Objection raised');
       onWritten();
     } catch (err) {
-      const message = (err as Error).message ?? 'Could not raise objection';
+      const message = apiErrorMessage(err, 'Could not raise objection');
       const cause = (err as { cause?: { errors?: Record<string, string> } }).cause;
       if (cause?.errors) {
         if (!applyServerErrors(cause, form.setError)) toast.error(message);

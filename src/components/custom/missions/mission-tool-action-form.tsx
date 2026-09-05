@@ -22,6 +22,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { apiFetch } from '@/lib/api-client';
+import { apiErrorMessage } from '@/lib/api-error-message';
 import {
   MissionDetail,
   type MissionDetailT,
@@ -56,7 +57,7 @@ export function MissionToolActionForm({
       toast.success('Tool action proposed');
       onWritten();
     } catch (err) {
-      const message = (err as Error).message ?? 'Could not propose tool action';
+      const message = apiErrorMessage(err, 'Could not propose tool action');
       const cause = (err as { cause?: { errors?: Record<string, string> } }).cause;
       if (cause?.errors) {
         if (!applyServerErrors(cause, form.setError)) toast.error(message);

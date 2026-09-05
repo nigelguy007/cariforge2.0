@@ -15,6 +15,7 @@ import { MissionCostCard } from '@/components/custom/forge-telemetry/mission-cos
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { apiFetch } from '@/lib/api-client';
+import { apiErrorMessage } from '@/lib/api-error-message';
 import {
   type ApprovalItemT,
   GATE_DEFS,
@@ -70,7 +71,7 @@ export function MissionDetail({ missionSlug }: { missionSlug: string }) {
         });
         if (!cancelled) setDetail(detail);
       } catch (err) {
-        if (!cancelled) setError((err as Error).message);
+        if (!cancelled) setError(apiErrorMessage(err, 'This project could not be loaded.'));
       }
     })();
     return () => {
@@ -91,7 +92,7 @@ export function MissionDetail({ missionSlug }: { missionSlug: string }) {
       });
       setDetail(detail);
     } catch (err) {
-      setError((err as Error).message);
+      setError(apiErrorMessage(err, 'This project could not be loaded.'));
     }
   }, [missionSlug]);
 

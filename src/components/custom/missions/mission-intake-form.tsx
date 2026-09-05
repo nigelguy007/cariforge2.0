@@ -24,6 +24,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { apiFetch } from '@/lib/api-client';
+import { apiErrorMessage } from '@/lib/api-error-message';
 import { MissionCreate, MissionDetail, MissionIntakeStructure } from '@/lib/contracts/forge';
 import { applyServerErrors } from '@/lib/forms';
 
@@ -204,7 +205,7 @@ export function MissionIntakeForm({
       toast.success('Project started');
       router.push(`/missions/${detail.mission.slug}`);
     } catch (err) {
-      const message = (err as Error).message ?? 'Could not start the project';
+      const message = apiErrorMessage(err, 'Could not start the project');
       const cause = (err as { cause?: { errors?: Record<string, string> } }).cause;
       if (cause?.errors) {
         if (!applyServerErrors(cause, form.setError)) {

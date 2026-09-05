@@ -12,6 +12,7 @@ import * as React from 'react';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { apiFetch } from '@/lib/api-client';
+import { apiErrorMessage } from '@/lib/api-error-message';
 import { MissionList, type MissionListItemT } from '@/lib/contracts/forge';
 import { stageUiForIndex } from '@/lib/ui-terms';
 import { StatusBadge } from './status-badge';
@@ -37,7 +38,7 @@ export function ProjectList({ showEmptyCta = true }: { showEmptyCta?: boolean } 
       const items = [...data.items].sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
       setState({ status: 'ready', items });
     } catch (err) {
-      setState({ status: 'error', message: (err as Error).message });
+      setState({ status: 'error', message: apiErrorMessage(err, 'Projects could not be loaded.') });
     }
   }, []);
 

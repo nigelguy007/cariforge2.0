@@ -12,6 +12,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { apiFetch } from '@/lib/api-client';
+import { apiErrorMessage } from '@/lib/api-error-message';
 import { ORACLE_ROLE_NAMES } from '@/lib/business/forge/oracle-council';
 import {
   type ApprovalItemT,
@@ -62,7 +63,7 @@ export function OracleCouncilCard({ detail, onWritten }: OracleCouncilCardProps)
       setUserIdInput('');
       await onWritten();
     } catch (err) {
-      toast.error((err as Error).message ?? 'Could not appoint Elder Oracle.');
+      toast.error(apiErrorMessage(err, 'Could not appoint Elder Oracle.'));
     } finally {
       setAssigning(false);
     }

@@ -26,6 +26,7 @@ import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Textarea } from '@/components/ui/textarea';
 import { apiFetch } from '@/lib/api-client';
+import { apiErrorMessage } from '@/lib/api-error-message';
 import {
   type ApprovalDecision,
   type GateStateT,
@@ -147,7 +148,7 @@ export function DecisionDialog({
           serverErrors.stageHandoffId ??
           (hasFieldErrors
             ? undefined
-            : ((err as Error).message ?? 'The decision could not be recorded. Try again.')),
+            : apiErrorMessage(err, 'The decision could not be recorded. Try again.')),
       });
     } finally {
       setBusy(false);

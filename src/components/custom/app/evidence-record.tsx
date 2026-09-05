@@ -10,6 +10,7 @@ import * as React from 'react';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { apiFetch } from '@/lib/api-client';
+import { apiErrorMessage } from '@/lib/api-error-message';
 import { computeAuditHashChain } from '@/lib/business/forge/assurance-pack';
 import { AssurancePack } from '@/lib/contracts/assurance-pack';
 import { MissionDetail, type MissionDetailT, MissionList } from '@/lib/contracts/forge';
@@ -85,7 +86,10 @@ function VerifyHashChain({ missionId }: { missionId: string }) {
         });
       setState(ok ? { status: 'verified', count: local.length } : { status: 'mismatch' });
     } catch (err) {
-      setState({ status: 'error', message: (err as Error).message });
+      setState({
+        status: 'error',
+        message: apiErrorMessage(err, 'Could not verify the hash chain.'),
+      });
     }
   };
 
@@ -146,7 +150,10 @@ export function EvidenceRecord({ missionSlug }: { missionSlug: string }) {
       setState({ status: 'ready', detail });
       setAnnouncement('Evidence record loaded');
     } catch (err) {
-      setState({ status: 'error', message: (err as Error).message });
+      setState({
+        status: 'error',
+        message: apiErrorMessage(err, 'This evidence record could not be loaded.'),
+      });
     }
   }, [missionSlug]);
 

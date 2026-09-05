@@ -4,6 +4,7 @@
 
 import * as React from 'react';
 import { apiFetch } from '@/lib/api-client';
+import { apiErrorMessage } from '@/lib/api-error-message';
 import { type BlueprintReadT, MissionList, type MissionListItemT } from '@/lib/contracts/forge';
 import { MissionBlueprintView } from './mission-blueprint-view';
 
@@ -25,7 +26,7 @@ export function MissionBlueprintClient({ missionSlug }: { missionSlug: string })
         }
         if (!cancelled) setMissionId(found.id);
       } catch (err) {
-        if (!cancelled) setError((err as Error).message);
+        if (!cancelled) setError(apiErrorMessage(err, 'This project could not be loaded.'));
       }
     })();
     return () => {

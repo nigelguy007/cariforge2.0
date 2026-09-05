@@ -23,6 +23,7 @@ import {
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { apiFetch } from '@/lib/api-client';
+import { apiErrorMessage } from '@/lib/api-error-message';
 import {
   type APPROVAL_DECISION_VALUES,
   GATE_DECISION_CHOICES,
@@ -78,7 +79,7 @@ export function MissionGatePanel({
       toast.success(`Gate ${gateState.gateIndex} decided`);
       onWritten();
     } catch (err) {
-      const message = (err as Error).message ?? 'Could not decide gate';
+      const message = apiErrorMessage(err, 'Could not decide gate');
       const cause = (err as { cause?: { errors?: Record<string, string> } }).cause;
       if (cause?.errors) {
         if (!applyServerErrors(cause, form.setError)) toast.error(message);

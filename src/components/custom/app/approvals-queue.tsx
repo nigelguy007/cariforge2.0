@@ -18,6 +18,7 @@ import { Label } from '@/components/ui/label';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Textarea } from '@/components/ui/textarea';
 import { apiFetch } from '@/lib/api-client';
+import { apiErrorMessage } from '@/lib/api-error-message';
 import { MissionList, type MissionListItemT } from '@/lib/contracts/forge';
 import {
   CanvasRunDetail,
@@ -171,7 +172,10 @@ export function ApprovalsQueue() {
         .sort((a, b) => a.createdAt.localeCompare(b.createdAt));
       setState({ status: 'ready', projects, runs });
     } catch (err) {
-      setState({ status: 'error', message: (err as Error).message });
+      setState({
+        status: 'error',
+        message: apiErrorMessage(err, 'Approvals could not be loaded.'),
+      });
     }
   }, []);
 

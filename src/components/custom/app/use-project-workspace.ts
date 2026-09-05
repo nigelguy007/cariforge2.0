@@ -9,6 +9,7 @@
 
 import * as React from 'react';
 import { apiFetch } from '@/lib/api-client';
+import { apiErrorMessage } from '@/lib/api-error-message';
 import {
   type GateStateT,
   type HandoffItemT,
@@ -242,7 +243,10 @@ export function useProjectWorkspace(slug: string): {
       setState({ status: 'ready', detail, view: buildProjectWorkspaceView(detail, nextAction) });
     } catch (err) {
       if (generation !== requestRef.current) return;
-      setState({ status: 'error', message: (err as Error).message });
+      setState({
+        status: 'error',
+        message: apiErrorMessage(err, 'This project could not be loaded.'),
+      });
     }
   }, [slug]);
 

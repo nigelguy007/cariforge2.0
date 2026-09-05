@@ -5,6 +5,7 @@ import { useState } from 'react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { apiFetch } from '@/lib/api-client';
+import { apiErrorMessage } from '@/lib/api-error-message';
 import { MissionDetail, type MissionDetailT, ReplayRequest } from '@/lib/contracts/forge';
 
 export function MissionReplayForm({
@@ -38,7 +39,7 @@ export function MissionReplayForm({
       setReasonText('');
       onWritten();
     } catch (err) {
-      toast.error((err as Error).message ?? 'Could not replay');
+      toast.error(apiErrorMessage(err, 'Could not replay'));
     }
   };
 

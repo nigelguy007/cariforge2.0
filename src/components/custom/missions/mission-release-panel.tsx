@@ -4,6 +4,7 @@
 import * as React from 'react';
 import { toast } from 'sonner';
 import { apiFetch } from '@/lib/api-client';
+import { apiErrorMessage } from '@/lib/api-error-message';
 import { ReleaseRead, type ReleaseReadT } from '@/lib/contracts/forge';
 import { DECISION_UI, RELEASE_STATUS_UI, stageUiForIndex } from '@/lib/ui-terms';
 
@@ -17,7 +18,7 @@ export function MissionReleasePanel({ missionId }: { missionId: string }) {
       const r = await apiFetch(`/api/forge/missions/${missionId}/release`, { schema: ReleaseRead });
       setRelease(r);
     } catch (err) {
-      setError((err as Error).message);
+      setError(apiErrorMessage(err, 'The release could not be loaded.'));
     }
   }, [missionId]);
 
@@ -36,7 +37,7 @@ export function MissionReleasePanel({ missionId }: { missionId: string }) {
       setRelease(r);
       toast.success('Release readout recorded');
     } catch (err) {
-      toast.error((err as Error).message ?? 'Could not record release readout');
+      toast.error(apiErrorMessage(err, 'Could not record release readout'));
     } finally {
       setRecording(false);
     }
