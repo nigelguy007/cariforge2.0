@@ -18,6 +18,7 @@ import {
   SPECIALIST_ROLE_VALUES,
   type StageName,
 } from '@/lib/contracts/forge';
+import { MissionGeneratedFiles } from '@/components/custom/missions/mission-generated-files';
 import { AGENT_ACTIVITY_UI, DECISION_UI, humanise, reasonLabel, STEPS } from '@/lib/ui-terms';
 
 // Generic: works for both an AI-drafted payload (known field names, see
@@ -29,6 +30,14 @@ function payloadFacts(
 ): readonly { label: string; value: string }[] {
   const facts: { label: string; value: string }[] = [];
   for (const [key, value] of Object.entries(payload)) {
+    // 'files' (SoftwareBuild's generated code, see ai-draft.ts) is an
+    // array of {path, content} objects, not strings — deliberately
+    // excluded here (the string-array branch below already naturally
+    // skips it, since none of its entries pass the `typeof v === 'string'`
+    // filter) and rendered separately by MissionGeneratedFiles instead of
+    // as a generic fact, since dumping file contents into one joined
+    // line would be unreadable.
+    if (key === 'files') continue;
     if (typeof value === 'string' && value.trim()) {
       facts.push({ label: humanise(key), value: value.trim() });
     } else if (Array.isArray(value) && value.length > 0) {
@@ -37,6 +46,21 @@ function payloadFacts(
     }
   }
   return facts;
+}
+
+/** Defensive extraction — payload is untyped JSON from the DB; only a
+ *  well-formed {path, content}[] counts, anything else is treated as
+ *  absent rather than rendered wrong. */
+function generatedFilesFrom(payload: Record<string, unknown>): { path: string; content: string }[] {
+  const raw = payload.files;
+  if (!Array.isArray(raw)) return [];
+  return raw.filter(
+    (f): f is { path: string; content: string } =>
+      typeof f === 'object' &&
+      f !== null &&
+      typeof (f as Record<string, unknown>).path === 'string' &&
+      typeof (f as Record<string, unknown>).content === 'string',
+  );
 }
 
 /** "Selecting an agent reveals" (2026-09-05 architecture doc): what it was
@@ -70,6 +94,9 @@ function AgentStepDetail({
               <p className="app-small text-[var(--app-text-muted)]">{f.value}</p>
             </div>
           ))}
+          <MissionGeneratedFiles
+            files={generatedFilesFrom(handoff.payload as Record<string, unknown>)}
+          />
           <p className="app-caption text-[var(--app-text-muted)]">
             Confidence: {Math.round(handoff.confidence * 100)}%
           </p>

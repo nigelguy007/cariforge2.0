@@ -93,7 +93,12 @@ export const AGENT_ACTIVITY_UI: Readonly<Record<StageName, { agent: string; done
   Readiness: { agent: 'Readiness Agent', done: 'Verified available evidence' },
   Workflow: { agent: 'Workflow Agent', done: 'Designed the process' },
   Governance: { agent: 'Controls Agent', done: 'Added required safeguards' },
-  SoftwareBuild: { agent: 'Build Agent', done: 'Created the solution' },
+  // "Created the solution" -> "Generated real code" (2026-09-05): this
+  // stage now actually produces files (see ai-draft.ts's
+  // draftSoftwareBuildFiles), not just another text summary — the label
+  // should say so plainly rather than reading like every other stage's
+  // generic "wrote a document" language.
+  SoftwareBuild: { agent: 'Build Agent', done: 'Generated real code' },
 };
 
 export type StepUi = StageUi & { readonly stage: StageName };

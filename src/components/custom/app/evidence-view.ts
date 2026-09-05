@@ -253,7 +253,31 @@ function mayDoQuestion(detail: MissionDetailT): EvidenceQuestion {
   const governance = detail.handoffs
     .filter((h) => h.stage === 'Governance' && h.supersededById === null)
     .sort((a, b) => b.version - a.version)[0];
+  const softwareBuild = detail.handoffs
+    .filter((h) => h.stage === 'SoftwareBuild' && h.supersededById === null)
+    .sort((a, b) => b.version - a.version)[0];
   const facts: EvidenceFact[] = [];
+  // Real user report (2026-09-05): "i dont see any build or solution ..
+  // just a plan" — surface the actual generated files here, the same
+  // place a buyer/auditor asks "what may the solution do", rather than
+  // leaving them only visible on the project workspace's Agent activity
+  // panel (see mission-generated-files.tsx / ai-draft.ts's
+  // draftSoftwareBuildFiles). Untyped JSON from the DB, so only a
+  // well-formed {path,content}[] counts.
+  const files = Array.isArray(softwareBuild?.payload.files)
+    ? (softwareBuild.payload.files as unknown[]).filter(
+        (f): f is { path: string } =>
+          typeof f === 'object' && f !== null && typeof (f as Record<string, unknown>).path === 'string',
+      )
+    : [];
+  if (files.length > 0) {
+    facts.push({
+      id: 'generated-files',
+      label: 'Files generated',
+      value: files.map((f) => f.path).join(', '),
+      meta: `${plural(files.length, 'file')} in the Software Build step output — see the project page to view or copy each one`,
+    });
+  }
   if (governance) {
     const decision = payloadText(governance.payload, ['decisionControl', 'humanCheckpoint']);
     const data = payloadText(governance.payload, ['dataControl', 'dataAccess']);
@@ -440,7 +464,7 @@ export function evidenceViewToDocumentSpec(view: EvidenceView): DocumentSpec {
         "receipt — not a production deployment. Verify this record's hash chain in the app " +
         'before relying on it.'
       : 'This project has not been approved yet — this record shows progress so far, not a ' +
-        "finished solution package. See Decision coverage and Unresolved concerns above for " +
+        'finished solution package. See Decision coverage and Unresolved concerns above for ' +
         "what is still outstanding. Verify this record's hash chain in the app before relying " +
         'on it.',
     footer: `Generated ${new Date().toLocaleString()}.`,

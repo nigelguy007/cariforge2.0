@@ -68,6 +68,50 @@ const StepDraftV4 = z4.object({
   confidence: z4.number().min(0).max(1),
 });
 
+// Real user report (2026-09-05): "it says the project is completed but i
+// dont see any build or solution .. just a plan, nothing at all" — traced
+// to a real gap against this app's own /why-this-is-a-scaffold promise
+// ("a runnable Next.js / TypeScript project worked end-to-end from the
+// approved brief"): the SoftwareBuild stage only ever produced the same
+// summary/scope/checksPassed TEXT fields as every other stage, never an
+// actual file. User's explicit direction after seeing this: "build real
+// code generation".
+//
+// Deliberately its OWN schema and its OWN call, not a `files` field bolted
+// onto the shared StepDraftV4 above — two reasons: (1) the file-header
+// comment on StepDraftV4 already documents a real, confirmed incident
+// where a wide, mostly-optional schema hung indefinitely against this
+// exact Gateway/account; adding a large, variable-length files array to
+// that already-17-field shape is exactly the kind of change that incident
+// warns against. (2) the other four stages never need file generation at
+// all, so giving them a slower, larger-token-budget schema every time
+// would be pure waste. Every field below is still required, per that same
+// lesson — no `.optional()`.
+const GeneratedFileV4 = z4.object({
+  // Relative path, e.g. "app/page.tsx" or "package.json" — never absolute,
+  // never escaping the project root (checked below, not just asked for).
+  path: z4.string(),
+  content: z4.string(),
+});
+const SoftwareBuildDraftV4 = z4.object({
+  summary: z4.string(),
+  scope: z4.array(z4.string()),
+  checksPassed: z4.array(z4.string()),
+  missingEvidence: z4.array(z4.string()),
+  // Capped, not open-ended — a real, small, runnable starter (the
+  // marketing page's own word is "scaffold"), not an attempt at a
+  // production-complete app. 3-10 keeps one Gateway call's token budget
+  // and latency bounded and matches what a human reviewer can actually
+  // read through at an approval gate.
+  files: z4.array(GeneratedFileV4).min(3).max(10),
+  confidence: z4.number().min(0).max(1),
+});
+
+export interface GeneratedFile {
+  readonly path: string;
+  readonly content: string;
+}
+
 const STAGE_FOCUS: Readonly<Record<StageName, string>> = {
   Discovery:
     'Fill: problemStatement (one paragraph), needs (3-6 bullet needs), risks, questions ' +
@@ -158,6 +202,8 @@ export async function draftStepOutput(args: {
   const client = getClient();
   if (!client) return { status: 'unavailable' };
 
+  if (args.stage === 'SoftwareBuild') return draftSoftwareBuildFiles(client, args);
+
   const gate = GATE_DEFS.find((g) => g.stage === args.stage);
   const need = args.normalizedNeed.trim() || args.intake.trim();
   const contextBlock =
@@ -219,6 +265,106 @@ this step depends on information not yet available.`;
     // Never the reason a project can't advance — the admin fallback form
     // still works. Logged server-side so a real outage is diagnosable.
     console.error('[forge] draftStepOutput failed:', err);
+    return { status: 'unavailable' };
+  }
+}
+
+/** A path a generated file is rejected for — checked, not just asked for
+ *  in the prompt: absolute, escapes the project root via `..`, or is
+ *  otherwise not a plain relative path a zip/file-tree view can render
+ *  safely. */
+function isSafeRelativePath(path: string): boolean {
+  if (!path || path.startsWith('/') || path.includes('\\') || path.includes('\0')) return false;
+  const segments = path.split('/');
+  return segments.every((s) => s.length > 0 && s !== '.' && s !== '..');
+}
+
+// Same shape draftStepOutput takes, minus `stage` (always 'SoftwareBuild'
+// here — this is only ever reached from that one branch above).
+async function draftSoftwareBuildFiles(
+  client: Anthropic,
+  args: {
+    intake: string;
+    normalizedNeed: string;
+    priorContext: readonly string[];
+    feedback?: readonly string[];
+    evidence?: readonly { label: string; kind: string }[];
+  },
+): Promise<DraftStepResult> {
+  const need = args.normalizedNeed.trim() || args.intake.trim();
+  const contextBlock =
+    args.priorContext.length > 0
+      ? `\n\nWhat earlier steps already established (the need, the workflow, the governance controls — build to match all of it, not just the raw need):\n${args.priorContext.map((c, i) => `${i + 1}. ${c}`).join('\n')}`
+      : '';
+  const feedbackBlock =
+    args.feedback && args.feedback.length > 0
+      ? `\n\nA prior attempt at this build had these unresolved reviewer concerns — address them directly in the files this time:\n${args.feedback.map((c, i) => `${i + 1}. ${c}`).join('\n')}`
+      : '';
+  const evidenceBlock =
+    args.evidence && args.evidence.length > 0
+      ? `\n\nEvidence already attached to this project (reference it where relevant):\n${args.evidence.map((e, i) => `${i + 1}. ${e.label} (${e.kind})`).join('\n')}`
+      : '';
+
+  const system = `You are CariForge, building the "SoftwareBuild" step of a governed project —
+the point where an approved plan becomes a real, small, RUNNABLE Next.js +
+TypeScript starter, not another document. A named human reviews and
+approves, corrects, or rejects what you produce here — you never approve
+anything yourself, and must say so nowhere in your output.
+
+Generate 3-10 real, working files for a minimal Next.js (App Router) +
+TypeScript project that concretely implements the core of the workflow
+described below — not a generic template, not a placeholder "hello
+world": the actual feature, grounded in the real need, workflow steps and
+governance controls already established. Always include a package.json
+with real, correct dependency versions and a README.md explaining how to
+run it. Keep each file short and legible (roughly 20-150 lines) — this is
+a scaffold to review and extend, not a production-complete application.
+Use plain React/Next.js/TypeScript only, no other frameworks, and never
+hardcode a real secret, API key, or credential anywhere.
+
+Also fill: summary (what you built, one paragraph), scope (bullet list of
+what this build covers), checksPassed (acceptance checks this build
+satisfies), missingEvidence (concrete gaps — e.g. real API access, a data
+source — a human should confirm before this goes further; empty only if
+genuinely none).
+
+Set confidence (0-1) honestly: lower if the described workflow was vague
+or this build depends on access/information not yet available.`;
+
+  const userMessage = `The need, as described: ${need}${contextBlock}${evidenceBlock}${feedbackBlock}`;
+
+  try {
+    const response = await client.messages.parse(
+      {
+        model: 'anthropic/claude-sonnet-5',
+        max_tokens: 8192,
+        output_config: { effort: 'medium', format: zodOutputFormat(SoftwareBuildDraftV4) },
+        system,
+        messages: [{ role: 'user', content: userMessage }],
+      },
+      // Generating real file content needs a genuinely larger budget than
+      // the 45s default this client is configured with (see getClient's
+      // own comment on that value) — overridden per-call rather than
+      // raising the shared client's default, since every OTHER stage's
+      // call through this same client should keep failing fast.
+      { timeout: 120_000 },
+    );
+    if (!response.parsed_output) return { status: 'unavailable' };
+    const parsed = SoftwareBuildDraftV4.safeParse(response.parsed_output);
+    if (!parsed.success) return { status: 'unavailable' };
+    const { missingEvidence, confidence, files, ...rest } = parsed.data;
+    const safeFiles = files.filter((f) => isSafeRelativePath(f.path));
+    if (safeFiles.length === 0) return { status: 'unavailable' };
+    return {
+      status: 'ok',
+      draft: {
+        payload: { ...rest, files: safeFiles },
+        missingEvidence: missingEvidence ?? [],
+        confidence,
+      },
+    };
+  } catch (err) {
+    console.error('[forge] draftSoftwareBuildFiles failed:', err);
     return { status: 'unavailable' };
   }
 }

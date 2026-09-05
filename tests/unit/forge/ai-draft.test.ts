@@ -58,4 +58,22 @@ describe('draftStepOutput — no usable AI Gateway key', () => {
     });
     expect(result).toEqual({ status: 'unavailable' });
   });
+
+  // Real user report (2026-09-05): "build real code generation" —
+  // SoftwareBuild now dispatches to its own draftSoftwareBuildFiles
+  // (larger schema, larger token budget, its own Gateway call). Same
+  // guarantee has to hold for it: no key still means 'unavailable', never
+  // a thrown error, checked BEFORE the dispatch happens (see
+  // draftStepOutput's own `if (!client) return ...` ordering) so a
+  // missing key degrades identically regardless of which stage.
+  it('degrades gracefully for SoftwareBuild too, without ever reaching the code-gen path', async () => {
+    const { draftStepOutput } = await import('@/lib/business/forge/ai-draft');
+    const result = await draftStepOutput({
+      stage: 'SoftwareBuild',
+      intake: 'the intake',
+      normalizedNeed: 'the need',
+      priorContext: ['an earlier step summary'],
+    });
+    expect(result).toEqual({ status: 'unavailable' });
+  });
 });
