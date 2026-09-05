@@ -243,7 +243,15 @@ export function NextActionCard({
       </h2>
       <p className="app-body mt-1.5 max-w-prose text-[var(--app-text-muted)]">{plan.sentence}</p>
 
-      {blockers.length > 0 ? (
+      {/* Real inconsistency found live (2026-09-05) verifying the terminal
+          rejection fix above: a closed/rejected mission still has a
+          Refused gate in "non-Awaiting state", which is exactly what
+          this list warns about — so a project that just got the "sorry,
+          this didn't get approved" message also showed "Before you can
+          continue: 1 approval(s) in non-Awaiting state" right underneath
+          it, implying there was still something to do. There is not —
+          nothing "continues" on a closed mission. */}
+      {!isTerminal && blockers.length > 0 ? (
         <div
           className="mt-3 rounded-[var(--app-radius-sm)] border border-amber-300 bg-amber-50 px-3 py-2"
           aria-live="polite"
