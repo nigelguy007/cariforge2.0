@@ -29,7 +29,12 @@ import { prisma } from '@/lib/db';
 // sending (swallowed by this function's own catch below).
 import { sendEmail } from '@/lib/email/send-resend';
 import { tagOracleGateDecisionEmail } from '@/lib/email/templates/tag-oracle-gate-decision';
-import { computeNextVersion, markDownstreamInvalidated, validateParent } from './handoffs';
+import {
+  computeNextVersion,
+  findOrphanedObjectionIds,
+  markDownstreamInvalidated,
+  validateParent,
+} from './handoffs';
 import {
   assertElderOracleAttested,
   assertSpecialistAttestersPresent,
@@ -187,6 +192,36 @@ export async function getMissionDetail(
     prisma.workItem.findMany({ where: { missionId }, orderBy: { openedAt: 'asc' } }),
     prisma.missionOracleAssignment.findMany({ where: { missionId } }),
   ]);
+
+  // Real user report (2026-09-05): "system says 2 unresolved concerns but
+  // nothing there" — a second, real mission hitting the exact class of
+  // bug carryForwardStaleObjections fixes, but on DATA CREATED BEFORE
+  // that fix was deployed: this mission's Concerns tab correctly showed
+  // zero current concerns (its own "From earlier drafts (5)" bucket was
+  // right), yet nextActionFor's own top-priority check — which scans ALL
+  // objections mission-wide with no handoff filter, by design (see its
+  // own comment) — still found 2 with resolution: null sitting on an
+  // already-superseded/invalidated handoff from before that write path
+  // existed. A one-time migration can't reach data on missions nobody
+  // has redrafted since; this makes getMissionDetail SELF-HEALING
+  // instead — every read checks for exactly this orphaned state and
+  // fixes it in place, so the fix reaches every mission the next time
+  // anyone actually opens it, not just ones redrafted after today.
+  const orphanedObjectionIds = findOrphanedObjectionIds(handoffs, objections);
+  if (orphanedObjectionIds.length > 0) {
+    const healedText =
+      'Automatically carried forward: this step was redrafted before the concern was directly answered. The new draft will be reviewed fresh, and this will be raised again if it still applies.';
+    await prisma.objection.updateMany({
+      where: { id: { in: orphanedObjectionIds } },
+      data: { resolution: 'CarriedForward', resolutionText: healedText },
+    });
+    for (const o of objections) {
+      if (orphanedObjectionIds.includes(o.id)) {
+        o.resolution = 'CarriedForward';
+        o.resolutionText = healedText;
+      }
+    }
+  }
 
   const handoffIds = handoffs.map((h) => h.id);
   const handoffAttesters =

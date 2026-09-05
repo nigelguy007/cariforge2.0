@@ -39,6 +39,7 @@ import { OracleAttestationList } from '@/components/custom/missions/oracle-attes
 import { OracleCouncilCard } from '@/components/custom/missions/oracle-council-card';
 import { QAReviewCard } from '@/components/custom/missions/qa-review-card';
 import { useIsAdmin } from '@/lib/auth-client';
+import { isStaleHandoff } from '@/lib/business/forge/handoffs';
 import type { MissionDetailT } from '@/lib/contracts/forge';
 import { DECISION_UI, reasonLabel, STEPS, stageUiForIndex } from '@/lib/ui-terms';
 import type { ProjectWorkspaceView } from './use-project-workspace';
@@ -91,11 +92,7 @@ function plural(n: number, noun: string): string {
 // group should mostly show settled, "carried forward" concerns now that
 // all four of those write paths carry them forward, not open ones.
 export function partitionObjections(detail: MissionDetailT) {
-  const staleHandoffIds = new Set(
-    detail.handoffs
-      .filter((h) => h.supersededById !== null || h.invalidationReasonCode !== null)
-      .map((h) => h.id),
-  );
+  const staleHandoffIds = new Set(detail.handoffs.filter(isStaleHandoff).map((h) => h.id));
   const current: typeof detail.objections = [];
   const historical: typeof detail.objections = [];
   for (const o of detail.objections) {

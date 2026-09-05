@@ -28,6 +28,7 @@ import Link from 'next/link';
 import * as React from 'react';
 import { toast } from 'sonner';
 import { AgentStepDetail } from '@/components/custom/app/agent-activity-panel';
+import { useProjectWorkspace } from '@/components/custom/app/use-project-workspace';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { apiFetch } from '@/lib/api-client';
@@ -35,7 +36,6 @@ import { useIsAdmin, useSession } from '@/lib/auth-client';
 import { nextActionFor } from '@/lib/business/forge/next-action';
 import { MissionDetail, type StageName } from '@/lib/contracts/forge';
 import { AGENT_ACTIVITY_UI, STEPS } from '@/lib/ui-terms';
-import { useProjectWorkspace } from '@/components/custom/app/use-project-workspace';
 
 type NodeStatus = 'done' | 'working' | 'needs-you' | 'pending';
 
@@ -66,7 +66,8 @@ function statusLabel(status: NodeStatus): string {
 }
 
 function connectorClass(leftDone: boolean, rightWorking: boolean): string {
-  if (rightWorking) return 'bg-gradient-to-r from-emerald-500/60 via-[var(--app-accent)] to-transparent animate-pulse';
+  if (rightWorking)
+    return 'bg-gradient-to-r from-emerald-500/60 via-[var(--app-accent)] to-transparent animate-pulse';
   if (leftDone) return 'bg-emerald-500/50';
   return 'bg-[var(--app-border)]';
 }
@@ -194,36 +195,38 @@ export function MissionOfficeView({ missionSlug }: { missionSlug: string }) {
           {nodes.map((n, i) => {
             const prev = i > 0 ? nodes[i - 1] : undefined;
             return (
-            <React.Fragment key={n.step.stage}>
-              {prev ? (
-                <div
-                  aria-hidden="true"
-                  className={`h-1 flex-1 rounded-full ${connectorClass(prev.done, n.status === 'working')}`}
-                />
-              ) : null}
-              <button
-                type="button"
-                onClick={() => setSelectedStage(n.step.stage === selectedStage ? null : n.step.stage)}
-                aria-expanded={n.step.stage === selectedStage}
-                className={`app-transition flex shrink-0 flex-col items-center gap-2 rounded-[var(--app-radius)] border-2 p-4 ${statusRingClass(n.status)} ${n.step.stage === selectedStage ? 'ring-2 ring-[var(--app-accent)] ring-offset-2 ring-offset-[var(--app-bg)]' : ''}`}
-              >
-                <div className="flex size-12 items-center justify-center rounded-full bg-[var(--app-surface)] text-[var(--app-text)]">
-                  {n.status === 'working' ? (
-                    <Loader2 className="size-5 animate-spin" aria-hidden="true" />
-                  ) : n.status === 'done' ? (
-                    <Check className="size-5 text-emerald-600" aria-hidden="true" />
-                  ) : (
-                    <span className="app-small font-semibold">{i + 1}</span>
-                  )}
-                </div>
-                <span className="app-small whitespace-nowrap font-medium text-[var(--app-text)]">
-                  {AGENT_ACTIVITY_UI[n.step.stage].agent}
-                </span>
-                <span className="app-caption whitespace-nowrap text-[var(--app-text-muted)]">
-                  {statusLabel(n.status)}
-                </span>
-              </button>
-            </React.Fragment>
+              <React.Fragment key={n.step.stage}>
+                {prev ? (
+                  <div
+                    aria-hidden="true"
+                    className={`h-1 flex-1 rounded-full ${connectorClass(prev.done, n.status === 'working')}`}
+                  />
+                ) : null}
+                <button
+                  type="button"
+                  onClick={() =>
+                    setSelectedStage(n.step.stage === selectedStage ? null : n.step.stage)
+                  }
+                  aria-expanded={n.step.stage === selectedStage}
+                  className={`app-transition flex shrink-0 flex-col items-center gap-2 rounded-[var(--app-radius)] border-2 p-4 ${statusRingClass(n.status)} ${n.step.stage === selectedStage ? 'ring-2 ring-[var(--app-accent)] ring-offset-2 ring-offset-[var(--app-bg)]' : ''}`}
+                >
+                  <div className="flex size-12 items-center justify-center rounded-full bg-[var(--app-surface)] text-[var(--app-text)]">
+                    {n.status === 'working' ? (
+                      <Loader2 className="size-5 animate-spin" aria-hidden="true" />
+                    ) : n.status === 'done' ? (
+                      <Check className="size-5 text-emerald-600" aria-hidden="true" />
+                    ) : (
+                      <span className="app-small font-semibold">{i + 1}</span>
+                    )}
+                  </div>
+                  <span className="app-small whitespace-nowrap font-medium text-[var(--app-text)]">
+                    {AGENT_ACTIVITY_UI[n.step.stage].agent}
+                  </span>
+                  <span className="app-caption whitespace-nowrap text-[var(--app-text-muted)]">
+                    {statusLabel(n.status)}
+                  </span>
+                </button>
+              </React.Fragment>
             );
           })}
         </div>
@@ -231,8 +234,17 @@ export function MissionOfficeView({ missionSlug }: { missionSlug: string }) {
 
       {canTriggerDraft ? (
         <div className="flex flex-wrap items-center gap-3">
-          <Button type="button" onClick={() => void draftWithAi()} disabled={drafting} className="min-h-11">
-            {drafting ? 'Working…' : action.kind === 'ReviseStage' ? 'Redraft with AI' : 'Draft with AI'}
+          <Button
+            type="button"
+            onClick={() => void draftWithAi()}
+            disabled={drafting}
+            className="min-h-11"
+          >
+            {drafting
+              ? 'Working…'
+              : action.kind === 'ReviseStage'
+                ? 'Redraft with AI'
+                : 'Draft with AI'}
           </Button>
           <Link href={`/missions/${missionSlug}`} className="app-link app-small">
             Back to project workspace

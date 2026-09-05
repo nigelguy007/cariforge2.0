@@ -4,11 +4,7 @@
 
 import { MissionOfficeView } from '@/components/custom/missions/mission-office-view';
 
-export default async function MissionOfficePage({
-  params,
-}: {
-  params: Promise<{ slug: string }>;
-}) {
+export default async function MissionOfficePage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   return <MissionOfficeView missionSlug={slug} />;
 }
