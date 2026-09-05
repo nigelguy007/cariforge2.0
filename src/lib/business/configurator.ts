@@ -63,8 +63,23 @@ let cachedClient: Anthropic | null | undefined;
 function getClient(): Anthropic | null {
   if (cachedClient !== undefined) return cachedClient;
   const apiKey = process.env.AI_GATEWAY_API_KEY ?? process.env.ANTHROPIC_API_KEY;
+  // timeout/maxRetries: the SDK's own defaults are a 10-MINUTE timeout with
+  // 2 retries — and per its own docs, a timed-out request is itself
+  // retried, so a single call can genuinely take much longer than even
+  // that. Confirmed live (2026-09-05): the sibling AI-drafting pipeline in
+  // forge/ai-draft.ts and forge/oracle-review.ts (same client-construction
+  // pattern, no explicit timeout either) hit Vercel's own 300s function
+  // ceiling this way. This function already treats any AI failure as fine
+  // — runConfigurator degrades to { status: 'unavailable' } and the real
+  // brief-intake form below is always still there — so there is no upside
+  // to the SDK spending minutes retrying before honoring that.
   cachedClient = apiKey
-    ? new Anthropic({ apiKey, baseURL: 'https://ai-gateway.vercel.sh' })
+    ? new Anthropic({
+        apiKey,
+        baseURL: 'https://ai-gateway.vercel.sh',
+        timeout: 30_000,
+        maxRetries: 0,
+      })
     : null;
   return cachedClient;
 }

@@ -73,7 +73,28 @@ let cachedClient: Anthropic | null | undefined;
 function getClient(): Anthropic | null {
   if (cachedClient !== undefined) return cachedClient;
   const apiKey = process.env.AI_GATEWAY_API_KEY ?? process.env.ANTHROPIC_API_KEY;
-  cachedClient = apiKey ? new Anthropic({ apiKey, baseURL: 'https://ai-gateway.vercel.sh' }) : null;
+  // timeout/maxRetries: the SDK's own defaults are a 10-MINUTE timeout with
+  // 2 retries — and per its own docs, a timed-out request is itself
+  // retried, so a single call can genuinely take much longer than even
+  // that. This function is one of up to five sequential Gateway calls
+  // within one /draft request (draft, review, maybe reconcile, maybe
+  // redraft, maybe a second review) inside a single Vercel function
+  // invocation — confirmed live (2026-09-05) hitting the platform's own
+  // 300s ceiling this way, killed as a hard timeout with zero application
+  // log, right after the Preview-scope key was first enabled. This whole
+  // file already treats any AI failure as fine — draftStepOutput degrades
+  // to { status: 'unavailable' } and the human's own fallback form still
+  // works — so there is no upside to the SDK spending minutes retrying
+  // before honoring that; fail fast and let the existing degrade path do
+  // its job instead.
+  cachedClient = apiKey
+    ? new Anthropic({
+        apiKey,
+        baseURL: 'https://ai-gateway.vercel.sh',
+        timeout: 30_000,
+        maxRetries: 0,
+      })
+    : null;
   return cachedClient;
 }
 
