@@ -98,12 +98,28 @@ const SoftwareBuildDraftV4 = z4.object({
   scope: z4.array(z4.string()),
   checksPassed: z4.array(z4.string()),
   missingEvidence: z4.array(z4.string()),
-  // Capped, not open-ended — a real, small, runnable starter (the
-  // marketing page's own word is "scaffold"), not an attempt at a
-  // production-complete app. 3-10 keeps one Gateway call's token budget
-  // and latency bounded and matches what a human reviewer can actually
-  // read through at an approval gate.
-  files: z4.array(GeneratedFileV4).min(3).max(10),
+  // Real user direction (2026-09-05): "i need the full working delivery
+  // not small files.. and a technical specification needs to be
+  // delivered with an architecture for the solution" — two real,
+  // separate deliverables, both added here rather than as a second call:
+  // one more Gateway round-trip in the same request is exactly the
+  // latency risk getClient's own comment documents a REAL past incident
+  // for (a live call hitting Vercel's 300s function ceiling with zero
+  // error logged). A technical spec is cheap in tokens next to code, so
+  // it rides along on this one call instead.
+  architectureOverview: z4.string(),
+  techStack: z4.array(z4.string()),
+  dataModel: z4.string(),
+  apiSurface: z4.array(z4.string()),
+  deploymentNotes: z4.string(),
+  // Raised from 3-10 to 5-20 for the same direction — still capped, not
+  // open-ended: an unbounded array reopens the exact latency risk above,
+  // and a human still has to actually read this at an approval gate. This
+  // is meaningfully more real coverage than the first pass, honestly
+  // short of "a complete production application" — no single generation
+  // call from any provider can honestly promise that, and the prompt
+  // below says so rather than pretending otherwise.
+  files: z4.array(GeneratedFileV4).min(5).max(20),
   confidence: z4.number().min(0).max(1),
 });
 
@@ -306,21 +322,42 @@ async function draftSoftwareBuildFiles(
       : '';
 
   const system = `You are CariForge, building the "SoftwareBuild" step of a governed project —
-the point where an approved plan becomes a real, small, RUNNABLE Next.js +
-TypeScript starter, not another document. A named human reviews and
-approves, corrects, or rejects what you produce here — you never approve
-anything yourself, and must say so nowhere in your output.
+the point where an approved plan becomes a real, RUNNABLE Next.js +
+TypeScript implementation and a proper technical specification, not
+another one-paragraph document. A named human reviews and approves,
+corrects, or rejects what you produce here — you never approve anything
+yourself, and must say so nowhere in your output.
 
-Generate 3-10 real, working files for a minimal Next.js (App Router) +
-TypeScript project that concretely implements the core of the workflow
-described below — not a generic template, not a placeholder "hello
-world": the actual feature, grounded in the real need, workflow steps and
-governance controls already established. Always include a package.json
-with real, correct dependency versions and a README.md explaining how to
-run it. Keep each file short and legible (roughly 20-150 lines) — this is
-a scaffold to review and extend, not a production-complete application.
-Use plain React/Next.js/TypeScript only, no other frameworks, and never
-hardcode a real secret, API key, or credential anywhere.
+Generate 5-20 real, working files for a Next.js (App Router) + TypeScript
+project that substantively implements the workflow described below —
+not a generic template, not a placeholder "hello world", and not a
+single demo page standing in for the whole thing: cover the real pages/
+routes, the real data model, and the real core logic implied by the need,
+workflow steps and governance controls already established. Always
+include a package.json with real, correct dependency versions and a
+README.md explaining how to run it. Keep individual files legible (each
+still a real, complete file, not truncated mid-way) and use plain React/
+Next.js/TypeScript only, no other frameworks, and never hardcode a real
+secret, API key, or credential anywhere. Be honest with yourself about
+scope: this is a strong, working starting implementation for a named
+human to review, test and extend — not a claim that every edge case,
+integration, and production concern has been handled. Never say or imply
+in your own output that this is production-ready or fully complete.
+
+Also produce a real technical specification, not filler text:
+- architectureOverview: 2-4 paragraphs — the actual shape of the
+  solution (frontend/backend split, key components, how data flows
+  through it), grounded in what was actually built, not generic
+  boilerplate architecture-speak.
+- techStack: the real technologies/libraries this build actually uses
+  (not a wish list of things it doesn't use).
+- dataModel: the key entities and their relationships/fields, matching
+  whatever data model the generated files actually implement.
+- apiSurface: the real routes/endpoints this build actually exposes
+  (method + path + one-line purpose each), empty only if genuinely none.
+- deploymentNotes: what a team would need to do to actually run/deploy
+  this for real (environment variables, external services, build steps) —
+  concrete, not "deploy as usual".
 
 Also fill: summary (what you built, one paragraph), scope (bullet list of
 what this build covers), checksPassed (acceptance checks this build
@@ -337,17 +374,22 @@ or this build depends on access/information not yet available.`;
     const response = await client.messages.parse(
       {
         model: 'anthropic/claude-sonnet-5',
-        max_tokens: 8192,
+        // Raised 8192 -> 12000 (2026-09-05, "i need the full working
+        // delivery not small files") for the bigger file cap + the new
+        // architecture/tech-spec fields above. Sized against the SAME
+        // 300s Vercel function ceiling getClient's comment documents a
+        // real past incident for: this is the only Gateway call this
+        // request makes for SoftwareBuild (see auto-advance.ts — its
+        // self-redraft loop deliberately skips SoftwareBuild, exactly so
+        // a request can never chain two of these heavy calls back to
+        // back), so 150s here plus one Oracle review call (~13-45s per
+        // this file's own documented pattern) still leaves real margin.
+        max_tokens: 12_000,
         output_config: { effort: 'medium', format: zodOutputFormat(SoftwareBuildDraftV4) },
         system,
         messages: [{ role: 'user', content: userMessage }],
       },
-      // Generating real file content needs a genuinely larger budget than
-      // the 45s default this client is configured with (see getClient's
-      // own comment on that value) — overridden per-call rather than
-      // raising the shared client's default, since every OTHER stage's
-      // call through this same client should keep failing fast.
-      { timeout: 120_000 },
+      { timeout: 150_000 },
     );
     if (!response.parsed_output) return { status: 'unavailable' };
     const parsed = SoftwareBuildDraftV4.safeParse(response.parsed_output);

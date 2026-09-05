@@ -145,7 +145,18 @@ export async function reviewAndMaybeAdvance(args: {
   // enough mission context to redraft with), and it still only ever produces
   // ANOTHER draft for the same human to review — it can't itself resolve a
   // concern or approve anything.
-  if (concernCount > 0 && !args.retried && stillOpen) {
+  //
+  // SoftwareBuild is deliberately excluded (2026-09-05, "i need the full
+  // working delivery not small files"): its own draftStepOutput call now
+  // dispatches to a real code-generation call sized against Vercel's
+  // documented 300s function ceiling on the assumption that it is the
+  // ONLY such call in the request (see ai-draft.ts's draftSoftwareBuildFiles
+  // comment on this exact point). Letting THIS branch immediately redraft
+  // it again would chain two of those heavy calls back to back in one
+  // request — precisely the risk that budget was sized to avoid. A
+  // SoftwareBuild concern instead waits for the human's own "Redraft with
+  // AI" click, a genuinely separate request.
+  if (concernCount > 0 && !args.retried && stillOpen && args.stage !== 'SoftwareBuild') {
     const priorContext = stillOpen.handoffs
       .filter((h) => h.supersededById === null && h.stage !== args.stage)
       .sort((a, b) => a.createdAt.localeCompare(b.createdAt))

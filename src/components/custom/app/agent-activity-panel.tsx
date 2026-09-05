@@ -12,13 +12,13 @@
 // section's own <details><summary> in project-workspace.tsx, so this
 // component renders only the list and the council-review footer.
 
+import { MissionGeneratedFiles } from '@/components/custom/missions/mission-generated-files';
 import {
   GATE_DEFS,
   type MissionDetailT,
   SPECIALIST_ROLE_VALUES,
   type StageName,
 } from '@/lib/contracts/forge';
-import { MissionGeneratedFiles } from '@/components/custom/missions/mission-generated-files';
 import { AGENT_ACTIVITY_UI, DECISION_UI, humanise, reasonLabel, STEPS } from '@/lib/ui-terms';
 
 // Generic: works for both an AI-drafted payload (known field names, see

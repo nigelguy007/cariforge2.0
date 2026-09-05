@@ -379,6 +379,39 @@ describe('reviewAndMaybeAdvance — bounded single retry', () => {
     expect(outcome).toEqual({ reviewed: true, advanced: false, concernCount: 1 });
   });
 
+  // Real user direction (2026-09-05, "i need the full working delivery
+  // not small files"): SoftwareBuild's own draft call now does real code
+  // generation, sized against Vercel's documented 300s function ceiling
+  // on the assumption it's the ONLY such call per request — this guard is
+  // what keeps that assumption true by never letting this branch chain a
+  // second one automatically.
+  it('never auto-redrafts a SoftwareBuild concern — escalates to a human immediately', async () => {
+    const unresolvedObjection = {
+      id: 'obj-1',
+      stageHandoffId: 'handoff-1',
+      raisedByRole: 'Risk',
+      text: 'the scope looks unbounded',
+      raisedAt: '2026-01-01T00:00:00.000Z',
+      resolution: null,
+    };
+    oracleReview.reviewStepDraft.mockResolvedValueOnce(oneConcern('Risk'));
+    service.createObjection.mockResolvedValueOnce({ objections: [unresolvedObjection] });
+    oracleReview.reconcileConcerns.mockResolvedValueOnce({
+      status: 'ok',
+      resolutions: [{ role: 'Risk', resolved: false, rationale: 'still needs a human' }],
+    });
+    service.getMissionDetail.mockResolvedValueOnce(
+      missionDetail({ objections: [unresolvedObjection] }),
+    );
+
+    const outcome = await reviewAndMaybeAdvance({ ...BASE_ARGS, stage: 'SoftwareBuild' });
+
+    expect(aiDraft.draftStepOutput).not.toHaveBeenCalled();
+    expect(service.correctHandoff).not.toHaveBeenCalled();
+    expect(service.decideGate).not.toHaveBeenCalled();
+    expect(outcome).toEqual({ reviewed: true, advanced: false, concernCount: 1 });
+  });
+
   it('escalates without recursing when correctHandoff itself throws', async () => {
     const unresolvedObjection = {
       id: 'obj-1',

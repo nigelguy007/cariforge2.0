@@ -267,7 +267,9 @@ function mayDoQuestion(detail: MissionDetailT): EvidenceQuestion {
   const files = Array.isArray(softwareBuild?.payload.files)
     ? (softwareBuild.payload.files as unknown[]).filter(
         (f): f is { path: string } =>
-          typeof f === 'object' && f !== null && typeof (f as Record<string, unknown>).path === 'string',
+          typeof f === 'object' &&
+          f !== null &&
+          typeof (f as Record<string, unknown>).path === 'string',
       )
     : [];
   if (files.length > 0) {
