@@ -54,6 +54,11 @@ export const navItems: NavItem[] = [
   // "Projects" to match the simplified workspace's own nav and copy
   // (redesign brief, Step 2/3) — the route and page are unchanged.
   { label: 'Projects', href: '/missions', group: 'primary', requiresAuth: true, order: 5 },
+  // Evidence page shipped (brief Step 5, redesign brief's three-item nav:
+  // Projects/Approvals/Evidence) but was never added here — a real gap,
+  // not a deliberate omission: the page has existed and worked all along,
+  // it just had no link a signed-in user could find it from.
+  { label: 'Evidence', href: '/evidence', group: 'primary', requiresAuth: true, order: 5.5 },
   // Promoted out of the 'Forge' dropdown and given the lowest order (sorts
   // first for a signed-in user, ahead of the marketing links) — 2026-09-01
   // user report: the visual builder existed but nobody found it, buried one

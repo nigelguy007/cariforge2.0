@@ -1205,17 +1205,42 @@
   }
 }
 
-/* Step 11 of the simplification brief: retire glass, aurora, blur and
-   hover-lift inside the signed-in app WITHOUT editing the ~45 mission
-   components that still carry the classes. Inside .app-shell every
-   glass surface becomes a flat white panel with a 1px border, no blur, no
-   shadow, no corner glow; chips become quiet bordered labels; lift-soft
-   does nothing. The marketing routes never sit inside .app-shell so they
-   keep the full treatment. Unlayered on purpose so it beats the @layer
-   rules above and the `.dark .glass-*` rules (same specificity, later). */
+/* Step 11 of the ORIGINAL simplification brief (2026-09-04) retired glass,
+   aurora, blur and hover-lift inside the signed-in app entirely — a flat
+   white-panel look. Superseded 2026-09-05 by an explicit later instruction
+   ("liquid glass effect... keep the current colour black with caribbean
+   colours"): .app-panel/.app-panel-action/.app-disclosure above already
+   got real frosted glass for the NEW simplified components. This rule was
+   the one place still fighting that — it kept flattening the ~29 OLDER
+   mission components (evidence list/form, objections, tool actions,
+   pause/resume, release panel, blockers panel — all still directly
+   reachable by a regular submitter, not just admin) to plain flat panels,
+   so the same Supporting-detail section could show a glass disclosure
+   wrapped around a flat card. Now composes with the same --glass-bg/
+   --glass-border/--glass-blur tokens as .app-panel — one material across
+   the whole app — WITHOUT editing any of those ~29 components themselves.
+   Aurora glows, hover-lift and the tint-only .glass-highlight/.glass-inset
+   surfaces stay suppressed below: those are marketing-page decoration or
+   flourish, not the glass panel material itself, and "small and clean"
+   argues for leaving them out. Unlayered on purpose so it beats the
+   @layer rules above and the `.dark .glass-*` rules (same specificity,
+   later). */
 .app-shell .glass-surface,
 .app-shell .glass-card,
-.app-shell .glass-panel,
+.app-shell .glass-panel {
+  background-color: var(--glass-bg);
+  backdrop-filter: blur(var(--glass-blur)) saturate(120%);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(120%);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--app-radius);
+  box-shadow:
+    0 1px 2px oklch(0.2 0.02 var(--brand-h) / 0.04),
+    0 8px 24px -12px var(--glass-shadow);
+  --foreground: var(--glass-ink);
+  --card-foreground: var(--glass-ink);
+  --muted-foreground: var(--glass-ink-muted);
+  color: var(--foreground);
+}
 .app-shell .glass-highlight,
 .app-shell .glass-inset {
   background: var(--app-surface);
