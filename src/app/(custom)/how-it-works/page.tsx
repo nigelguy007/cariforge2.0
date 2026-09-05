@@ -209,7 +209,7 @@ export default function HowItWorksPage() {
           <GlassSectionHeader
             eyebrow="From proof to production"
             title="A 21-day proof and a production handoff are two different promises."
-            lede="The 21-Day Forge is bounded on purpose — a named problem, a working prototype, and an evidence-based decision, inside three weeks. What happens after a case clears the last gate is a separate, connected stage, not an implied extension of the same 21 days."
+            lede="The 21-Day Forge is bounded on purpose — a named problem, a finished, ready-to-use solution, and an evidence-based decision, inside three weeks. What happens after a case clears the last gate is a separate, connected stage, not an implied extension of the same 21 days."
           />
           <div className="grid gap-4 lg:grid-cols-2">
             <GlassCard tone="surface" padding="lg" className="h-full">
@@ -392,7 +392,7 @@ export default function HowItWorksPage() {
                 <li>&middot; A speculative model comparison with no business outcome attached</li>
                 <li>&middot; A request for uncontrolled, fully autonomous decisions</li>
                 <li>&middot; A use case with no lawful or approved access to the data it needs</li>
-                <li>&middot; A full enterprise transformation, presented as a 21-day prototype</li>
+                <li>&middot; A full enterprise transformation, presented as a 21-day solution</li>
               </ul>
             </GlassCard>
           </div>

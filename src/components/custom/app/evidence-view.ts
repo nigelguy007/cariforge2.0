@@ -285,11 +285,11 @@ function mayDoQuestion(detail: MissionDetailT): EvidenceQuestion {
     id: 'production-boundary',
     label: 'Production boundary',
     value:
-      'The output is an approved runnable prototype package for review. Nothing here is deployed to production; that is a separate, later decision by your own team.',
+      'The output is an approved, finished, ready-to-use solution package for review. Nothing here is deployed to production; that is a separate, later decision by your own team.',
   });
   return {
     key: 'may-do',
-    question: 'What may the prototype do?',
+    question: 'What may the solution do?',
     summary: governance
       ? `Controls set at Step 4${withConditions.length > 0 ? ` · ${plural(withConditions.length, 'condition')} attached` : ''}`
       : 'Controls not set yet',
@@ -415,7 +415,7 @@ export function evidenceViewToDocumentSpec(view: EvidenceView): DocumentSpec {
       ...view.questions.map((q) => ({ label: q.question, value: questionValue(q) })),
     ],
     notes:
-      'This is an approved runnable prototype package: a prototype with its Project plan, ' +
+      'This is an approved, finished, ready-to-use solution package: with its Project plan, ' +
       'Operating guide and this evidence receipt — not a production deployment. Verify this ' +
       "record's hash chain in the app before relying on it.",
     footer: `Generated ${new Date().toLocaleString()}.`,

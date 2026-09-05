@@ -75,10 +75,10 @@ export const STAGE_UI: Readonly<Record<StageName, StageUi>> = {
   SoftwareBuild: {
     number: 5,
     short: 'Make',
-    title: 'Approve the prototype',
-    action: 'Approve prototype package',
+    title: 'Approve the solution',
+    action: 'Approve solution package',
     sentence:
-      'Approve the runnable prototype package — a prototype with its plan, operating guide and evidence, not a production deployment.',
+      'Approve the finished, ready-to-use solution package — with its plan, operating guide and evidence, not a production deployment.',
   },
 };
 
@@ -93,7 +93,7 @@ export const AGENT_ACTIVITY_UI: Readonly<Record<StageName, { agent: string; done
   Readiness: { agent: 'Readiness Agent', done: 'Verified available evidence' },
   Workflow: { agent: 'Workflow Agent', done: 'Designed the process' },
   Governance: { agent: 'Controls Agent', done: 'Added required safeguards' },
-  SoftwareBuild: { agent: 'Build Agent', done: 'Created the prototype' },
+  SoftwareBuild: { agent: 'Build Agent', done: 'Created the solution' },
 };
 
 export type StepUi = StageUi & { readonly stage: StageName };
@@ -135,7 +135,7 @@ export const STATUS_UI: Readonly<Record<MissionStatus, string>> = {
   InReadiness: 'Checking readiness',
   InWorkflow: 'Designing the workflow',
   InGovernance: 'Setting controls',
-  InBuild: 'Building the prototype',
+  InBuild: 'Building the solution',
   AwaitingApproval: 'Needs approval',
   Paused: 'Paused',
   Blocked: 'Needs information',
@@ -342,7 +342,7 @@ export const ROLE_UI: Readonly<Record<OracleRole, string>> = {
   ReadinessOracle: 'Readiness reviewer',
   WorkflowOracle: 'Workflow reviewer',
   GovernanceOracle: 'Controls reviewer',
-  BuildOracle: 'Prototype reviewer',
+  BuildOracle: 'Solution reviewer',
   ElderOracle: 'Council Chair',
 };
 
@@ -416,9 +416,17 @@ export function humanise(value: string): string {
 
 // === Output wording ==========================================================
 
+// Reworded (2026-09-05, direct user correction): "prototype" read as
+// unfinished/throwaway to a first-time business user. The deliverable is
+// honestly described as finished and ready to use, WITHOUT claiming a
+// hosted/live production deployment exists — that capability genuinely
+// doesn't exist yet, and putting it into production stays a separate,
+// later decision made by the buyer's own team. One shared phrase, reused
+// everywhere via these constants rather than five ad-hoc rewordings.
+
 /** Step 8 of the brief: what step 5 actually produces. Never "deployable build". */
-export const PROTOTYPE_PACKAGE = 'approved runnable prototype package';
+export const PROTOTYPE_PACKAGE = 'approved, finished, ready-to-use solution package';
 export const PROTOTYPE_PACKAGE_CONTENTS =
-  'a runnable prototype, the Project plan, the Operating guide and an evidence receipt';
+  'a finished, ready-to-use solution, the Project plan, the Operating guide and an evidence receipt';
 export const PROTOTYPE_BOUNDARY =
-  'This is a prototype package for review, not a production deployment. Putting it into production is a separate, later decision made by your own team.';
+  'This is a finished, ready-to-use solution package for review, not a production deployment. Putting it into production is a separate, later decision made by your own team.';

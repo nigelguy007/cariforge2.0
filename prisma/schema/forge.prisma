@@ -171,6 +171,26 @@ model EvidenceItem {
   @@index([missionId])
 }
 
+// Mission-evidence counterpart to LeadAttachment (see leads.prisma) — same
+// reasoning: stored directly in Postgres (bytea) rather than a separate
+// file-storage provider, no new infrastructure needed at pilot scale. Used
+// by the chat-based project intake's document attachment (attached to the
+// mission right after it's created — no mission exists yet during the
+// chat itself) and by any other kind='File' evidence item. One EvidenceItem
+// row (kind='File', ref=this row's id) is created alongside each upload;
+// this table holds only the bytes.
+model EvidenceFile {
+  id         String   @id @default(cuid())
+  missionId  String
+  filename   String                        // original filename, as uploaded — display only, never used as a path
+  mimeType   String
+  sizeBytes  Int
+  data       Bytes                         // the file itself
+  createdAt  DateTime @default(now())
+
+  @@index([missionId])
+}
+
 model ToolAction {
   id                       String        @id @default(cuid())
   missionId                String

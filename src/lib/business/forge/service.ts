@@ -1402,6 +1402,61 @@ export async function attachEvidence(args: {
   return detail;
 }
 
+// Counterpart to attachEvidence above, for a real uploaded file rather than
+// a text/URL reference — same ownership check, same audit event. Stores the
+// bytes in EvidenceFile (Postgres bytea, same pattern as LeadAttachment; see
+// that model's own comment) and records a matching kind='File' EvidenceItem
+// whose `ref` points at the EvidenceFile row's id. Used by the chat-based
+// project intake's document attachment, POSTed here right after the mission
+// itself is created (no mission exists yet during the chat).
+export async function attachEvidenceFile(args: {
+  missionId: string;
+  userId: string;
+  isAdmin: boolean;
+  filename: string;
+  mimeType: string;
+  sizeBytes: number;
+  data: Buffer;
+  label: string;
+  attachedToStageHandoffId?: string;
+}): Promise<MissionDetailT> {
+  const mission = await prisma.mission.findUnique({ where: { id: args.missionId } });
+  if (!mission) throw new Error('FORGE_NOT_FOUND');
+  if (!args.isAdmin && mission.createdById !== args.userId) throw new Error('FORGE_FORBIDDEN');
+
+  const file = await prisma.evidenceFile.create({
+    data: {
+      missionId: args.missionId,
+      filename: args.filename,
+      mimeType: args.mimeType,
+      sizeBytes: args.sizeBytes,
+      data: args.data,
+    },
+  });
+  await prisma.evidenceItem.create({
+    data: {
+      missionId: args.missionId,
+      attachedToStageHandoffId: args.attachedToStageHandoffId ?? null,
+      kind: 'File',
+      ref: file.id,
+      label: args.label,
+      capturedById: args.userId,
+    },
+  });
+  await prisma.missionAudit.create({
+    data: {
+      missionId: args.missionId,
+      event: 'evidence_attached',
+      payload: missionAuditPayload({ kind: 'File', label: args.label }),
+      actorId: args.userId,
+      missionVersionAtEvent: mission.currentStageIndex,
+    },
+  });
+  const detail = await getMissionDetail(args.missionId, args.userId, args.isAdmin);
+  if (!detail) throw new Error('FORGE_NOT_FOUND');
+  return detail;
+}
+
 export async function proposeToolAction(args: {
   missionId: string;
   userId: string;

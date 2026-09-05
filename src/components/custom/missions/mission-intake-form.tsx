@@ -120,7 +120,7 @@ const INTAKE_GROUPS = [
   {
     id: 'definition-of-done',
     title: 'Definition of done',
-    blurb: 'What the final prototype approval is scored against — not a feeling, a test.',
+    blurb: 'What the final solution approval is scored against — not a feeling, a test.',
     fields: [
       {
         name: 'acceptanceCriteria',
@@ -133,7 +133,7 @@ const INTAKE_GROUPS = [
         name: 'nonGoals',
         label: 'Explicit non-goals',
         description:
-          'What this project is deliberately not doing — the scope boundary that keeps the prototype bounded.',
+          'What this project is deliberately not doing — the scope boundary that keeps the solution bounded.',
         example:
           "Not replacing the claims system of record. Not automating the reviewer's final decision. Not covering non-EU jurisdictions in this proof.",
       },

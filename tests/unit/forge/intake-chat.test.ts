@@ -93,6 +93,56 @@ describe('intakeChatTurn — happy path', () => {
     ]);
   });
 
+  // Question cap (2026-09-05): live user testing found the chat kept asking
+  // questions indefinitely. The system prompt now carries the question
+  // count as explicit state, computed from the message history itself (a
+  // plain count of assistant-role entries — the seeded opening message is
+  // itself the first assistant message/question).
+  it('passes the count of assistant messages so far as the question budget in the system prompt', async () => {
+    process.env.ANTHROPIC_API_KEY = 'test-key';
+
+    const parsedOutput = {
+      reply: 'And what does success look like?',
+      readyToSubmit: false,
+      projectName: '',
+      intake: '',
+      need: 'A compliance team manually checks each claim by hand.',
+      intendedOutcome: '',
+      constraints: '',
+      authorityBoundary: '',
+      dataClassification: '',
+      retentionPolicy: '',
+      acceptanceCriteria: '',
+      nonGoals: '',
+      missionOwner: '',
+      missingInformation: [],
+    };
+
+    const parseMock = vi.fn().mockResolvedValue({ parsed_output: parsedOutput });
+    vi.doMock('@anthropic-ai/sdk', () => ({
+      default: vi.fn().mockImplementation(() => ({
+        messages: { parse: parseMock },
+      })),
+    }));
+
+    const { intakeChatTurn } = await import('@/lib/business/forge/intake-chat');
+    // Two assistant messages already in history (the seeded opening
+    // question plus one follow-up) — the question budget passed to the
+    // model must read "asked 2 of a maximum 4".
+    await intakeChatTurn({
+      messages: [
+        { role: 'assistant', content: "Hi, I'm CariForge. What's not working today?" },
+        { role: 'user', content: 'A compliance team manually checks each claim by hand.' },
+        { role: 'assistant', content: 'Got it — who needs to approve this before it ships?' },
+        { role: 'user', content: 'Our compliance lead, Maria.' },
+      ],
+    });
+
+    expect(parseMock).toHaveBeenCalledTimes(1);
+    const call = parseMock.mock.calls[0]?.[0];
+    expect(call.system).toContain('asked 2 of a maximum 4 questions');
+  });
+
   // Real bug found live in production (2026-09-05): `reply` had no
   // `.min(1)` — the model could legally return "". The client pushes
   // whatever `reply` comes back straight into conversation history as an

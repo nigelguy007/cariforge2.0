@@ -41,8 +41,8 @@ export default async function NewMissionPage({
         <p className="app-body mt-1.5 max-w-prose text-[var(--app-text-muted)]">
           Describe the need as you would to a colleague. CariForge drafts, reviews and advances each
           of the five steps on its own, pulling you in only when a step genuinely needs your
-          judgment. The project ends in an approved runnable prototype package — a prototype with
-          its plan, operating guide and evidence — not a production deployment.
+          judgment. The project ends in an approved, finished, ready-to-use solution package — a
+          solution with its plan, operating guide and evidence — not a production deployment.
         </p>
         {reference ? (
           <p className="app-small mt-3 inline-flex items-center gap-2 rounded-[var(--app-radius-sm)] border border-[var(--app-border)] px-3 py-1.5 text-[var(--app-text)]">

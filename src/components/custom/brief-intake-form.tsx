@@ -75,7 +75,7 @@ async function uploadAttachment(leadId: string, file: File): Promise<boolean> {
 // visitor gets a direct link instead of a redundant sign-up pitch — the
 // dashboard's own conversion card (BriefConversionCard) will show the
 // brief there already.
-function BriefDashboardCta() {
+function BriefDashboardCta({ leadId, briefText }: { leadId: string; briefText: string }) {
   const { data: session, isPending } = useSession();
   if (isPending) return null;
   if (session?.user) {
@@ -101,13 +101,20 @@ function BriefDashboardCta() {
           in plain terms instead; what "governed mission" actually names
           is explained later, at the point it's an actual choice
           (BriefConversionCard, once signed in). */}
+      {/* "Capture first, chat after signup" (2026-09-05): a fresh signup
+          from this CTA carries the lead id + brief text forward in the
+          URL, so completing signup lands straight in the same chat intake
+          (/missions/new) pre-seeded with what was just typed, instead of a
+          generic dashboard. "Log in" stays a bare link — an existing
+          account holder already has BriefConversionCard on /missions to
+          convert a brief once signed in. */}
       <p className="text-small text-foreground">
-        Create an account and this brief will be waiting for you — track our reply, then decide
-        whether to build it yourself or send it through a full review.
+        Create an account to continue this in a real project — we&rsquo;ll pick up right where you
+        left off.
       </p>
       <div className="flex flex-wrap gap-2">
         <a
-          href="/signup"
+          href={`/signup?lead=${leadId}&intake=${encodeURIComponent(briefText)}`}
           className="glass-cta inline-flex items-center justify-center rounded-full px-4 py-2 text-small"
         >
           Sign up
@@ -315,7 +322,7 @@ export function BriefIntakeForm() {
             open — an account is how this brief actually gets tracked and
             converted into a governed mission, so the workflow says so here,
             not just after the visitor happens to find /signup on their own. */}
-        <BriefDashboardCta />
+        <BriefDashboardCta leadId={submitted.id} briefText={submitted.brief} />
         <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-small">
           <a href="#council" className="font-medium text-primary underline underline-offset-4">
             See how The Oracles rule on it

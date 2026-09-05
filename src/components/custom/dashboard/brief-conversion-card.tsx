@@ -83,8 +83,8 @@ export function BriefConversionCard({ onLoaded }: BriefConversionCardProps = {})
               </button>
             ) : null}
             <p className="app-small mt-3 max-w-prose text-[var(--app-text-muted)]">
-              Start a project to take this through five approved steps to a runnable prototype
-              package. Nothing is deployed to production from here.
+              Start a project to take this through five approved steps to a finished,
+              ready-to-use solution package. Nothing is deployed to production from here.
             </p>
             <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2">
               <Button asChild className="min-h-11">

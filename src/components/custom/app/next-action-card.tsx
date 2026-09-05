@@ -124,7 +124,7 @@ function planFor(view: ProjectWorkspaceView, isAdmin: boolean, canDraft: boolean
     case 'Complete':
       return {
         heading: 'This project is complete',
-        sentence: `The ${PROTOTYPE_PACKAGE} has been approved. It is a prototype with its Project plan, Operating guide and evidence receipt — not a production deployment.`,
+        sentence: `The ${PROTOTYPE_PACKAGE} has been approved. It is a finished, ready-to-use solution with its Project plan, Operating guide and evidence receipt — not a production deployment.`,
       };
     // User-specified flow (2026-09-05): "If not approved by elder then
     // it's stops apologies and advises user rethink then comeback." A

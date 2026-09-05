@@ -56,8 +56,8 @@ describe('STAGE_UI', () => {
     expect(STAGE_UI.SoftwareBuild).toMatchObject({
       number: 5,
       short: 'Make',
-      title: 'Approve the prototype',
-      action: 'Approve prototype package',
+      title: 'Approve the solution',
+      action: 'Approve solution package',
     });
   });
 
@@ -66,7 +66,7 @@ describe('STAGE_UI', () => {
       expect(step.sentence.length, step.stage).toBeGreaterThan(20);
       expect(step.sentence, step.stage).not.toMatch(/deploy(ed|able)? (to )?production/i);
     }
-    expect(STAGE_UI.SoftwareBuild.sentence).toMatch(/prototype/i);
+    expect(STAGE_UI.SoftwareBuild.sentence).toMatch(/solution/i);
   });
 
   it('maps a zero-based gate index to a one-based step, safely', () => {
@@ -149,7 +149,7 @@ describe('roles', () => {
 describe('humaniseCopy', () => {
   it('rewrites zero-based gates and internal nouns', () => {
     expect(humaniseCopy('Approve Gate 2 for the SoftwareBuild stage')).toBe(
-      'Approve Step 3 for the Approve the prototype stage',
+      'Approve Step 3 for the Approve the solution stage',
     );
     expect(humaniseCopy('Elder Oracle must sign this handoff')).toBe(
       'Council Chair must sign this step output',

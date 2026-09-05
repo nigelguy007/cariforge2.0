@@ -96,7 +96,7 @@ const GROUP_ORDER: readonly { key: DetailSection; title: string }[] = [
   { key: 'tasks', title: 'Tasks' },
   { key: 'decisions', title: 'Decisions by step' },
   { key: 'controls', title: 'Pause, run again or restore' },
-  { key: 'export', title: 'Export and prototype package' },
+  { key: 'export', title: 'Export and solution package' },
 ];
 
 export function SupportingDetail({
@@ -286,12 +286,12 @@ export function SupportingDetail({
     export: (
       <div className="app-panel">
         <p className="app-body font-medium text-[var(--app-text)]">
-          Approved runnable prototype package
+          Approved, finished, ready-to-use solution package
         </p>
         <p className="app-small mt-1 text-[var(--app-text-muted)]">
-          The prototype, its Project plan and its Operating guide. This is a prototype boundary, not
-          a production deployment. The full decision record — why this exists, who approved each
-          step, what changed — is on the Proof page for this project.
+          The finished solution, its Project plan and its Operating guide — not a production
+          deployment. The full decision record — why this exists, who approved each step, what
+          changed — is on the Proof page for this project.
         </p>
         <ul className="mt-3 flex flex-wrap gap-x-4 gap-y-2">
           <li>

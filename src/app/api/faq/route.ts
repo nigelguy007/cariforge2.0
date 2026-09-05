@@ -22,7 +22,7 @@ const FAQ = [
     ordinal: 2,
     question: 'What evidence does the audit trail produce, and where is it stored?',
     answer:
-      "Five artefacts per run: the verbatim brief, the council debate transcript, the chairman's typed ruling, the human gate decision with reason, and the prototype receipt. They are persisted server-side as append-only JSON with a SHA-256 hash chain between successive artefacts, so a compliance officer can replay the case end-to-end and any tampering breaks the chain. The full bundle is exportable on request as a single signed JSON; a 90-day retention minimum is the current default.",
+      "Five artefacts per run: the verbatim brief, the council debate transcript, the chairman's typed ruling, the human gate decision with reason, and the finished-solution receipt. They are persisted server-side as append-only JSON with a SHA-256 hash chain between successive artefacts, so a compliance officer can replay the case end-to-end and any tampering breaks the chain. The full bundle is exportable on request as a single signed JSON; a 90-day retention minimum is the current default.",
   },
   {
     id: 'hallucination-council',

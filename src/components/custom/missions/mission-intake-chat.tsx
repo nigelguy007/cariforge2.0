@@ -4,9 +4,21 @@
 // a big form, then submits the exact same MissionCreate payload the form
 // always sent. MissionIntakeForm itself is untouched and still exists as a
 // manual fallback.
+//
+// Document attachment: no mission exists yet during the conversation (unlike
+// a Lead, which exists from the first POST), so the file is held client-side
+// through the whole chat and uploaded only once onStartProject actually
+// creates the mission — POSTed to that mission's own evidence endpoint
+// (/api/forge/missions/[id]/evidence, extended to accept a real file the
+// same way POST /api/leads/[id]/attachment does; see that route). Same MIME
+// allowlist/size cap and the same plain `fetch`-with-`FormData` pattern
+// brief-intake-form.tsx uses for its own attachment (not apiFetch, which
+// hardcodes `content-type: application/json` — wrong for multipart). A
+// failed attachment upload never blocks or undoes starting the project.
 
 'use client';
 
+import { Paperclip, X } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import * as React from 'react';
 import { toast } from 'sonner';
@@ -20,6 +32,23 @@ import {
   IntakeChatResponse,
   type IntakeChatResponseT,
 } from '@/lib/contracts/intake-chat';
+import { ALLOWED_ATTACHMENT_MIME_TYPES, MAX_ATTACHMENT_BYTES } from '@/lib/contracts/leads';
+
+const MAX_ATTACHMENT_MB = Math.floor(MAX_ATTACHMENT_BYTES / (1024 * 1024));
+
+async function uploadEvidenceFile(missionId: string, file: File): Promise<boolean> {
+  const body = new FormData();
+  body.append('file', file);
+  try {
+    const res = await fetch(`/api/forge/missions/${missionId}/evidence`, {
+      method: 'POST',
+      body,
+    });
+    return res.ok;
+  } catch {
+    return false;
+  }
+}
 
 const OPENING_MESSAGE =
   "Hi, I'm CariForge. Tell me about the business problem you're trying to solve — " +
@@ -56,8 +85,31 @@ export function MissionIntakeChat({
   const [sending, setSending] = React.useState(false);
   const [extraction, setExtraction] = React.useState<IntakeChatResponseT | null>(null);
   const [starting, setStarting] = React.useState(false);
+  const [file, setFile] = React.useState<File | null>(null);
+  const [fileError, setFileError] = React.useState<string | null>(null);
   const listRef = React.useRef<HTMLDivElement>(null);
   const seededRef = React.useRef(false);
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
+
+  function handleFileChange(event: React.ChangeEvent<HTMLInputElement>) {
+    const picked = event.target.files?.[0];
+    event.target.value = ''; // allow re-picking the same file after removing it
+    if (!picked) return;
+    if (picked.size > MAX_ATTACHMENT_BYTES) {
+      setFileError(`That file is too large — cap is ${MAX_ATTACHMENT_MB} MB.`);
+      return;
+    }
+    if (
+      !ALLOWED_ATTACHMENT_MIME_TYPES.includes(
+        picked.type as (typeof ALLOWED_ATTACHMENT_MIME_TYPES)[number],
+      )
+    ) {
+      setFileError('PDF, Word, text, CSV, PNG, or JPEG only.');
+      return;
+    }
+    setFileError(null);
+    setFile(picked);
+  }
 
   const sendTurn = React.useCallback(async (nextMessages: IntakeChatMessageT[]) => {
     setSending(true);
@@ -139,6 +191,14 @@ export function MissionIntakeChat({
         body: JSON.stringify(parsed),
         schema: MissionDetail,
       });
+      if (file) {
+        const ok = await uploadEvidenceFile(detail.mission.id, file);
+        if (!ok) {
+          toast.error(
+            'Your project was started, but the attachment failed to upload. You can attach it from the project page instead.',
+          );
+        }
+      }
       toast.success('Project started');
       router.push(`/missions/${detail.mission.slug}`);
     } catch (err) {
@@ -191,6 +251,50 @@ export function MissionIntakeChat({
             Send
           </Button>
         </div>
+      </div>
+
+      <div className="app-panel space-y-1.5 p-4 sm:p-5">
+        <span className="app-small font-medium text-[var(--app-text)]">
+          Attach a document{' '}
+          <span className="font-normal text-[var(--app-text-muted)]">(optional)</span>
+        </span>
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept={ALLOWED_ATTACHMENT_MIME_TYPES.join(',')}
+          className="sr-only"
+          onChange={handleFileChange}
+          aria-label="Attach a document"
+        />
+        {file ? (
+          <div className="flex items-center justify-between gap-2 rounded-[var(--app-radius-sm)] border border-[var(--app-border)] bg-[var(--app-surface-muted)] px-3.5 py-2.5">
+            <span className="app-small flex items-center gap-2 truncate text-[var(--app-text)]">
+              <Paperclip className="size-4 shrink-0" aria-hidden="true" />
+              <span className="truncate">{file.name}</span>
+              <span className="app-caption shrink-0 text-[var(--app-text-muted)]">
+                ({Math.ceil(file.size / 1024)} KB)
+              </span>
+            </span>
+            <button
+              type="button"
+              onClick={() => setFile(null)}
+              className="shrink-0 text-[var(--app-text-muted)] hover:text-[var(--app-text)]"
+              aria-label="Remove attachment"
+            >
+              <X className="size-4" aria-hidden="true" />
+            </button>
+          </div>
+        ) : (
+          <button
+            type="button"
+            onClick={() => fileInputRef.current?.click()}
+            className="app-small flex items-center justify-center gap-2 rounded-[var(--app-radius-sm)] border border-dashed border-[var(--app-border)] bg-[var(--app-surface-muted)] px-3.5 py-2.5 text-[var(--app-text-muted)] transition-colors hover:border-[var(--app-accent-border)] hover:text-[var(--app-text)]"
+          >
+            <Paperclip className="size-4" aria-hidden="true" />
+            Choose a file — PDF, Word, text, CSV, PNG, or JPEG, up to {MAX_ATTACHMENT_MB} MB
+          </button>
+        )}
+        {fileError ? <p className="app-caption text-destructive">{fileError}</p> : null}
       </div>
 
       {extraction?.readyToSubmit ? (

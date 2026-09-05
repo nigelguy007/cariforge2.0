@@ -6,7 +6,7 @@ import { EvidenceIndex } from '@/components/custom/app/evidence-index';
 export const metadata: Metadata = {
   title: 'Proof',
   description:
-    'The proof record for each project — why it exists, who approved each decision, what information was used, what the prototype may do, and what changed.',
+    'The proof record for each project — why it exists, who approved each decision, what information was used, what the solution may do, and what changed.',
 };
 
 export default function EvidenceIndexPage() {

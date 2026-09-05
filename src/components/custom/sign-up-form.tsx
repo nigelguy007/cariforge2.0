@@ -36,6 +36,25 @@ export function SignUpForm() {
     // account landed back on the splash page instead of the page that
     // actually shows the brief they just submitted (BriefConversionCard,
     // on /dashboard, matched by the email they gave either way).
+    //
+    // "Capture first, chat after signup" (2026-09-05): when this signup was
+    // reached from the public brief form's CTA, ?lead= and ?intake= carry
+    // the just-submitted brief forward — land straight in the same chat
+    // intake (/missions/new) pre-seeded with it, instead of the generic
+    // dashboard. Read via window.location.search rather than
+    // useSearchParams: this page renders SignUpForm with no Suspense
+    // boundary, and useSearchParams would force it into a client-side
+    // bailout (see canvas-builder.tsx for the same tradeoff). A normal,
+    // non-brief-originated signup (no params) keeps the existing redirect.
+    const params = new URLSearchParams(window.location.search);
+    const lead = params.get('lead');
+    const intake = params.get('intake');
+    if (lead && intake) {
+      window.location.assign(
+        `/missions/new?intake=${encodeURIComponent(intake)}&lead=${encodeURIComponent(lead)}`,
+      );
+      return;
+    }
     window.location.assign('/dashboard');
   }
 
