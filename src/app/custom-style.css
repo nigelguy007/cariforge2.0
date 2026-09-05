@@ -1240,13 +1240,28 @@
    reference's vivid sunrise. Fifth pass sits deliberately BETWEEN those
    two data points (peak ~0.56, not back to 0.68) — the shape is already
    right, so this alpha increase doesn't reintroduce the "one dominant
-   flat colour" failure the third pass had. The warm sun-corner layer
-   gets the biggest bump (0.26 -> 0.44): it was the most washed-out part
-   of the ramp and the part that reads most clearly as "sunrise" rather
-   than "sea," matching cosmoq-home.css's own .cq-sun treatment. */
+   flat colour" failure the third pass had.
+
+   The warm sun-corner layer needed a second pass on top of that: a flat
+   0.44-to-transparent patch measured against a LIVE screenshot after the
+   first bump and was still unreadable — the 60px blur on this whole
+   pseudo-element spreads a small single-stop patch into the much larger,
+   more saturated teal ramp behind it before either one ever reaches the
+   screen, so alpha alone couldn't win that fight. Restructured as a
+   multi-stop glow with its own bright, near-white-warm CORE (mirroring
+   cosmoq-home.css's .cq-sun, which has exactly this problem solved
+   already: a hot centre that survives blur, cooling outward) rather than
+   a single translucent tint — that's what actually reads as "a warm
+   light source," not just "a warm-tinted patch of teal." */
 .app-shell.dark .app-halo::before {
   background:
-    radial-gradient(ellipse 42% 58% at 36% 38%, oklch(0.88 0.16 72 / 0.44) 0%, transparent 62%),
+    radial-gradient(
+      ellipse 42% 58% at 36% 38%,
+      oklch(0.95 0.13 82 / 0.62) 0%,
+      oklch(0.88 0.16 72 / 0.5) 26%,
+      oklch(0.82 0.17 60 / 0.3) 48%,
+      transparent 72%
+    ),
     radial-gradient(
       ellipse 55% 65% at 50% 45%,
       oklch(0.95 0.07 185 / 0.52) 0%,
