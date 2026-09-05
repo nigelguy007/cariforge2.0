@@ -30,8 +30,22 @@ export function nextActionFor(input: NextActionInput): NextActionViewT {
   if (input.status === 'Completed') {
     return { kind: 'Complete', title: 'Mission complete — nothing left to do.' };
   }
-  if (input.status === 'WalkedAway' || input.status === 'Rejected') {
-    return { kind: 'Complete', title: 'Mission is closed without release.' };
+  if (input.status === 'Rejected') {
+    // User-specified flow (2026-09-05): a refused gate — including an
+    // Elder's "no" on gate 0/4 — ends the project with an apology and
+    // advice to rethink, not a generic "complete" message.
+    return {
+      kind: 'Closed',
+      status: 'Rejected',
+      title: 'This project was not approved and has been closed.',
+    };
+  }
+  if (input.status === 'WalkedAway') {
+    return {
+      kind: 'Closed',
+      status: 'WalkedAway',
+      title: 'This project was stopped before completion.',
+    };
   }
   if (input.status === 'Paused') {
     return { kind: 'Resume', title: 'Mission is paused — resume to continue work.' };

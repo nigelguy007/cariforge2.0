@@ -110,6 +110,25 @@ function planFor(view: ProjectWorkspaceView, isAdmin: boolean, canDraft: boolean
         heading: 'This project is complete',
         sentence: `The ${PROTOTYPE_PACKAGE} has been approved. It is a prototype with its Project plan, Operating guide and evidence receipt — not a production deployment.`,
       };
+    // User-specified flow (2026-09-05): "If not approved by elder then
+    // it's stops apologies and advises user rethink then comeback." A
+    // refused gate (including an Elder's "no" on gate 0/4) is a real
+    // ending, distinct from an actual completion — it gets its own
+    // apologetic, forward-looking message instead of reusing "This
+    // project is complete... has been approved", which was actively
+    // wrong for a project that was turned down.
+    case 'Closed':
+      return action.status === 'Rejected'
+        ? {
+            heading: "We're sorry — this one didn't get approved",
+            sentence:
+              'The reviewers did not approve this project as submitted. Take another look at the concerns raised, rework the idea, and start a new project whenever you want to try again.',
+          }
+        : {
+            heading: 'This project was stopped',
+            sentence:
+              'It was closed before completion. Start a new project whenever you want to pick the idea back up.',
+          };
     default:
       return {
         heading: 'Nothing needs you right now',

@@ -45,7 +45,9 @@ export class ForgeError extends Error {
 //   InGovernance → AwaitingApproval (SoftwareBuild handoff v1 submitted)
 //   InBuild → Completed (gate 4 Approved)
 //   AwaitingApproval → Returned-to-stage status (gate Return with reason)
-//   AwaitingApproval → Blocked (gate Refuse)
+//   AwaitingApproval → Rejected (gate Refuse — "Stop this project" is a
+//     permanent stop per its own UI copy, so it lands on the real
+//     terminal status, not a resumable one)
 //   Any active → Paused
 //   Paused → previous active status (Resume)
 //   Active target → Rejected / WalkedAway / RolledBack (final rejections)
@@ -66,7 +68,7 @@ export const transitions: Record<MissionStatus, MissionStatus[]> = {
     'InBuild',
     'Completed',
     'Paused',
-    'Blocked',
+    'Rejected',
     'WalkedAway',
     'RolledBack',
   ],

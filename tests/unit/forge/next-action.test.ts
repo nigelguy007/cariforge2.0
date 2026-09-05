@@ -78,19 +78,39 @@ function workItem(status: WorkItemReadT['status'] = 'Open'): WorkItemReadT {
 }
 
 describe('nextActionFor — terminal statuses', () => {
-  it.each(['Completed', 'WalkedAway', 'Rejected'] as MissionStatus[])(
-    'returns Complete for %s',
+  it('returns Complete for Completed', () => {
+    expect(
+      nextActionFor({
+        status: 'Completed',
+        gates: [],
+        approvals: [],
+        objections: [],
+        toolActions: [],
+        workItems: [],
+      }).kind,
+    ).toBe('Complete');
+    expect(isMissionTerminal('Completed')).toBe(true);
+  });
+  // Real bug found live (2026-09-05): Rejected and WalkedAway used to
+  // collapse into the same 'Complete' kind as an actual success, so a
+  // refused project's own next-action page said "This project is
+  // complete... has been approved" — actively wrong. Each now gets its
+  // own distinct 'Closed' status so the client can render the apology +
+  // "rethink and come back" message the user's flow calls for, instead
+  // of reusing completion copy.
+  it.each(['WalkedAway', 'Rejected'] as MissionStatus[])(
+    'returns Closed with the matching status for %s',
     (status) => {
-      expect(
-        nextActionFor({
-          status,
-          gates: [],
-          approvals: [],
-          objections: [],
-          toolActions: [],
-          workItems: [],
-        }).kind,
-      ).toBe('Complete');
+      const view = nextActionFor({
+        status,
+        gates: [],
+        approvals: [],
+        objections: [],
+        toolActions: [],
+        workItems: [],
+      });
+      expect(view.kind).toBe('Closed');
+      expect(view.kind === 'Closed' && view.status).toBe(status);
       expect(isMissionTerminal(status)).toBe(true);
     },
   );

@@ -732,6 +732,17 @@ export const NextActionView = z.discriminatedUnion('kind', [
   z.object({ kind: z.literal('ArrangeWorkItem'), itemId: z.string(), title: z.string() }),
   z.object({ kind: z.literal('Released'), title: z.string() }),
   z.object({ kind: z.literal('Complete'), title: z.string() }),
+  // Distinct from 'Complete': the mission ended WITHOUT a release —
+  // either refused at a gate (Rejected) or closed by an admin
+  // (WalkedAway). Carries which one so the client can tell "you were
+  // turned down, here's what to do next" apart from "walked away" apart
+  // from an actual completion, instead of all three sharing one
+  // "project is complete... has been approved" sentence.
+  z.object({
+    kind: z.literal('Closed'),
+    status: z.enum(['Rejected', 'WalkedAway']),
+    title: z.string(),
+  }),
   z.object({ kind: z.literal('Idle'), title: z.string() }),
 ]);
 export type NextActionViewT = z.infer<typeof NextActionView>;

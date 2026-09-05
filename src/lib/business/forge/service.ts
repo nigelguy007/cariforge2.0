@@ -992,7 +992,15 @@ export async function decideGate(args: {
       const prior = priorStatusForGate(args.gateIndex);
       newStatus = prior;
     } else {
-      newStatus = 'Blocked';
+      // Refuse ("Stop this project") is documented on screen as "Do not
+      // proceed. Recorded permanently." — a real bug found live
+      // 2026-09-05: this used to land on 'Blocked', a non-terminal status
+      // next-action.ts narrates as "should pause", contradicting its own
+      // permanence promise (and, at the Elder gates, silently dropping
+      // the user's explicit requirement that an Elder's "no" ends the
+      // project with an apology and advice to rethink, not a request to
+      // pause it). 'Rejected' is the real terminal status for this.
+      newStatus = 'Rejected';
     }
 
     await writeAudit(
