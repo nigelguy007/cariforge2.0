@@ -903,8 +903,31 @@ export async function decideGate(args: {
     where: { handoffId: args.stageHandoffId },
     select: { userId: true },
   });
+  // Real bug found live (2026-09-05): nobody was ever auto-appointed
+  // Elder Oracle, and appointing one required a separate admin-only "paste
+  // a raw user id" form — so EVERY mission hit "Gate 0 requires a named
+  // Elder Oracle" the first time anyone (including auto-advance, on the
+  // owner's own behalf) tried to decide gate 0, with no discoverable way
+  // through. That's not a governance choice worth keeping as a dead end —
+  // it silently meant gate 0 and gate 4 (the Elder gates) could NEVER
+  // auto-advance, no matter how confident and clean the draft was. Rather
+  // than remove the check (it's real: a named human is on record for the
+  // Elder gates), auto-appoint the mission's own owner the first time
+  // it's needed — same audit trail (elder_oracle_assigned), just no
+  // longer a manual step nobody would ever find. An admin can still name
+  // someone else afterward via the existing Oracle Council card; this
+  // only fills the gap when nobody has.
+  let elderOracleUserId = elderAssignment?.userId ?? null;
+  if (isElderGate(args.gateIndex) && !elderOracleUserId) {
+    await assignElderOracle({
+      missionId: args.missionId,
+      appointedById: mission.createdById,
+      userId: mission.createdById,
+    });
+    elderOracleUserId = mission.createdById;
+  }
   assertElderOracleAttested(
-    { elderOracleUserId: elderAssignment?.userId ?? null, missionId: args.missionId },
+    { elderOracleUserId, missionId: args.missionId },
     args.userId,
     args.gateIndex,
   );
