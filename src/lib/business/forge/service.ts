@@ -536,6 +536,41 @@ async function writeAudit(
   });
 }
 
+// Real user report (2026-09-05, live screenshots): "it says there are 3
+// outstanding concerns unresolved .. yet the system says they are
+// resolved". Root cause: neither submitHandoff nor correctHandoff ever
+// touched the Objection table when superseding a handoff — an objection
+// raised against a draft stays `resolution: null` FOREVER once that
+// draft is redrafted away, even though the thing it was raised against no
+// longer exists. nextActionFor's outstandingObjection check (and every
+// "N concerns open" count) scans ALL objections mission-wide with no
+// regard for which handoff they're attached to, so these orphaned
+// objections could — and, on a mission redrafted this many times, did —
+// permanently block the mission behind concerns about content that had
+// already been replaced, while the Concerns list separately showed a
+// long, confusing history of OTHER same-role objections (from other
+// versions) already marked resolved. 'CarriedForward' already exists in
+// OBJECTION_RESOLUTION_VALUES with real display copy (ui-terms.ts:
+// "Carried forward, with the concern on record") and is already read by
+// use-project-workspace.ts/evidence-view.ts — it was simply never
+// written anywhere. This is that write path: called at the exact moment
+// a handoff is superseded, inside the same transaction, so it can never
+// race with a fresh objection landing on the NEW handoff a moment later.
+async function carryForwardStaleObjections(
+  tx: Prisma.TransactionClient,
+  missionId: string,
+  supersededHandoffId: string,
+) {
+  await tx.objection.updateMany({
+    where: { missionId, stageHandoffId: supersededHandoffId, resolution: null },
+    data: {
+      resolution: 'CarriedForward',
+      resolutionText:
+        'Automatically carried forward: this step was redrafted before the concern was directly answered. The new draft will be reviewed fresh, and this will be raised again if it still applies.',
+    },
+  });
+}
+
 export async function createMission(args: {
   userId: string;
   intake: string;
@@ -735,6 +770,7 @@ export async function submitHandoff(args: {
         where: { id: latestForStage.id },
         data: { supersededById: created.id },
       });
+      await carryForwardStaleObjections(tx, args.missionId, latestForStage.id);
     }
 
     await writeAudit(
@@ -802,6 +838,7 @@ export async function correctHandoff(args: {
       where: { id: prior.id },
       data: { supersededById: newRow.id },
     });
+    await carryForwardStaleObjections(tx, args.missionId, prior.id);
 
     // Invalidate downstream stages
     const invalidatedStages = markDownstreamInvalidated(gateIndexFor(prior.stage));

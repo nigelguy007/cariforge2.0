@@ -74,6 +74,31 @@ function plural(n: number, noun: string): string {
   return `${n} ${noun}${n === 1 ? '' : 's'}`;
 }
 
+// Real user report (2026-09-05, live screenshots): "it says there are 3
+// outstanding concerns unresolved .. yet the system says they are
+// resolved" — the Concerns list rendered every objection ever raised on
+// this mission, across every past draft version of every step, as one
+// flat chronological pile with no separation between "still needs your
+// answer" and "from a draft that's since been redrafted away." On a
+// mission redrafted several times that reads as a wall of contradictory-
+// looking statuses even when every individual one is accurate. Split by
+// whether the objection's own handoff is still the live one for its
+// stage (not superseded) — the historical group is exactly what
+// service.ts's carryForwardStaleObjections now auto-resolves going
+// forward, so it should mostly show settled, "carried forward" concerns,
+// not open ones.
+export function partitionObjections(detail: MissionDetailT) {
+  const supersededHandoffIds = new Set(
+    detail.handoffs.filter((h) => h.supersededById !== null).map((h) => h.id),
+  );
+  const current: typeof detail.objections = [];
+  const historical: typeof detail.objections = [];
+  for (const o of detail.objections) {
+    (supersededHandoffIds.has(o.stageHandoffId) ? historical : current).push(o);
+  }
+  return { current, historical };
+}
+
 function summaryLine(view: ProjectWorkspaceView): string {
   const { councilSummary: c, evidenceSummary: e, decisionSummary: d } = view;
   const parts: string[] = [];
@@ -193,14 +218,44 @@ export function SupportingDetail({
         {detail.objections.length === 0 ? (
           <p className="app-small text-[var(--app-text-muted)]">No concerns have been raised.</p>
         ) : (
-          detail.objections.map((objection) => (
-            <MissionObjectionCard
-              key={objection.id}
-              missionId={mission.id}
-              objection={objection}
-              onWritten={onWritten}
-            />
-          ))
+          (() => {
+            const { current, historical } = partitionObjections(detail);
+            return (
+              <>
+                {current.length === 0 ? (
+                  <p className="app-small text-[var(--app-text-muted)]">
+                    No concerns on the current step output.
+                  </p>
+                ) : (
+                  current.map((objection) => (
+                    <MissionObjectionCard
+                      key={objection.id}
+                      missionId={mission.id}
+                      objection={objection}
+                      onWritten={onWritten}
+                    />
+                  ))
+                )}
+                {historical.length > 0 ? (
+                  <details className="app-disclosure">
+                    <summary className="app-small text-[var(--app-text-muted)]">
+                      From earlier drafts ({historical.length}) — no longer the live step output
+                    </summary>
+                    <div className="mt-3 space-y-3">
+                      {historical.map((objection) => (
+                        <MissionObjectionCard
+                          key={objection.id}
+                          missionId={mission.id}
+                          objection={objection}
+                          onWritten={onWritten}
+                        />
+                      ))}
+                    </div>
+                  </details>
+                ) : null}
+              </>
+            );
+          })()
         )}
         <MissionObjectionCreateForm detail={detail} onWritten={onWritten} />
       </>
