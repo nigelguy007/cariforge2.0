@@ -39,9 +39,10 @@ export default async function NewMissionPage({
         </nav>
         <h1 className="app-h1 mt-2 text-[var(--app-text)]">Start a project</h1>
         <p className="app-body mt-1.5 max-w-prose text-[var(--app-text-muted)]">
-          Describe the need as you would to a colleague. CariForge prepares each of the five steps
-          and you approve every one. The project ends in an approved runnable prototype package — a
-          prototype with its plan, operating guide and evidence — not a production deployment.
+          Describe the need as you would to a colleague. CariForge drafts, reviews and advances each
+          of the five steps on its own, pulling you in only when a step genuinely needs your
+          judgment. The project ends in an approved runnable prototype package — a prototype with
+          its plan, operating guide and evidence — not a production deployment.
         </p>
         {reference ? (
           <p className="app-small mt-3 inline-flex items-center gap-2 rounded-[var(--app-radius-sm)] border border-[var(--app-border)] px-3 py-1.5 text-[var(--app-text)]">
