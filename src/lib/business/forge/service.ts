@@ -36,7 +36,13 @@ import {
   isElderGate,
 } from './oracle-council';
 import { assertAttribution, assertNonApproveAttribution, assertReasonAllowed } from './policy';
-import { gateIndexFor, nextStageFor, recomputeConfidence } from './state-machine';
+import {
+  FORGE_ERROR_CODES,
+  ForgeError,
+  gateIndexFor,
+  nextStageFor,
+  recomputeConfidence,
+} from './state-machine';
 import { assertExternalApproved, assertRollbackLink, assertScopeDenied } from './tool-actions';
 import { isValidWorkItemTransition, progressSummary, type WorkItemRecord } from './work-items';
 
@@ -636,6 +642,31 @@ export async function submitHandoff(args: {
   if (!args.isAdmin && mission.createdById !== args.userId) throw new Error('FORGE_FORBIDDEN');
 
   const newVersion = await prisma.$transaction(async (tx) => {
+    // Defense in depth, added 2026-09-05 alongside the live governance-
+    // bypass fix in the /draft route and use-project-workspace.ts's
+    // currentGate: those fixed the UI/route path that was choosing which
+    // stage to draft, but this — the actual write path every one of them
+    // ultimately calls — had no floor of its own. Any other caller
+    // (a future bug, a direct API call, the admin manual-handoff form)
+    // could still submit a stage's FIRST handoff before its predecessor
+    // gate was ever approved. A stage's own gate (gateIndexFor(stage))
+    // is only legitimately startable once the PRIOR gate has a real
+    // Approve-family decision on record — gate 0 (Discovery) has no
+    // predecessor, so it's always allowed.
+    const gateIdx = gateIndexFor(args.stage);
+    if (gateIdx > 0) {
+      const priorApproval = await tx.approval.findFirst({
+        where: { missionId: args.missionId, gateIndex: gateIdx - 1 },
+        orderBy: { at: 'desc' },
+      });
+      if (!priorApproval || !isApproveDecision(priorApproval.decision)) {
+        throw new ForgeError(
+          FORGE_ERROR_CODES.STAGE_MISMATCH,
+          `Gate ${gateIdx - 1} must be approved before a ${args.stage} step output can be submitted.`,
+        );
+      }
+    }
+
     const latestForStage = await tx.stageHandoff.findFirst({
       where: { missionId: args.missionId, stage: args.stage },
       orderBy: { version: 'desc' },
@@ -684,7 +715,6 @@ export async function submitHandoff(args: {
       });
     }
 
-    const gateIdx = gateIndexFor(args.stage);
     const created = await tx.stageHandoff.create({
       data: {
         missionId: args.missionId,
