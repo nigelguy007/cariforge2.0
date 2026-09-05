@@ -56,7 +56,13 @@ export async function POST(req: Request, ctx: { params: Promise<{ id: string }> 
       })),
       workItems: detail.workItems ?? [],
     });
-    if (view.kind !== 'ApproveGate') {
+    // 'ReviseStage' (added 2026-09-05, user's own flow: "ask for more
+    // info - simple step I add more and then resubmit") is a Returned
+    // gate that genuinely needs a NEW draft — unlike 'ApproveGate', it is
+    // EXPECTED to already have a handoff (the one that was returned), so
+    // the "already has a draft" refusal below only applies to the fresh-
+    // draft case.
+    if (view.kind !== 'ApproveGate' && view.kind !== 'ReviseStage') {
       return NextResponse.json(
         {
           error:
@@ -66,7 +72,7 @@ export async function POST(req: Request, ctx: { params: Promise<{ id: string }> 
       );
     }
     const gate = detail.gates.find((g) => g.gateIndex === view.gateIndex);
-    if (gate?.currentStageHandoffId) {
+    if (view.kind === 'ApproveGate' && gate?.currentStageHandoffId) {
       return NextResponse.json(
         { error: 'This step already has a draft awaiting a decision.' },
         { status: 409 },
@@ -80,11 +86,29 @@ export async function POST(req: Request, ctx: { params: Promise<{ id: string }> 
       .map((h) => summarisePriorHandoff(h.payload as Record<string, unknown>))
       .filter((s): s is string => s !== null);
 
+    // Only a real redraft carries feedback — the most recent Return
+    // decision's own reviewer note for this exact gate. ai-draft.ts
+    // already had a `feedback` param built for precisely this ("prior
+    // attempt... unresolved reviewer concerns"); nothing ever populated
+    // it until now.
+    const feedback =
+      view.kind === 'ReviseStage'
+        ? detail.approvals
+            .filter(
+              (a) =>
+                a.gateIndex === view.gateIndex && a.decision === 'Return' && a.reasonText.trim(),
+            )
+            .sort((a, b) => b.at.localeCompare(a.at))
+            .slice(0, 1)
+            .map((a) => a.reasonText.trim())
+        : [];
+
     const result = await draftStepOutput({
       stage,
       intake: detail.mission.intake,
       normalizedNeed: detail.mission.normalizedNeed,
       priorContext,
+      feedback,
     });
 
     if (result.status === 'unavailable') {

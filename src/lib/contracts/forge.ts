@@ -711,6 +711,19 @@ export const NextActionView = z.discriminatedUnion('kind', [
     title: z.string(),
     rationale: z.string(),
   }),
+  // The user's own flow (2026-09-05): "If they don't approve then ask
+  // for more info - simple step I add more and then resubmit." A gate
+  // in 'Returned' state used to fall all the way through to 'Idle'
+  // ("Mission is idle — submit a handoff to drive it forward"), with no
+  // button and no visible feedback — the reviewer's own comments were
+  // recorded but never shown as the next action. This carries them.
+  z.object({
+    kind: z.literal('ReviseStage'),
+    gateIndex: z.number().int(),
+    stage: z.enum(StageNameValues),
+    title: z.string(),
+    rationale: z.string(),
+  }),
   z.object({
     kind: z.literal('ResolveObjection'),
     id: z.string(),

@@ -1071,6 +1071,14 @@ export async function decideGate(args: {
 
 const TERMINAL_STATUSES = new Set<MissionStatus>(['Rejected', 'Completed', 'WalkedAway']);
 function priorStatusForGate(gateIndex: number): MissionStatus {
+  // Real bug found live (2026-09-05) implementing the user's "ask for
+  // more info, simple resubmit" flow: this returned order[gateIndex - 1]
+  // — the PRECEDING stage's status — so "Ask for changes" on gate 1
+  // (Readiness) sent the mission back to InDiscovery instead of
+  // InReadiness, where the SAME step actually needs to be reworked and
+  // resubmitted. order[gateIndex] is gate N's own In<stage> status; gate
+  // 0 correctly maps to InDiscovery via the same lookup, so no separate
+  // gateIndex<=0 case is needed.
   const order: MissionStatus[] = [
     'InDiscovery',
     'InReadiness',
@@ -1078,8 +1086,7 @@ function priorStatusForGate(gateIndex: number): MissionStatus {
     'InGovernance',
     'InBuild',
   ];
-  if (gateIndex <= 0) return 'Draft';
-  return order[gateIndex - 1] ?? 'Draft';
+  return order[gateIndex] ?? 'Draft';
 }
 
 export async function pauseMission(args: {

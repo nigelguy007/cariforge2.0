@@ -63,6 +63,22 @@ function planFor(view: ProjectWorkspaceView, isAdmin: boolean, canDraft: boolean
         button: { label: step.action, opensDialog: true },
       };
     }
+    // User's own flow (2026-09-05): "If they don't approve then ask for
+    // more info - simple step I add more and then resubmit." CariForge
+    // redrafts the step itself, addressing the reviewer's own feedback
+    // (shown below) — reusing the same "Draft with AI" mechanism and its
+    // auto-chaining, just aimed at a returned step instead of a fresh
+    // one, so there is nothing new for the user to learn.
+    case 'ReviseStage': {
+      const step = STAGE_UI[action.stage];
+      return {
+        heading: `${step.title} — more information needed`,
+        sentence: canDraft
+          ? humaniseCopy(action.rationale)
+          : 'Reviewers asked for more information on this step before it can move forward. This is arranged by the project owner.',
+        button: canDraft ? { label: 'Redraft with AI', draftWithAi: true } : undefined,
+      };
+    }
     case 'ResolveObjection':
       return {
         heading: 'A concern needs your answer',

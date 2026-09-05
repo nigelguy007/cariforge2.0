@@ -249,13 +249,32 @@ describe('nextActionFor — gate decision path', () => {
     });
     expect(r.kind).toBe('Idle');
   });
+  // Real dead end found live (2026-09-05, user's own flow: "ask for more
+  // info - simple step I add more and then resubmit"): a Returned gate
+  // used to fall through to Idle — "Nothing needs you right now", no
+  // button — even though the reviewer's own feedback was sitting right
+  // there on the Return approval. This is the fix: surface it as its
+  // own actionable step instead, carrying that same reviewer feedback.
+  it('returns ReviseStage with the reviewer feedback when the gate for this stage was Returned', () => {
+    const r = nextActionFor({
+      status: 'InDiscovery',
+      gates: [gate('Returned', 0)],
+      approvals: [approval({ decision: 'Return', reasonText: 'Add a rollout timeline.' })],
+      objections: [],
+      toolActions: [],
+      workItems: [],
+    });
+    expect(r.kind).toBe('ReviseStage');
+    expect(r.kind === 'ReviseStage' && r.rationale).toBe('Add a rollout timeline.');
+    expect(r.kind === 'ReviseStage' && r.gateIndex).toBe(0);
+  });
 });
 
 describe('nextActionBlockers', () => {
-  it('lists outstanding objections + tool decisions + paused gates', () => {
+  it('lists outstanding objections + tool decisions + refused gates', () => {
     const blockers = nextActionBlockers({
       status: 'InDiscovery',
-      gates: [gate('Returned', 0)],
+      gates: [gate('Refused', 0)],
       approvals: [],
       objections: [objection(null)],
       toolActions: [{ id: 'ta-1', decision: null, tool: 'noop', scope: 'Internal' }],
@@ -263,7 +282,23 @@ describe('nextActionBlockers', () => {
     });
     expect(blockers.length).toBeGreaterThanOrEqual(2);
     expect(blockers.some((b) => /unresolved/i.test(b))).toBe(true);
-    expect(blockers.some((b) => /Returned or Refused/i.test(b))).toBe(true);
+    expect(blockers.some((b) => /refused/i.test(b))).toBe(true);
+  });
+  // Real dead end found live (2026-09-05): a 'Returned' gate used to be
+  // listed here as a generic "blocker" alongside whatever the real next
+  // action was. It's excluded now because nextActionFor surfaces it
+  // directly as its own 'ReviseStage' action — repeating it here would
+  // just restate the same fact in a more confusing shape.
+  it('does not list a Returned gate as a blocker — it is the next action itself', () => {
+    const blockers = nextActionBlockers({
+      status: 'InDiscovery',
+      gates: [gate('Returned', 0)],
+      approvals: [],
+      objections: [],
+      toolActions: [],
+      workItems: [],
+    });
+    expect(blockers).toEqual([]);
   });
   it('returns empty list when everything is clean', () => {
     const blockers = nextActionBlockers({
