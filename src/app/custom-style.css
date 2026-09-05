@@ -1560,16 +1560,21 @@
 
 /* === AGENT OFFICE (mission-office-view.tsx, 2026-09-05) =========================
    User asked to visualize the 5 real agents "doing their work" like people in an
-   office, then to point the build at github.com/pixel-agents-hq/pixel-agents.
-   That repo turned out to be a standalone dev-tool (its own Fastify+WebSocket
-   server, watching a live Claude Code terminal's tool-call events) with no
-   embeddable component and licensed pixel-art sprites — not something to import.
-   User's own follow-up: build our own, "a bit more modern than pixel art".
-   This is that: flat geometric avatars + brand-color glow/motion on a soft
-   floor, driven by the exact same NodeStatus the earlier node-graph view used
-   (no fabricated telemetry — every state still comes from real MissionDetailT).
-   Packaged as a reusable pattern in the `agent-office-visualization` skill.
-   Animation degrades via the blanket .app-shell * kill switch above. */
+   office, then pointed the build at github.com/pixel-agents-hq/pixel-agents, and
+   later at the VS Code extension thomasarisu.agent-office (a three.js voxel
+   office). Both turned out to be the same architecture: a standalone
+   webview/server watching ONE live Claude Code terminal's hook/JSONL tool-call
+   events, with no embeddable component and (for pixel-agents) licensed sprite
+   art — nothing to import here. User's own follow-up after that was explained:
+   build our own, "a bit more modern than pixel art", then "I want to see them
+   animated walking around in an office setting like the pixel ones". This is
+   that: flat geometric avatars + brand-color glow, with real walk-style motion
+   (idle pacing while waiting, stepping out from the desk when a stage needs a
+   decision) driven by the exact same NodeStatus the earlier node-graph view
+   used — no fabricated telemetry, no 3D engine, no external server; every
+   state still comes from real MissionDetailT. Packaged as a reusable pattern
+   in the `agent-office-visualization` skill. Animation degrades via the
+   blanket .app-shell * kill switch above. */
 .app-shell .app-office {
   position: relative;
   overflow: hidden;
@@ -1658,7 +1663,42 @@
   border-color: oklch(0.68 0.16 72 / 0.7);
   background: oklch(0.94 0.08 72 / 0.5);
   color: oklch(0.45 0.14 60);
-  animation: app-office-alert-pulse 1.8s ease-out infinite;
+  /* Steps out from behind the desk toward the viewer and waves, instead of
+     sitting still — the visible "walked over to get your attention" cue
+     the user asked for. Both animations below touch different properties
+     (transform vs box-shadow) so they compose cleanly. */
+  animation:
+    app-office-step-out 1.6s ease-in-out infinite,
+    app-office-alert-pulse 1.8s ease-out infinite;
+}
+/* Pending (not started, not blocked): a quiet idle sway/pace near the desk
+   — real people don't freeze while waiting their turn. Excluded from
+   .is-done on purpose: finished agents settle, they don't keep pacing. */
+.app-shell .app-office-desk:not(.is-working):not(.is-needs-you):not(.is-done)
+  .app-office-avatar {
+  animation: app-office-idle-pace 3.6s ease-in-out infinite;
+}
+/* Stagger every desk's animation-delay by pipeline position so all 5 don't
+   move in lockstep — reads as an actual room of people, not one synced
+   sprite copy-pasted 5 times. .app-office-desk is a <button>, so
+   nth-of-type here counts only the 5 buttons even though .app-office-path
+   <div>s are interleaved as siblings. Placed after the rules above so
+   equal-specificity cascade order lets this win over their animation
+   shorthand's implicit delay:0s. */
+.app-shell .app-office-desk:nth-of-type(1) .app-office-avatar {
+  animation-delay: 0s;
+}
+.app-shell .app-office-desk:nth-of-type(2) .app-office-avatar {
+  animation-delay: 0.6s;
+}
+.app-shell .app-office-desk:nth-of-type(3) .app-office-avatar {
+  animation-delay: 1.2s;
+}
+.app-shell .app-office-desk:nth-of-type(4) .app-office-avatar {
+  animation-delay: 1.8s;
+}
+.app-shell .app-office-desk:nth-of-type(5) .app-office-avatar {
+  animation-delay: 2.4s;
 }
 .app-shell .app-office-badge {
   position: absolute;
@@ -1752,5 +1792,37 @@
 @keyframes app-office-walk-dash {
   to {
     background-position: -12px 0;
+  }
+}
+@keyframes app-office-idle-pace {
+  0%,
+  100% {
+    transform: translate(0, 0) rotate(0deg);
+  }
+  25% {
+    transform: translate(-5px, -1px) rotate(-4deg);
+  }
+  50% {
+    transform: translate(0, 0) rotate(0deg);
+  }
+  75% {
+    transform: translate(5px, -1px) rotate(4deg);
+  }
+}
+@keyframes app-office-step-out {
+  0% {
+    transform: translateY(0) rotate(0deg);
+  }
+  35% {
+    transform: translateY(-10px) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-10px) rotate(-8deg);
+  }
+  75% {
+    transform: translateY(-10px) rotate(8deg);
+  }
+  100% {
+    transform: translateY(-10px) rotate(0deg);
   }
 }

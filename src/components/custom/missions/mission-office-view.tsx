@@ -8,16 +8,22 @@
 // the same real MissionDetailT this app already fetches; nothing here is
 // a second source of truth.
 //
-// Visual style, round 2 (2026-09-05): user asked for "people in an office
-// 3D looking" and pointed at github.com/pixel-agents-hq/pixel-agents.
-// That repo is a standalone dev-tool — its own Fastify+WebSocket server
-// watching a live Claude Code terminal's tool-call events — with no
-// embeddable component and licensed pixel-art sprites, so it isn't
-// something to import here. User's own follow-up after that was explained:
-// "build our own however make it look a bit more modern than pixel art."
-// This is that — a desk per real agent (monitor + avatar) on a soft floor,
-// with a dashed "walk" path between desks, all driven by the same
-// NodeStatus the original node-graph used. The reusable pattern (not the
+// Visual style went through two more rounds (2026-09-05): user asked for
+// "people in an office 3D looking" and pointed at
+// github.com/pixel-agents-hq/pixel-agents, then later at the VS Code
+// extension thomasarisu.agent-office (a three.js voxel office). Both are
+// the same architecture — a standalone webview/server watching ONE live
+// Claude Code terminal's hook/JSONL tool-call events, no embeddable
+// component, no fit for a 5-stage business-governance pipeline — so
+// neither was something to import here. After that was explained, the
+// user's own direction was: build our own, "a bit more modern than pixel
+// art", then "I want to see them animated walking around in an office
+// setting like the pixel ones". This is that — a desk per real agent
+// (monitor + avatar) on a soft floor, with real walk-style motion (idle
+// pacing while waiting, stepping out from the desk when a stage needs a
+// decision — see .app-office-desk.is-* in custom-style.css) and a dashed
+// "walk" path between desks, all driven by the same NodeStatus the
+// original node-graph used. The reusable pattern (not the
 // CariForge-specific data wiring) is written up as the
 // `agent-office-visualization` skill for future projects.
 //
