@@ -136,7 +136,13 @@ function restOffsetFor(status: OfficeNodeStatus): number {
 /** The desk's top surface height above the floor — shared by the desk
  *  drawing and the seated pose math below so a seated figure's forearms
  *  actually land on the desk surface instead of floating near it. */
-const DESK_TOP_DROP = 50;
+// Deliberately close to a seated figure's hip height (see the seated pose
+// math in the draw loop: hipY ends up ~28-34px above the floor) — a first
+// pass at 50 made the desktop line cut across the torso's upper-chest
+// instead of the hip, so the front panel (drawDeskFront) hid most of the
+// torso instead of just the legs, and a "seated" figure read as a green
+// blob rather than a person visible from the waist up.
+const DESK_TOP_DROP = 34;
 
 /** Chair back + legs, drawn BEHIND everything else at a station (chair,
  *  then desk, then the person walks/sits in front of both) — a bare
