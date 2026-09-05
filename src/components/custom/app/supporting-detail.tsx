@@ -304,10 +304,17 @@ export function SupportingDetail({
 
   const mission = detail.mission;
   const latestHandoff = view.latestHandoff;
-  const awaitingGate = detail.gates.find(
-    (g) => g.state === 'Awaiting' && g.gateIndex === mission.currentStageIndex,
-  );
-  const atBuildGate = mission.currentStageIndex >= 4;
+  // Real bug fix (2026-09-05): both of these used to match on
+  // mission.currentStageIndex, which the same live incident showed
+  // advances the moment a handoff is SUBMITTED — before its gate is
+  // actually decided (see use-project-workspace.ts's currentGate and the
+  // /draft route for the full writeup). Advisory-only here (QAReviewCard
+  // never gates anything, and atBuildGate only controls section
+  // visibility), so the impact was smaller than the write-path bug fixed
+  // there, but the same fix applies: use view.currentGate, already
+  // corrected to the real pending gate.
+  const awaitingGate = view.currentGate;
+  const atBuildGate = view.currentGate?.gateIndex === 4;
   const hasPendingToolAction = detail.toolActions.some((t) => t.decision === null);
 
   // Real finding (2026-09-04 user review): several groups here only ever
