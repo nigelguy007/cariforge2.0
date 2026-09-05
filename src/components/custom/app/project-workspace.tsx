@@ -12,6 +12,8 @@ import Link from 'next/link';
 import * as React from 'react';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
+import { STEPS } from '@/lib/ui-terms';
+import { AgentActivityPanel, agentActivityDoneCount } from './agent-activity-panel';
 import { NextActionCard } from './next-action-card';
 import { PreparedSummary } from './prepared-summary';
 import { ProjectStepper } from './project-stepper';
@@ -142,6 +144,18 @@ export function ProjectWorkspace({ missionSlug }: { missionSlug: string }) {
         onOpenSection={openSection}
         detailId={DETAIL_ID}
       />
+
+      <details className="app-disclosure">
+        <summary className="flex min-h-11 items-center justify-between gap-3">
+          <span className="app-body font-medium text-[var(--app-text)]">Agent activity</span>
+          <span className="app-small text-right text-[var(--app-text-muted)]">
+            {agentActivityDoneCount(detail)} of {STEPS.length} complete
+          </span>
+        </summary>
+        <div className="mt-2">
+          <AgentActivityPanel detail={detail} />
+        </div>
+      </details>
 
       <SupportingDetail
         id={DETAIL_ID}

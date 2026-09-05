@@ -1,7 +1,7 @@
 // @polsia:user-owned — Start a project (intake) page.
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { MissionIntakeForm } from '@/components/custom/missions/mission-intake-form';
+import { MissionIntakeChat } from '@/components/custom/missions/mission-intake-chat';
 import { friendlyLeadReference } from '@/lib/contracts/leads';
 
 export const metadata: Metadata = {
@@ -51,7 +51,7 @@ export default async function NewMissionPage({
           </p>
         ) : null}
       </header>
-      <MissionIntakeForm initialIntake={intake ?? ''} sourceLeadId={lead} />
+      <MissionIntakeChat initialIntake={intake ?? ''} sourceLeadId={lead} />
     </div>
   );
 }
