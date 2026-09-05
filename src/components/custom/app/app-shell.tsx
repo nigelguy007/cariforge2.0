@@ -68,8 +68,8 @@ export function AppShell({ children }: AppShellProps) {
     return (
       <main className="app-shell dark flex min-h-dvh items-center justify-center px-6">
         <div className="app-halo" aria-hidden="true">
-        <div className="app-halo-rays" />
-      </div>
+          <div className="app-halo-rays" />
+        </div>
         <p className="app-small text-[var(--app-text-muted)]" aria-live="polite">
           {isPending ? 'Loading…' : 'Redirecting to sign in…'}
         </p>
