@@ -59,18 +59,14 @@ export const navItems: NavItem[] = [
   // not a deliberate omission: the page has existed and worked all along,
   // it just had no link a signed-in user could find it from.
   { label: 'Evidence', href: '/evidence', group: 'primary', requiresAuth: true, order: 5.5 },
-  // Promoted out of the 'Forge' dropdown and given the lowest order (sorts
-  // first for a signed-in user, ahead of the marketing links) — 2026-09-01
-  // user report: the visual builder existed but nobody found it, buried one
-  // click inside a "Forge ⌄" menu. This is meant to be the primary,
-  // immediately-reachable action once signed in, not a submenu entry.
-  {
-    label: 'Build',
-    href: '/forge',
-    group: 'primary',
-    requiresAuth: true,
-    order: -1,
-  },
+  // "Build" (/forge, the self-service DIY canvas) removed (2026-09-05):
+  // real user report — "dont know what this page is doing" — and with the
+  // redesign's single governed "Start a project" flow now the one path,
+  // a second unexplained builder floating in the top nav is exactly the
+  // kind of confusion that caused. The route and its underlying
+  // ForgeCanvasBuilder component are untouched, just not linked anywhere
+  // right now; a deliberate, well-introduced return is a later decision,
+  // not a deletion.
   // UX review C3 (wireframe v2): one unified Approvals inbox — gate
   // decisions + run pauses. /forge/approvals redirects here.
   {

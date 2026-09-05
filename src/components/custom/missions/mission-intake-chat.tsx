@@ -323,8 +323,8 @@ export function MissionIntakeChat({
           className="app-small flex items-center justify-center gap-2 rounded-[var(--app-radius-sm)] border border-dashed border-[var(--app-border)] bg-[var(--app-surface-muted)] px-3.5 py-2.5 text-[var(--app-text-muted)] transition-colors hover:border-[var(--app-accent-border)] hover:text-[var(--app-text)]"
         >
           <Paperclip className="size-4" aria-hidden="true" />
-          {files.length > 0 ? 'Add another file' : 'Choose files'} — {ATTACHMENT_TYPES_LABEL}, up
-          to {MAX_ATTACHMENT_MB} MB each
+          {files.length > 0 ? 'Add another file' : 'Choose files'} — {ATTACHMENT_TYPES_LABEL}, up to{' '}
+          {MAX_ATTACHMENT_MB} MB each
         </button>
         {fileError ? <p className="app-caption text-destructive">{fileError}</p> : null}
       </div>

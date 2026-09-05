@@ -121,9 +121,6 @@ export function AppShell({ children }: AppShellProps) {
                   <Link href="/profile">Profile</Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
-                  <Link href="/forge">Visual canvas</Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
                   <Link href="/dashboard/pipeline">How the steps work</Link>
                 </DropdownMenuItem>
                 {isAdmin ? (
