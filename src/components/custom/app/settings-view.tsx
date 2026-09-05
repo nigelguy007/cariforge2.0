@@ -17,7 +17,11 @@ interface SettingsLink {
 }
 
 const ADMIN_LINKS: readonly SettingsLink[] = [
-  { href: '/admin/leads', title: 'Briefs received', hint: 'Public briefs waiting to become a project.' },
+  {
+    href: '/admin/leads',
+    title: 'Briefs received',
+    hint: 'Public briefs waiting to become a project.',
+  },
   { href: '/admin/missions', title: 'All projects', hint: 'Every project across every user.' },
   { href: '/admin/telemetry', title: 'Usage', hint: 'Platform usage and activity.' },
 ];
@@ -43,10 +47,10 @@ export function SettingsView() {
   const isAdmin = useIsAdmin();
   return (
     <ul className="app-panel divide-y divide-[var(--app-border)]">
-      <SettingsRow link={{ href: '/profile', title: 'Profile', hint: 'Your name, email and sign-out.' }} />
-      {isAdmin
-        ? ADMIN_LINKS.map((link) => <SettingsRow key={link.href} link={link} />)
-        : null}
+      <SettingsRow
+        link={{ href: '/profile', title: 'Profile', hint: 'Your name, email and sign-out.' }}
+      />
+      {isAdmin ? ADMIN_LINKS.map((link) => <SettingsRow key={link.href} link={link} />) : null}
     </ul>
   );
 }

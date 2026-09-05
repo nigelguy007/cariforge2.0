@@ -3,8 +3,8 @@
 // any status it hasn't been explicitly taught. See displayStateFor in
 // ui-terms.ts.
 import { describe, expect, it } from 'vitest';
-import { MissionStatusValues, type MissionStatus } from '@/lib/contracts/forge';
-import { displayStateFor, DISPLAY_STATE_TONE, DISPLAY_STATE_UI } from '@/lib/ui-terms';
+import { type MissionStatus, MissionStatusValues } from '@/lib/contracts/forge';
+import { DISPLAY_STATE_TONE, DISPLAY_STATE_UI, displayStateFor } from '@/lib/ui-terms';
 
 const EXPECTED: Readonly<Record<MissionStatus, 'draft' | 'working' | 'needs_you' | 'done'>> = {
   Draft: 'draft',

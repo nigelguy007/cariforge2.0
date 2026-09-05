@@ -92,4 +92,46 @@ describe('intakeChatTurn — happy path', () => {
       { role: 'user', content: 'A compliance team manually checks each claim by hand.' },
     ]);
   });
+
+  // Real bug found live in production (2026-09-05): `reply` had no
+  // `.min(1)` — the model could legally return "". The client pushes
+  // whatever `reply` comes back straight into conversation history as an
+  // assistant message; every later turn re-sends that full history, and
+  // IntakeChatRequest's own per-message `content.min(1)` then
+  // permanently 400s on it — the conversation never recovers without a
+  // page refresh. intakeChatTurn must never let an empty reply out.
+  it('substitutes a fallback when the model returns an empty reply', async () => {
+    process.env.ANTHROPIC_API_KEY = 'test-key';
+
+    const parsedOutput = {
+      reply: '   ',
+      readyToSubmit: false,
+      projectName: '',
+      intake: '',
+      need: '',
+      intendedOutcome: '',
+      constraints: '',
+      authorityBoundary: '',
+      dataClassification: '',
+      retentionPolicy: '',
+      acceptanceCriteria: '',
+      nonGoals: '',
+      missionOwner: '',
+      missingInformation: [],
+    };
+
+    vi.doMock('@anthropic-ai/sdk', () => ({
+      default: vi.fn().mockImplementation(() => ({
+        messages: { parse: vi.fn().mockResolvedValue({ parsed_output: parsedOutput }) },
+      })),
+    }));
+
+    const { intakeChatTurn } = await import('@/lib/business/forge/intake-chat');
+    const result = await intakeChatTurn({
+      messages: [{ role: 'user', content: 'We need help triaging compliance claims.' }],
+    });
+
+    expect(result.status).toBe('ok');
+    expect(result.status === 'ok' && result.result.reply.trim().length > 0).toBe(true);
+  });
 });

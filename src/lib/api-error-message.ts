@@ -13,8 +13,21 @@
 // unsafe cast.
 export function apiErrorMessage(err: unknown, fallback: string): string {
   const cause = (err as { cause?: unknown } | null | undefined)?.cause as
-    | { error?: unknown }
+    | { error?: unknown; errors?: unknown }
     | undefined;
   if (cause && typeof cause.error === 'string' && cause.error.trim()) return cause.error;
+  // Real gap found live (2026-09-05): a 400 validation failure responds
+  // `{ errors: Record<string,string> }` (every /api/forge/* POST route's
+  // own `fieldErrorBody` convention), not `{ error: string }` — a caller
+  // with no form fields to attribute errors to (a chat UI, not a form)
+  // had no way to surface it and fell straight through to the generic
+  // fallback, hiding the real validation reason from both the user and
+  // whoever debugged it. Join the field messages into one readable line.
+  if (cause && cause.errors && typeof cause.errors === 'object') {
+    const messages = Object.values(cause.errors as Record<string, unknown>).filter(
+      (m): m is string => typeof m === 'string' && m.trim().length > 0,
+    );
+    if (messages.length > 0) return messages.join(' ');
+  }
   return fallback;
 }

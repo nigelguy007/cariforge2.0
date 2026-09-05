@@ -19,7 +19,12 @@ import { Textarea } from '@/components/ui/textarea';
 import { apiFetch } from '@/lib/api-client';
 import { apiErrorMessage } from '@/lib/api-error-message';
 import { MissionList, type MissionListItemT } from '@/lib/contracts/forge';
-import { DISPLAY_STATE_TONE, DISPLAY_STATE_UI, displayStateFor, stageUiForIndex } from '@/lib/ui-terms';
+import {
+  DISPLAY_STATE_TONE,
+  DISPLAY_STATE_UI,
+  displayStateFor,
+  stageUiForIndex,
+} from '@/lib/ui-terms';
 import { cn } from '@/lib/utils';
 import { approvalsHeading } from './approvals-queue';
 import { TONE_CLASS, TONE_ICON } from './status-badge';
@@ -120,7 +125,10 @@ function RecentProjects() {
       })
       .catch((err) => {
         if (cancelled) return;
-        setState({ status: 'error', message: apiErrorMessage(err, 'Projects could not be loaded.') });
+        setState({
+          status: 'error',
+          message: apiErrorMessage(err, 'Projects could not be loaded.'),
+        });
       });
     return () => {
       cancelled = true;

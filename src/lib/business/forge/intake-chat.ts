@@ -143,7 +143,16 @@ export async function intakeChatTurn(args: {
     if (!response.parsed_output) return { status: 'unavailable' };
     const parsed = IntakeChatResponseV4.safeParse(response.parsed_output);
     if (!parsed.success) return { status: 'unavailable' };
-    return { status: 'ok', result: parsed.data };
+    // Real bug found live in production (2026-09-05): `reply` has no
+    // `.min(1)` — the model can legally return an empty string. The
+    // client pushes whatever `reply` comes back straight into
+    // conversation history as an assistant message; every later turn
+    // re-sends that full history, and IntakeChatRequest's own
+    // `content.min(1)` then permanently 400s on it — the conversation
+    // never recovers without a page refresh. Never let an empty reply
+    // leave this function.
+    const reply = parsed.data.reply.trim() || 'Could you say a bit more about that?';
+    return { status: 'ok', result: { ...parsed.data, reply } };
   } catch (err) {
     // Never the reason a project can't be started — MissionIntakeForm is
     // still there as a manual fallback. Logged server-side so a real
