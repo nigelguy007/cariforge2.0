@@ -145,6 +145,15 @@ export async function draftStepOutput(args: {
    *  if this is a redraft ("Supervisor sends failed work back to the
    *  responsible agent"). Empty on a first attempt. */
   feedback?: readonly string[];
+  /** Real gap found live (2026-09-05, "look at the functionality" pass
+   *  benchmarked against Kore.ai's Search/Knowledge AI pillar): a person
+   *  can attach Evidence to a project, but this function never saw it —
+   *  the draft was generated blind to anything the user attached. This
+   *  schema stores a label + kind + reference pointer, not the document's
+   *  full body text, so what's passed here is that label/kind context
+   *  (real: what the human said this evidence is), not the file contents
+   *  themselves. Empty when nothing is attached yet. */
+  evidence?: readonly { label: string; kind: string }[];
 }): Promise<DraftStepResult> {
   const client = getClient();
   if (!client) return { status: 'unavailable' };
@@ -158,6 +167,10 @@ export async function draftStepOutput(args: {
   const feedbackBlock =
     args.feedback && args.feedback.length > 0
       ? `\n\nA prior attempt at this same step had these unresolved reviewer concerns — address them directly this time, don't just repeat the same draft:\n${args.feedback.map((c, i) => `${i + 1}. ${c}`).join('\n')}`
+      : '';
+  const evidenceBlock =
+    args.evidence && args.evidence.length > 0
+      ? `\n\nEvidence already attached to this project (reference it where relevant instead of treating this as unverified):\n${args.evidence.map((e, i) => `${i + 1}. ${e.label} (${e.kind})`).join('\n')}`
       : '';
 
   const system = `You are CariForge, drafting the "${args.stage}" step of a governed project for
@@ -180,7 +193,7 @@ it.
 Set confidence (0-1) honestly: lower if the described need is vague or
 this step depends on information not yet available.`;
 
-  const userMessage = `The need, as described: ${need}${contextBlock}${feedbackBlock}`;
+  const userMessage = `The need, as described: ${need}${contextBlock}${evidenceBlock}${feedbackBlock}`;
 
   try {
     const response = await client.messages.parse({

@@ -103,12 +103,20 @@ export async function POST(req: Request, ctx: { params: Promise<{ id: string }> 
             .map((a) => a.reasonText.trim())
         : [];
 
+    // Real gap found live (2026-09-05, functionality pass benchmarked
+    // against Kore.ai's Search/Knowledge AI pillar): attached Evidence
+    // was fetched onto `detail` this whole time and never once reached
+    // the agent drafting the step — grepped ai-draft.ts to confirm it
+    // only ever read intake/normalizedNeed/priorContext.
+    const evidence = detail.evidence.map((e) => ({ label: e.label, kind: e.kind }));
+
     const result = await draftStepOutput({
       stage,
       intake: detail.mission.intake,
       normalizedNeed: detail.mission.normalizedNeed,
       priorContext,
       feedback,
+      evidence,
     });
 
     if (result.status === 'unavailable') {

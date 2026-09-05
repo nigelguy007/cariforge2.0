@@ -74,12 +74,17 @@ function missionDetail(overrides: {
     createdAt: string;
   }[];
   toolActions?: readonly { decision: string | null }[];
+  evidence?: readonly { label: string; kind: string }[];
 }) {
   return {
     mission: { intake: 'the intake text', normalizedNeed: 'the normalized need' },
     objections: overrides.objections ?? [],
     handoffs: overrides.handoffs ?? [],
     toolActions: overrides.toolActions ?? [],
+    // Real gap fixed 2026-09-05: the self-redraft branch now reads
+    // stillOpen.evidence to pass it to draftStepOutput — default empty,
+    // matching the real MissionDetailT shape.
+    evidence: overrides.evidence ?? [],
   };
 }
 

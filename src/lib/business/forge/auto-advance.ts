@@ -156,12 +156,18 @@ export async function reviewAndMaybeAdvance(args: {
       })
       .filter((s): s is string => s !== null);
 
+    // Same real gap as the /draft route's own fix (2026-09-05): this
+    // self-redraft call had the mission's Evidence sitting right there on
+    // `stillOpen` and never passed it to the agent redrafting the step.
+    const evidence = stillOpen.evidence.map((e) => ({ label: e.label, kind: e.kind }));
+
     const redraft = await draftStepOutput({
       stage: args.stage,
       intake: stillOpen.mission.intake,
       normalizedNeed: stillOpen.mission.normalizedNeed,
       priorContext,
       feedback: unresolvedOnThisStep.map((o) => o.text),
+      evidence,
     });
 
     if (redraft.status === 'ok') {
