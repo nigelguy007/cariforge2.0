@@ -6,24 +6,32 @@
 // exist anywhere in this codebase. No fabricated telemetry, no invented
 // metrics (handoff's own Rule 4) — every node's state comes straight from
 // the same real MissionDetailT this app already fetches; nothing here is
-// a second source of truth. 3D/WebGL, the workflow-builder revival, and
-// live Claude Code hook telemetry are explicitly out of scope for this
-// pass — see the user's own scoping decision.
+// a second source of truth.
 //
-// A real, interactive node-graph: each of the 5 stages is a node showing
-// its actual state (done / working / needs your decision / not started),
-// with animated connectors between them. Clicking a node reveals the same
-// real detail agent-activity-panel.tsx already knows how to show
-// (AgentStepDetail, reused directly — no duplicated logic). Includes its
-// own "Draft with AI" trigger so this page is a genuinely complete way to
-// drive the mission forward, not just a read-only mirror of the workspace
-// page — the same governed multi-stage auto-chain next-action-card.tsx
-// uses, adapted here rather than shared via a hook, to avoid touching an
-// already-fixed, already-tested component for this first pass.
+// Visual style, round 2 (2026-09-05): user asked for "people in an office
+// 3D looking" and pointed at github.com/pixel-agents-hq/pixel-agents.
+// That repo is a standalone dev-tool — its own Fastify+WebSocket server
+// watching a live Claude Code terminal's tool-call events — with no
+// embeddable component and licensed pixel-art sprites, so it isn't
+// something to import here. User's own follow-up after that was explained:
+// "build our own however make it look a bit more modern than pixel art."
+// This is that — a desk per real agent (monitor + avatar) on a soft floor,
+// with a dashed "walk" path between desks, all driven by the same
+// NodeStatus the original node-graph used. The reusable pattern (not the
+// CariForge-specific data wiring) is written up as the
+// `agent-office-visualization` skill for future projects.
+//
+// Clicking a desk reveals the same real detail agent-activity-panel.tsx
+// already knows how to show (AgentStepDetail, reused directly — no
+// duplicated logic). Includes its own "Draft with AI" trigger so this page
+// is a genuinely complete way to drive the mission forward, not just a
+// read-only mirror of the workspace page — the same governed multi-stage
+// auto-chain next-action-card.tsx uses, adapted here rather than shared
+// via a hook, to avoid touching an already-fixed, already-tested component.
 
 'use client';
 
-import { Check, Loader2 } from 'lucide-react';
+import { AlertCircle, Check, Loader2, Monitor, UserRound } from 'lucide-react';
 import Link from 'next/link';
 import * as React from 'react';
 import { toast } from 'sonner';
@@ -39,16 +47,17 @@ import { AGENT_ACTIVITY_UI, STEPS } from '@/lib/ui-terms';
 
 type NodeStatus = 'done' | 'working' | 'needs-you' | 'pending';
 
-function statusRingClass(status: NodeStatus): string {
+/** Desk/avatar state class — see .app-office-desk.is-* in custom-style.css. */
+function deskStatusClass(status: NodeStatus): string {
   switch (status) {
     case 'done':
-      return 'border-emerald-500/70 bg-emerald-500/10';
+      return 'is-done';
     case 'working':
-      return 'border-[var(--app-accent)] bg-[var(--app-accent-soft)] animate-pulse';
+      return 'is-working';
     case 'needs-you':
-      return 'border-amber-500/70 bg-amber-500/10';
+      return 'is-needs-you';
     case 'pending':
-      return 'border-[var(--app-border)] bg-[var(--app-surface)]';
+      return '';
   }
 }
 
@@ -65,11 +74,11 @@ function statusLabel(status: NodeStatus): string {
   }
 }
 
-function connectorClass(leftDone: boolean, rightWorking: boolean): string {
-  if (rightWorking)
-    return 'bg-gradient-to-r from-emerald-500/60 via-[var(--app-accent)] to-transparent animate-pulse';
-  if (leftDone) return 'bg-emerald-500/50';
-  return 'bg-[var(--app-border)]';
+/** Floor path between two desks — see .app-office-path.is-* in custom-style.css. */
+function pathClass(leftDone: boolean, rightWorking: boolean): string {
+  if (rightWorking) return 'is-active';
+  if (leftDone) return 'is-done';
+  return '';
 }
 
 function OfficeSkeleton() {
@@ -190,16 +199,17 @@ export function MissionOfficeView({ missionSlug }: { missionSlug: string }) {
         </p>
       </header>
 
-      <div className="app-panel overflow-x-auto p-6 sm:p-8">
-        <div className="flex min-w-[720px] items-center">
+      <div className="app-office overflow-x-auto p-6 sm:p-8">
+        <div className="flex min-w-[760px] items-start">
           {nodes.map((n, i) => {
             const prev = i > 0 ? nodes[i - 1] : undefined;
+            const desk = deskStatusClass(n.status);
             return (
               <React.Fragment key={n.step.stage}>
                 {prev ? (
                   <div
                     aria-hidden="true"
-                    className={`h-1 flex-1 rounded-full ${connectorClass(prev.done, n.status === 'working')}`}
+                    className={`app-office-path ${pathClass(prev.done, n.status === 'working')}`}
                   />
                 ) : null}
                 <button
@@ -208,21 +218,33 @@ export function MissionOfficeView({ missionSlug }: { missionSlug: string }) {
                     setSelectedStage(n.step.stage === selectedStage ? null : n.step.stage)
                   }
                   aria-expanded={n.step.stage === selectedStage}
-                  className={`app-transition flex shrink-0 flex-col items-center gap-2 rounded-[var(--app-radius)] border-2 p-4 ${statusRingClass(n.status)} ${n.step.stage === selectedStage ? 'ring-2 ring-[var(--app-accent)] ring-offset-2 ring-offset-[var(--app-bg)]' : ''}`}
+                  className={`app-office-desk app-transition ${desk} ${n.step.stage === selectedStage ? 'is-selected' : ''}`}
                 >
-                  <div className="flex size-12 items-center justify-center rounded-full bg-[var(--app-surface)] text-[var(--app-text)]">
+                  <div className="app-office-monitor" aria-hidden="true">
+                    <Monitor className="size-3.5" />
+                  </div>
+                  <div className="app-office-avatar">
+                    <UserRound className="size-6" aria-hidden="true" />
                     {n.status === 'working' ? (
-                      <Loader2 className="size-5 animate-spin" aria-hidden="true" />
+                      <span className="app-office-badge">
+                        <Loader2 className="size-3 animate-spin" aria-hidden="true" />
+                      </span>
+                    ) : n.status === 'needs-you' ? (
+                      <span className="app-office-badge">
+                        <AlertCircle className="size-3" aria-hidden="true" />
+                      </span>
                     ) : n.status === 'done' ? (
-                      <Check className="size-5 text-emerald-600" aria-hidden="true" />
+                      <span className="app-office-badge">
+                        <Check className="size-3" aria-hidden="true" />
+                      </span>
                     ) : (
-                      <span className="app-small font-semibold">{i + 1}</span>
+                      <span className="app-office-badge app-office-badge-muted">{i + 1}</span>
                     )}
                   </div>
-                  <span className="app-small whitespace-nowrap font-medium text-[var(--app-text)]">
+                  <span className="app-office-name whitespace-nowrap">
                     {AGENT_ACTIVITY_UI[n.step.stage].agent}
                   </span>
-                  <span className="app-caption whitespace-nowrap text-[var(--app-text-muted)]">
+                  <span className="app-office-status whitespace-nowrap">
                     {statusLabel(n.status)}
                   </span>
                 </button>

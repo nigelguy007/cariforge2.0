@@ -15,7 +15,11 @@
 import { describe, expect, it } from 'vitest';
 import { findOrphanedObjectionIds, isStaleHandoff } from '@/lib/business/forge/handoffs';
 
-function handoff(over: { id: string; supersededById?: string | null; invalidationReasonCode?: string | null }) {
+function handoff(over: {
+  id: string;
+  supersededById?: string | null;
+  invalidationReasonCode?: string | null;
+}) {
   return {
     id: over.id,
     supersededById: over.supersededById ?? null,
@@ -49,10 +53,7 @@ describe('findOrphanedObjectionIds', () => {
   });
 
   it('finds an unresolved objection on a superseded handoff — the exact "3 unresolved .. yet resolved" bug', () => {
-    const handoffs = [
-      handoff({ id: 'h1', supersededById: 'h2' }),
-      handoff({ id: 'h2' }),
-    ];
+    const handoffs = [handoff({ id: 'h1', supersededById: 'h2' }), handoff({ id: 'h2' })];
     const objections = [objection({ id: 'stale-1', stageHandoffId: 'h1' })];
     expect(findOrphanedObjectionIds(handoffs, objections)).toEqual(['stale-1']);
   });
