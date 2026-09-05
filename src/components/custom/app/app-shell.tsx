@@ -67,7 +67,9 @@ export function AppShell({ children }: AppShellProps) {
   if (isPending || !session?.user) {
     return (
       <main className="app-shell dark flex min-h-dvh items-center justify-center px-6">
-        <div className="app-halo" aria-hidden="true" />
+        <div className="app-halo" aria-hidden="true">
+        <div className="app-halo-rays" />
+      </div>
         <p className="app-small text-[var(--app-text-muted)]" aria-live="polite">
           {isPending ? 'Loading…' : 'Redirecting to sign in…'}
         </p>
@@ -80,7 +82,9 @@ export function AppShell({ children }: AppShellProps) {
 
   return (
     <div className="app-shell dark min-h-dvh">
-      <div className="app-halo" aria-hidden="true" />
+      <div className="app-halo" aria-hidden="true">
+        <div className="app-halo-rays" />
+      </div>
       <a
         href="#app-main"
         className="sr-only focus:not-sr-only focus:absolute focus:left-3 focus:top-3 focus:z-50 focus:rounded-md focus:bg-[var(--app-surface)] focus:px-3 focus:py-2"

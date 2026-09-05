@@ -1102,67 +1102,104 @@
   overflow: hidden;
   pointer-events: none;
 }
+/* Fourth pass (2026-09-05, live authenticated screenshot: "not what i
+   expected" — the whole viewport reading as one flat, dominant green,
+   and separately: "does not look like the example ... where it is
+   streaming from the heavens"). Two real, distinct problems, not one:
+
+   1. SHAPE: ::before was a giant circle — min(1500px, 130vw) across —
+      anchored so far above the viewport (top:-20vw) that only a narrow
+      slice near its OWN centre was ever actually visible on screen. That
+      slice sat right in the middle of the 5-stop ramp (the brand-hue
+      stop at 42%), so the turquoise/aquamarine end and the deep-ocean end
+      were both pushed off past the visible edge — the exact reason it
+      read as one dominant colour instead of a ramp. Reshaped into a wide,
+      SHORT ellipse instead (cosmoq-home.css's own .cq-sunrise::before is
+      132% wide but only 500px tall, not a giant circle) so the entire
+      ramp fits inside the visible top portion of the page.
+   2. STRUCTURE: nothing here was actually a light RAY — every layer was a
+      soft blurred blob, which cannot read as "streaming from the
+      heavens" no matter how it's coloured. cosmoq-home.css's own
+      .cq-sunrise::after ("light curtains") is a repeating-linear-gradient
+      of fine vertical bands with a much lighter blur than its horizon
+      glow — a genuinely different structural device, added below as
+      .app-halo-rays, a real nested element (app-shell.tsx), not another
+      layer inside these same heavily-blurred pseudo-elements. */
 .app-shell .app-halo::before,
 .app-shell .app-halo::after {
   content: "";
   position: absolute;
   border-radius: 50%;
-  /* Real blur, not just the radial-gradient's own falloff — this is what
-     reads as atmosphere instead of a flat coloured patch. Real user report
-     (2026-09-05, live screenshot): "I CANT SEE the halo at home" — the
-     first pass's alphas (max 0.3 in dark mode) were nowhere near strong
-     enough to survive this much blur spread over this much near-black
-     area; cut from 90px to 64px so the colour keeps more presence instead
-     of diffusing into nothing. Cut again to 48px (2026-09-05, third pass,
-     live authenticated screenshot: "cariforge does not have the same
-     effect at the other image") — even after boosting alpha a second
-     time, 64px of blur was still smearing the five colour stops into one
-     indistinct greenish wash instead of the readable, contrasting bands
-     the cosmoq reference has; less blur keeps more of that separation. */
-  filter: blur(48px);
+  filter: blur(60px);
 }
-/* Primary glow — a wide band anchored to the TOP of the viewport (not a
-   corner circle) so it reads across the header/logo on every page
-   regardless of whether a sidebar happens to sit under one corner. Two
-   stacked radial-gradients on one blob: a small warm sun-core
-   (cosmoq-home.css's oklch(0.88 0.16 72) sun colour) sitting over the full
-   Caribbean-sea ramp. */
+/* Primary glow — a wide, SHORT ellipse (not a giant circle) anchored to
+   the top of the viewport, proportioned like cosmoq's own horizon bloom
+   so the full five-stop ramp actually fits in the visible area instead
+   of mostly falling above the fold. `ellipse` (not `circle`) so the
+   gradient itself follows this box's own wide/short aspect ratio rather
+   than being a circle forced into a non-square box. */
 .app-shell .app-halo::before {
-  top: -20vw;
+  top: -18vw;
   left: 50%;
   translate: -50% 0;
-  width: min(1500px, 130vw);
-  height: min(1500px, 130vw);
+  width: min(2200px, 170vw);
+  height: min(760px, 58vw);
   background:
-    radial-gradient(circle at 38% 34%, oklch(0.88 0.16 72 / 0.22) 0%, transparent 45%),
+    radial-gradient(ellipse 40% 55% at 38% 40%, oklch(0.88 0.16 72 / 0.16) 0%, transparent 60%),
     radial-gradient(
-      circle,
-      oklch(0.95 0.07 185 / 0.32) 0%,
-      oklch(0.8 0.15 178 / 0.36) 22%,
-      oklch(var(--brand-l) var(--brand-c) var(--brand-h) / 0.34) 42%,
-      oklch(0.58 0.15 200 / 0.26) 62%,
-      oklch(0.42 0.16 240 / 0.16) 82%,
+      ellipse 55% 65% at 50% 45%,
+      oklch(0.95 0.07 185 / 0.24) 0%,
+      oklch(0.8 0.15 178 / 0.26) 24%,
+      oklch(var(--brand-l) var(--brand-c) var(--brand-h) / 0.24) 46%,
+      oklch(0.58 0.15 200 / 0.18) 68%,
+      oklch(0.42 0.16 240 / 0.1) 86%,
       transparent 100%
     );
 }
-/* Secondary glow — lower-right. Same ramp run in reverse (deep ocean at the
-   core, warming back toward the brand hue at the edge) so the pair reads as
-   one continuous sea rather than two unrelated blobs, kept fainter so it's
-   depth behind the primary glow, not a second focal point. */
+/* Secondary glow — lower-right corner accent, unchanged shape (a real
+   corner circle reads fine here since it's meant to be a small, fainter
+   depth cue, not the main event). Same ramp run in reverse. */
 .app-shell .app-halo::after {
   right: -14vw;
   bottom: -22vw;
-  width: 60vw;
-  height: 60vw;
-  max-width: 760px;
-  max-height: 760px;
+  width: 50vw;
+  height: 50vw;
+  max-width: 620px;
+  max-height: 620px;
   background: radial-gradient(
     circle,
-    oklch(0.42 0.16 240 / 0.22) 0%,
-    oklch(0.58 0.15 200 / 0.2) 40%,
-    oklch(var(--brand-l) calc(var(--brand-c) * 0.9) var(--brand-h) / 0.16) 68%,
+    oklch(0.42 0.16 240 / 0.16) 0%,
+    oklch(0.58 0.15 200 / 0.14) 40%,
+    oklch(var(--brand-l) calc(var(--brand-c) * 0.9) var(--brand-h) / 0.11) 68%,
     transparent 88%
   );
+}
+/* The light rays — the actual "streaming from the heavens" device,
+   matching cosmoq-home.css's own .cq-sunrise::after technique: fine
+   vertical bands from a repeating-linear-gradient (90deg = the gradient
+   axis runs left-to-right, so each repeat is a VERTICAL stripe), masked
+   to only show near the primary glow's bright zone so they read as light
+   falling out of that glow rather than hard lines across the whole page.
+   A real nested element (app-shell.tsx), not a third layer inside
+   ::before — that element's own 60px blur (needed for the glow to read
+   as atmosphere, not a flat patch) would smear fine rays into nothing;
+   this gets its own much lighter blur instead, the same way cosmoq's
+   reference keeps its horizon bloom and its light curtains as two
+   separate layers with two different blur amounts. */
+.app-shell .app-halo-rays {
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    90deg,
+    transparent 0 28px,
+    oklch(0.85 0.12 185 / 0.05) 28px 31px,
+    transparent 31px 74px,
+    oklch(0.88 0.14 72 / 0.035) 74px 77px,
+    transparent 77px 128px
+  );
+  -webkit-mask-image: radial-gradient(ellipse 62% 60% at 50% 8%, #000 0%, transparent 78%);
+  mask-image: radial-gradient(ellipse 62% 60% at 50% 8%, #000 0%, transparent 78%);
+  filter: blur(1.5px);
 }
 /* Slow ambient drift, matching the marketing page's own restraint (it
    only ever animates its glow once, on entrance — no continuous motion).
@@ -1188,41 +1225,42 @@
    needs a visibly stronger core than the near-white light field to read
    at all — same shape, position and Caribbean-sea ramp, just more
    saturated alphas (this is also the app's default for new visitors, so
-   it's the presentation most people actually see). */
+   it's the presentation most people actually see). Pulled back from the
+   third pass's peak of 0.66-0.68 (2026-09-05: "its too yellow" / "not
+   what i expected", the whole page reading as one dominant flat colour)
+   — the real fix was the ellipse reshape above, not raw alpha; these
+   values are deliberately more moderate now that the actual ramp is
+   visible instead of one stop dominating everything. */
 .app-shell.dark .app-halo::before {
-  /* Third pass (2026-09-05, live authenticated screenshot: "cariforge
-     does not have the same effect at the other image" — a real,
-     panel-dense project page next to cosmoq's own /about, near-empty of
-     opaque content). Two real, confirmed causes: (1) even after the
-     second pass's alphas, the result read as one flattish greenish wash
-     rather than distinct colour bands — the warm sun accent in
-     particular was still far too faint under everything else to read as
-     a second, contrasting hue the way it does on the reference; boosted
-     hardest of all the stops here. (2) most of the viewport here is
-     opaque `--app-surface` panels the reference never has to contend
-     with — the halo can only ever be as visible as the open canvas
-     allows, so pushing intensity higher in that canvas is the honest
-     lever actually available, short of making panels themselves
-     translucent (out of scope here — a separate, bigger decision). */
   background:
-    radial-gradient(circle at 38% 34%, oklch(0.88 0.16 72 / 0.55) 0%, transparent 55%),
+    radial-gradient(ellipse 40% 55% at 38% 40%, oklch(0.88 0.16 72 / 0.26) 0%, transparent 60%),
     radial-gradient(
-      circle,
-      oklch(0.95 0.07 185 / 0.62) 0%,
-      oklch(0.8 0.15 178 / 0.68) 22%,
-      oklch(var(--brand-l) var(--brand-c) var(--brand-h) / 0.66) 42%,
-      oklch(0.58 0.15 200 / 0.52) 62%,
-      oklch(0.42 0.16 240 / 0.34) 82%,
+      ellipse 55% 65% at 50% 45%,
+      oklch(0.95 0.07 185 / 0.4) 0%,
+      oklch(0.8 0.15 178 / 0.44) 24%,
+      oklch(var(--brand-l) var(--brand-c) var(--brand-h) / 0.4) 46%,
+      oklch(0.58 0.15 200 / 0.3) 68%,
+      oklch(0.42 0.16 240 / 0.18) 86%,
       transparent 100%
     );
 }
 .app-shell.dark .app-halo::after {
   background: radial-gradient(
     circle,
-    oklch(0.42 0.16 240 / 0.46) 0%,
-    oklch(0.58 0.15 200 / 0.4) 40%,
-    oklch(var(--brand-l) calc(var(--brand-c) * 0.9) var(--brand-h) / 0.34) 68%,
+    oklch(0.42 0.16 240 / 0.28) 0%,
+    oklch(0.58 0.15 200 / 0.24) 40%,
+    oklch(var(--brand-l) calc(var(--brand-c) * 0.9) var(--brand-h) / 0.18) 68%,
     transparent 88%
+  );
+}
+.app-shell.dark .app-halo-rays {
+  background: repeating-linear-gradient(
+    90deg,
+    transparent 0 28px,
+    oklch(0.85 0.12 185 / 0.09) 28px 31px,
+    transparent 31px 74px,
+    oklch(0.88 0.14 72 / 0.06) 74px 77px,
+    transparent 77px 128px
   );
 }
 /* The header and bottom mobile nav are opaque `bg-[var(--app-surface)]`
