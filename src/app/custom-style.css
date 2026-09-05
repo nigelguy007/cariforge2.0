@@ -1006,7 +1006,11 @@
     0 1px 2px oklch(0.2 0.03 var(--brand-h) / 0.06),
     0 6px 16px -10px oklch(var(--brand-l) var(--brand-c) var(--brand-h) / 0.25);
   --app-content: 860px;
-  --app-nav-w: 220px;
+  /* 220px -> 200px (2026-09-05, "make the interface a bit thinner ... like
+     the [marketing] reference"): a narrower nav column reads lighter
+     without cramping the label text inside it (PrimaryNav's labels are
+     short: Home, Projects, Templates, Settings). */
+  --app-nav-w: 200px;
   --app-transition: 160ms ease;
 
   /* Type scale for the app — noticeably smaller than the marketing scale
@@ -1228,28 +1232,37 @@
    it's the presentation most people actually see). Pulled back from the
    third pass's peak of 0.66-0.68 (2026-09-05: "its too yellow" / "not
    what i expected", the whole page reading as one dominant flat colour)
-   — the real fix was the ellipse reshape above, not raw alpha; these
-   values are deliberately more moderate now that the actual ramp is
-   visible instead of one stop dominating everything. */
+   — the real fix was the ellipse reshape above, not raw alpha, and the
+   fourth pass's 0.4-0.44 peak undercorrected once that shape fix landed:
+   real feedback on the deployed dashboard was "i want to see that
+   different colour effect in the background similar to the [cosmoq
+   marketing hero]" — the ramp was present but too faint to read as the
+   reference's vivid sunrise. Fifth pass sits deliberately BETWEEN those
+   two data points (peak ~0.56, not back to 0.68) — the shape is already
+   right, so this alpha increase doesn't reintroduce the "one dominant
+   flat colour" failure the third pass had. The warm sun-corner layer
+   gets the biggest bump (0.26 -> 0.44): it was the most washed-out part
+   of the ramp and the part that reads most clearly as "sunrise" rather
+   than "sea," matching cosmoq-home.css's own .cq-sun treatment. */
 .app-shell.dark .app-halo::before {
   background:
-    radial-gradient(ellipse 40% 55% at 38% 40%, oklch(0.88 0.16 72 / 0.26) 0%, transparent 60%),
+    radial-gradient(ellipse 42% 58% at 36% 38%, oklch(0.88 0.16 72 / 0.44) 0%, transparent 62%),
     radial-gradient(
       ellipse 55% 65% at 50% 45%,
-      oklch(0.95 0.07 185 / 0.4) 0%,
-      oklch(0.8 0.15 178 / 0.44) 24%,
-      oklch(var(--brand-l) var(--brand-c) var(--brand-h) / 0.4) 46%,
-      oklch(0.58 0.15 200 / 0.3) 68%,
-      oklch(0.42 0.16 240 / 0.18) 86%,
+      oklch(0.95 0.07 185 / 0.52) 0%,
+      oklch(0.8 0.15 178 / 0.56) 24%,
+      oklch(var(--brand-l) var(--brand-c) var(--brand-h) / 0.52) 46%,
+      oklch(0.58 0.15 200 / 0.4) 68%,
+      oklch(0.42 0.16 240 / 0.24) 86%,
       transparent 100%
     );
 }
 .app-shell.dark .app-halo::after {
   background: radial-gradient(
     circle,
-    oklch(0.42 0.16 240 / 0.28) 0%,
-    oklch(0.58 0.15 200 / 0.24) 40%,
-    oklch(var(--brand-l) calc(var(--brand-c) * 0.9) var(--brand-h) / 0.18) 68%,
+    oklch(0.42 0.16 240 / 0.36) 0%,
+    oklch(0.58 0.15 200 / 0.3) 40%,
+    oklch(var(--brand-l) calc(var(--brand-c) * 0.9) var(--brand-h) / 0.24) 68%,
     transparent 88%
   );
 }
@@ -1257,9 +1270,9 @@
   background: repeating-linear-gradient(
     90deg,
     transparent 0 28px,
-    oklch(0.85 0.12 185 / 0.09) 28px 31px,
+    oklch(0.85 0.12 185 / 0.13) 28px 31px,
     transparent 31px 74px,
-    oklch(0.88 0.14 72 / 0.06) 74px 77px,
+    oklch(0.88 0.14 72 / 0.09) 74px 77px,
     transparent 77px 128px
   );
 }

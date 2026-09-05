@@ -91,8 +91,14 @@ export function AppShell({ children }: AppShellProps) {
       >
         Skip to content
       </a>
-      <header className="sticky top-0 z-30 border-b border-[var(--app-border)] bg-[var(--app-surface)]">
-        <div className="mx-auto flex h-14 w-full max-w-[1200px] items-center justify-between gap-3 px-4 sm:px-6">
+      {/* The floating frosted-glass background/blur here comes from the
+          structural `.app-shell > header` rule in custom-style.css (added
+          earlier for "I CANT SEE the halo at home") — not a class on this
+          element, so don't duplicate it here. h-12 (was h-14) and the
+          --glass-border edge are this round's "make the interface a bit
+          thinner ... like the [marketing reference]" pass. */}
+      <header className="sticky top-0 z-30 border-b border-[var(--glass-border)]">
+        <div className="mx-auto flex h-12 w-full max-w-[1200px] items-center justify-between gap-3 px-4 sm:px-6">
           <Link href="/missions" className="flex min-w-0 items-center gap-2">
             <BrandMark size={26} />
             <span className="truncate font-semibold text-[var(--app-text)]">CariForge</span>
@@ -152,9 +158,12 @@ export function AppShell({ children }: AppShellProps) {
         </div>
       </header>
 
-      <div className="mx-auto flex w-full max-w-[1200px] gap-6 px-4 pb-24 pt-6 sm:px-6 lg:pb-10">
+      {/* pt-5 (was pt-6) and the sidebar's top-16 (was top-20, matching the
+          header's new h-12 + a 16px gap): same "thinner" pass as the
+          header above. */}
+      <div className="mx-auto flex w-full max-w-[1200px] gap-6 px-4 pb-24 pt-5 sm:px-6 lg:pb-10">
         <aside className="hidden w-[var(--app-nav-w)] shrink-0 lg:block">
-          <div className="sticky top-20">
+          <div className="sticky top-16">
             <PrimaryNav variant="sidebar" />
           </div>
         </aside>
@@ -163,7 +172,7 @@ export function AppShell({ children }: AppShellProps) {
         </main>
       </div>
 
-      <div className="fixed inset-x-0 bottom-0 z-30 border-t border-[var(--app-border)] bg-[var(--app-surface)] pb-[env(safe-area-inset-bottom)] lg:hidden">
+      <div className="fixed inset-x-0 bottom-0 z-30 border-t border-[var(--glass-border)] pb-[env(safe-area-inset-bottom)] lg:hidden">
         <PrimaryNav variant="bottom" />
       </div>
     </div>
