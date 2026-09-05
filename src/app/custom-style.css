@@ -1535,6 +1535,49 @@
   transform: none;
   box-shadow: none;
 }
+/* Office view CTA — a deliberate, scoped EXCEPTION to the flattening
+   above. Real user request (2026-09-05): "make the office view a liquid
+   glass button" on the plain text "Open Office view →" link. Reusing
+   .glass-cta itself would do nothing (this file flattens it four rules
+   up on purpose, for the rest of the app's "small and clean" signed-in
+   chrome), so this is its own class, reading the same --glass-* tokens
+   .glass-card uses directly — which .dark.dark already makes a genuinely
+   dark, frosted, blurred fill (see that token's own comment) since
+   .app-shell always carries the `dark` class. One button, not a reversal
+   of the app-wide decision to keep the dashboard's other surfaces flat. */
+.app-shell .app-glass-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  min-height: 2.75rem;
+  padding: 0.5rem 1.25rem;
+  border-radius: 999px;
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  backdrop-filter: blur(var(--glass-blur)) saturate(160%);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(160%);
+  box-shadow:
+    0 1px 2px oklch(0.2 0.02 var(--brand-h) / 0.08),
+    0 10px 28px -12px var(--glass-shadow);
+  color: var(--glass-ink);
+  font-weight: 600;
+  font-size: var(--app-small);
+  text-decoration: none;
+  transition:
+    transform var(--app-transition),
+    box-shadow var(--app-transition),
+    background var(--app-transition);
+}
+.app-shell .app-glass-cta:hover {
+  transform: translateY(-1px);
+  background: color-mix(in oklab, var(--glass-bg) 82%, var(--app-accent) 18%);
+  box-shadow:
+    0 1px 2px oklch(0.2 0.02 var(--brand-h) / 0.1),
+    0 16px 36px -14px var(--glass-shadow);
+}
+.app-shell .app-glass-cta:active {
+  transform: translateY(0);
+}
 /* The marketing type scale is far too large for the app. Any reused
    component that still uses text-h1/text-h2 gets the app scale. */
 .app-shell .text-h1 {

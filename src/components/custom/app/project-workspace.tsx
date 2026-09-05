@@ -8,6 +8,7 @@
 
 'use client';
 
+import { Building2 } from 'lucide-react';
 import Link from 'next/link';
 import * as React from 'react';
 import { Button } from '@/components/ui/button';
@@ -166,8 +167,14 @@ export function ProjectWorkspace({ missionSlug }: { missionSlug: string }) {
       />
 
       <div className="flex justify-end">
-        <Link href={`/missions/${missionSlug}/office`} className="app-link app-small">
-          Open Office view →
+        {/* .app-glass-cta (custom-style.css): a deliberate, scoped liquid-
+            glass treatment for this one CTA — real user request
+            (2026-09-05), "make the office view a liquid glass button" —
+            not a reversal of the rest of the signed-in app's flat "small
+            and clean" chrome. */}
+        <Link href={`/missions/${missionSlug}/office`} className="app-glass-cta">
+          <Building2 className="size-4" aria-hidden="true" />
+          Open Office view
         </Link>
       </div>
 

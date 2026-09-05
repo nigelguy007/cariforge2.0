@@ -1,22 +1,32 @@
 // @polsia:user-owned — the actual "Office" visualization for
-// mission-office-view.tsx, round 4 (2026-09-05). Full history: user asked
+// mission-office-view.tsx, round 5 (2026-09-05). Full history: user asked
 // for "people in an office 3D looking" and pointed at
 // github.com/pixel-agents-hq/pixel-agents, then at the VS Code extension
 // thomasarisu.agent-office (a three.js voxel office) — both confirmed by
 // reading their actual repos to be standalone webview/servers watching
 // ONE live Claude Code terminal's hook/JSONL events, with no importable
 // component, so neither was something to import. A CSS-only flat "modern
-// desk" attempt was rejected ("you are not doing as i expected"), so a
-// genuine react-three-fiber 3D scene was built next — and THAT was also
-// rejected: "can you make them liik like people who walk from desk to
-// desk in an office room and not look 3d?" Clarified directly: side view,
-// "want to see the people then see them walk". This is that — a flat
-// Canvas 2D side-view office (a floor line, desks left to right, simple
-// human silhouettes drawn from primitives, no licensed art), where each
-// real agent's character actually walks — a continuously interpolated x
-// position, not a CSS wobble or a 3D transform — driven by the exact same
-// per-stage status the earlier attempts used (no fabricated telemetry;
-// nothing here is a second source of truth).
+// desk" attempt was rejected ("you are not doing as i expected"), a
+// genuine react-three-fiber 3D scene was rejected next ("can you make
+// them liik like people who walk from desk to desk in an office room and
+// not look 3d?"), and round 4 built the clarified direction: side view,
+// walking characters. That still wasn't the finish line: "i dpnt like the
+// characters in the office make them look like people at desks .. give
+// an office scene" — round 4's figures stood next to bare desks on an
+// empty floor with no real room around them, and a seated figure barely
+// read as "sitting" (a 2px head-drop from standing height). Round 5 is
+// still Canvas 2D side view (that part landed) but now a real *room*:
+// a two-tone wall with a baseboard, windows, potted plants at both ends,
+// wood-plank floor lines, an actual chair behind each desk, and a desk
+// front (modesty) panel that's drawn on top of a seated figure's legs —
+// the standard flat-illustration trick for "sitting at a desk" that
+// round 4 didn't do, so seated figures previously looked like they were
+// standing beside the desk rather than sitting at it. The same request
+// also flagged the canvas rendering flush against its own card border
+// with no breathing room ("the writing is too close to the border") —
+// fixed by giving the wrapper real padding so the whole scene sits inset
+// like a framed picture, the same visual pattern every other card in this
+// app already uses, rather than the canvas bleeding edge-to-edge.
 //
 // Design note on "walk from desk to desk": the real pipeline models 5
 // distinct agents each owning one stage, not one worker rotating through
@@ -71,8 +81,14 @@ interface OfficeColors {
   readonly warn: string;
   readonly muted: string;
   readonly floor: string;
+  readonly floorSeam: string;
   readonly wall: string;
+  readonly baseboard: string;
+  readonly windowFrame: string;
   readonly deskWood: string;
+  readonly deskWoodDark: string;
+  readonly chair: string;
+  readonly plantPot: string;
   readonly text: string;
   readonly textMuted: string;
   readonly skin: string;
@@ -97,16 +113,19 @@ interface CharacterState {
   patrolDir: 1 | -1;
 }
 
-const HEAD_R = 13;
-const TORSO_W = 24;
-const TORSO_H = 42;
-const LEG_LEN = 32;
-const ARM_LEN = 26;
+const HEAD_R = 15;
+const TORSO_W = 28;
+const TORSO_H = 46;
+const LEG_LEN = 34;
+const ARM_LEN = 28;
 const STAND_HEIGHT = HEAD_R * 2 + TORSO_H + LEG_LEN;
 const WALK_SPEED = 46; // px/sec
 const ARRIVE_EPSILON = 1.5;
-const PATROL_RANGE = 34;
-const STEP_OUT_OFFSET = 46;
+const PATROL_RANGE = 30;
+const STEP_OUT_OFFSET = 50;
+const CANVAS_H = 360;
+const DESK_W = 104;
+const DESK_LEG_INSET = 10;
 
 /** Where a character rests for a given status, relative to its own desk
  *  center (deskX). Patrol targets are handled separately each tick. */
@@ -114,30 +133,118 @@ function restOffsetFor(status: OfficeNodeStatus): number {
   return status === 'needs-you' ? STEP_OUT_OFFSET : 0;
 }
 
-function drawDesk(ctx: CanvasRenderingContext2D, x: number, floorY: number, colors: OfficeColors) {
-  const w = 88;
-  const h = 6;
-  const legH = 30;
-  const topY = floorY - legH;
-  ctx.fillStyle = colors.deskWood;
-  ctx.fillRect(x - w / 2, topY - h, w, h);
-  ctx.fillRect(x - w / 2 + 4, topY, 4, legH);
-  ctx.fillRect(x + w / 2 - 8, topY, 4, legH);
-  // Monitor
-  ctx.fillStyle = colors.outline;
-  ctx.fillRect(x - 14, topY - h - 22, 28, 18);
-  ctx.fillStyle = colors.accent;
-  ctx.globalAlpha = 0.55;
-  ctx.fillRect(x - 11, topY - h - 19, 22, 12);
-  ctx.globalAlpha = 1;
+/** The desk's top surface height above the floor — shared by the desk
+ *  drawing and the seated pose math below so a seated figure's forearms
+ *  actually land on the desk surface instead of floating near it. */
+const DESK_TOP_DROP = 50;
+
+/** Chair back + legs, drawn BEHIND everything else at a station (chair,
+ *  then desk, then the person walks/sits in front of both) — a bare
+ *  desk with no chair was part of "make them look like people at desks."
+ *  Side-view silhouettes can't show real depth, so the backrest is drawn
+ *  as a narrow post a few px behind the seat position (opposite the
+ *  desk) with a small cap, just enough to read as "a chair," not a
+ *  literal 3/4-view chair illustration. */
+function drawChair(ctx: CanvasRenderingContext2D, x: number, floorY: number, colors: OfficeColors) {
+  const backX = x + 10;
+  const seatY = floorY - 20;
+  ctx.save();
+  ctx.strokeStyle = colors.chair;
+  ctx.lineWidth = 4;
+  ctx.lineCap = 'round';
+  // Legs (a simple pedestal reads better at this size than four spindly legs).
+  ctx.beginPath();
+  ctx.moveTo(backX, seatY);
+  ctx.lineTo(backX, floorY);
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(backX - 12, floorY);
+  ctx.lineTo(backX + 12, floorY);
+  ctx.stroke();
+  // Seat + backrest.
+  ctx.fillStyle = colors.chair;
+  ctx.beginPath();
+  ctx.roundRect(backX - 16, seatY - 4, 32, 8, 4);
+  ctx.fill();
+  ctx.beginPath();
+  ctx.roundRect(backX - 14, seatY - 58, 24, 46, 8);
+  ctx.fill();
+  ctx.restore();
 }
 
-/** Draws one flat, side-view or front-view human figure from primitives.
- *  `stride` in [-1,1] drives the walk cycle (leg/arm swing); 0 = idle
- *  standing. `seated` draws a bent-leg seated pose instead. `frontFacing`
- *  draws a symmetric front view (used for the "needs you" wave) instead
- *  of the side profile used while walking. */
-function drawPerson(
+/** Desk top, side legs, monitor and keyboard — everything except the
+ *  front face, which is drawn separately (see drawDeskFront) so it can
+ *  be layered on top of a seated figure's legs instead of behind them. */
+function drawDeskBack(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  floorY: number,
+  colors: OfficeColors,
+) {
+  const w = DESK_W;
+  const topY = floorY - DESK_TOP_DROP;
+  ctx.save();
+  ctx.fillStyle = colors.deskWoodDark;
+  ctx.fillRect(x - w / 2 + DESK_LEG_INSET - 2, topY, 4, DESK_TOP_DROP);
+  ctx.fillRect(x + w / 2 - DESK_LEG_INSET - 2, topY, 4, DESK_TOP_DROP);
+  ctx.fillStyle = colors.deskWood;
+  ctx.beginPath();
+  ctx.roundRect(x - w / 2, topY - 7, w, 7, 2);
+  ctx.fill();
+  ctx.strokeStyle = colors.deskWoodDark;
+  ctx.lineWidth = 1;
+  ctx.stroke();
+  // Monitor, offset toward the back of the desk so it sits beside (not
+  // through) the seated figure's head, plus a keyboard on the surface.
+  ctx.fillStyle = colors.outline;
+  ctx.fillRect(x - 16, topY - 7 - 26, 32, 20);
+  ctx.fillStyle = colors.accent;
+  ctx.globalAlpha = 0.6;
+  ctx.fillRect(x - 13, topY - 7 - 23, 26, 14);
+  ctx.globalAlpha = 1;
+  ctx.fillStyle = colors.outline;
+  ctx.fillRect(x - 5, topY - 7 - 6, 10, 3);
+  ctx.fillStyle = colors.deskWoodDark;
+  ctx.globalAlpha = 0.7;
+  ctx.beginPath();
+  ctx.roundRect(x + 18, topY - 5, 16, 6, 2);
+  ctx.fill();
+  ctx.globalAlpha = 1;
+  ctx.restore();
+}
+
+/** The desk's front (modesty) panel — a solid fill spanning the same
+ *  footprint as the desk, from the floor up to just under the desktop.
+ *  Drawing THIS after a seated figure's legs is what actually sells
+ *  "sitting behind a desk": the bent legs disappear behind the panel and
+ *  only the torso/arms/head (drawn after this, in turn) remain visible
+ *  above the desktop — the standard trick flat office illustrations use,
+ *  which round 4's desk (a thin two-leg frame with nothing to hide
+ *  behind) never did. */
+function drawDeskFront(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  floorY: number,
+  colors: OfficeColors,
+) {
+  const w = DESK_W - DESK_LEG_INSET * 2 - 6;
+  const topY = floorY - DESK_TOP_DROP + 7;
+  ctx.save();
+  ctx.fillStyle = colors.deskWood;
+  ctx.globalAlpha = 0.94;
+  ctx.beginPath();
+  ctx.roundRect(x - w / 2, topY, w, floorY - topY, 4);
+  ctx.fill();
+  ctx.globalAlpha = 1;
+  ctx.restore();
+}
+
+/** Draws just the legs, in the two poses that ever show below a desk
+ *  line: a walking/standing stride, or bent knees tucked toward the
+ *  seat. Split out from the old single drawPerson so drawDeskFront can
+ *  be layered between the legs and the upper body for a seated figure —
+ *  see the header comment. */
+function drawLegs(
   ctx: CanvasRenderingContext2D,
   opts: {
     x: number;
@@ -146,44 +253,37 @@ function drawPerson(
     stride: number;
     seated: boolean;
     frontFacing: boolean;
-    wave: number;
-    bodyColor: string;
+    hipY: number;
     colors: OfficeColors;
   },
 ) {
-  const { x, floorY, facing, stride, seated, frontFacing, wave, bodyColor, colors } = opts;
-  const headCy = floorY - STAND_HEIGHT + HEAD_R + (seated ? 10 : 0);
-  const torsoTop = headCy + HEAD_R;
-  const torsoBottom = torsoTop + TORSO_H;
-  const hipY = seated ? torsoBottom - 6 : torsoBottom;
-
+  const { x, floorY, facing, stride, seated, frontFacing, hipY, colors } = opts;
   ctx.save();
   ctx.strokeStyle = colors.outline;
-  ctx.lineWidth = 2.5;
+  ctx.lineWidth = 3;
   ctx.lineCap = 'round';
 
   if (seated) {
-    // Bent legs tucked toward the desk, feet resting on the floor.
-    const footX = x + facing * 14;
+    const footX = x + facing * 16;
     ctx.beginPath();
     ctx.moveTo(x - facing * 4, hipY);
-    ctx.lineTo(x + facing * 6, hipY + 16);
+    ctx.lineTo(x + facing * 8, hipY + 16);
     ctx.lineTo(footX, floorY);
     ctx.stroke();
     ctx.beginPath();
     ctx.moveTo(x - facing * 4, hipY);
-    ctx.lineTo(x + facing * 2, hipY + 18);
-    ctx.lineTo(footX - facing * 6, floorY);
+    ctx.lineTo(x + facing * 3, hipY + 18);
+    ctx.lineTo(footX - facing * 7, floorY);
     ctx.stroke();
   } else if (frontFacing) {
     const legSwing = Math.sin(stride) * 4;
     ctx.beginPath();
-    ctx.moveTo(x - 6, hipY);
-    ctx.lineTo(x - 6 + legSwing, floorY);
+    ctx.moveTo(x - 7, hipY);
+    ctx.lineTo(x - 7 + legSwing, floorY);
     ctx.stroke();
     ctx.beginPath();
-    ctx.moveTo(x + 6, hipY);
-    ctx.lineTo(x + 6 - legSwing, floorY);
+    ctx.moveTo(x + 7, hipY);
+    ctx.lineTo(x + 7 - legSwing, floorY);
     ctx.stroke();
   } else {
     const legSwing = Math.sin(stride) * LEG_LEN * 0.45;
@@ -196,44 +296,76 @@ function drawPerson(
     ctx.lineTo(x - legSwing, floorY);
     ctx.stroke();
   }
+  ctx.restore();
+}
+
+/** Torso, arms and head — always drawn last so a seated figure reads as
+ *  sitting ABOVE the desk front panel, exactly like a real desk photo. */
+function drawUpperBody(
+  ctx: CanvasRenderingContext2D,
+  opts: {
+    x: number;
+    facing: 1 | -1;
+    stride: number;
+    seated: boolean;
+    frontFacing: boolean;
+    wave: number;
+    headCy: number;
+    torsoTop: number;
+    torsoH: number;
+    bodyColor: string;
+    colors: OfficeColors;
+  },
+) {
+  const {
+    x,
+    facing,
+    stride,
+    seated,
+    frontFacing,
+    wave,
+    headCy,
+    torsoTop,
+    torsoH,
+    bodyColor,
+    colors,
+  } = opts;
+  ctx.save();
 
   // Torso
   ctx.fillStyle = bodyColor;
   ctx.strokeStyle = colors.outline;
   ctx.lineWidth = 2;
   const torsoX = x - TORSO_W / 2;
-  const torsoH = seated ? TORSO_H - 6 : TORSO_H;
-  const r = 8;
   ctx.beginPath();
-  ctx.roundRect(torsoX, torsoTop, TORSO_W, torsoH, r);
+  ctx.roundRect(torsoX, torsoTop, TORSO_W, torsoH, 9);
   ctx.fill();
   ctx.stroke();
 
   // Arms
   ctx.strokeStyle = colors.outline;
-  ctx.lineWidth = 2.5;
-  const shoulderY = torsoTop + 6;
+  ctx.lineWidth = 3;
+  ctx.lineCap = 'round';
+  const shoulderY = torsoTop + 7;
   if (seated) {
-    // Typing: both forearms reach toward the desk, small oscillation.
     const typeBob = Math.sin(stride) * 2;
     ctx.beginPath();
-    ctx.moveTo(x - 6, shoulderY);
-    ctx.lineTo(x + facing * (ARM_LEN * 0.7), shoulderY + 6 + typeBob);
+    ctx.moveTo(x - 7, shoulderY);
+    ctx.lineTo(x + facing * (ARM_LEN * 0.7), shoulderY + 8 + typeBob);
     ctx.stroke();
     ctx.beginPath();
-    ctx.moveTo(x + 6, shoulderY);
-    ctx.lineTo(x + facing * (ARM_LEN * 0.6), shoulderY + 8 - typeBob);
+    ctx.moveTo(x + 7, shoulderY);
+    ctx.lineTo(x + facing * (ARM_LEN * 0.6), shoulderY + 10 - typeBob);
     ctx.stroke();
   } else if (frontFacing) {
-    // One arm raised and waving, one relaxed at the side.
     const waveAngle = Math.sin(wave) * 0.5 - 0.9;
     ctx.beginPath();
-    ctx.moveTo(x + 8, shoulderY);
-    ctx.lineTo(x + 8 + Math.cos(waveAngle) * ARM_LEN, shoulderY + Math.sin(waveAngle) * ARM_LEN);
+    ctx.moveTo(x + 9, shoulderY);
+    ctx.lineTo(x + 9 + Math.cos(waveAngle) * ARM_LEN, shoulderY + Math.sin(waveAngle) * ARM_LEN);
     ctx.stroke();
     ctx.beginPath();
-    ctx.moveTo(x - 8, shoulderY);
-    ctx.lineTo(x - 8, shoulderY + ARM_LEN * 0.8);
+    ctx.moveTo(x - 9, shoulderY);
+    ctx.lineTo(x - 9, shoulderY + ARM_LEN * 0.8);
     ctx.stroke();
   } else {
     const armSwing = Math.sin(stride + Math.PI) * ARM_LEN * 0.4;
@@ -281,7 +413,7 @@ function drawStatusGlyph(
   ctx.beginPath();
   ctx.arc(x, y, r, 0, Math.PI * 2);
   ctx.fill();
-  ctx.strokeStyle = colors.floor;
+  ctx.strokeStyle = colors.wall;
   ctx.lineWidth = 2;
   ctx.stroke();
 
@@ -306,6 +438,112 @@ function drawStatusGlyph(
     ctx.stroke();
     ctx.beginPath();
     ctx.arc(x, y + 4, 0.8, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  ctx.restore();
+}
+
+/** The room itself: a two-tone wall with a baseboard and windows, a
+ *  wood-plank floor, and a potted plant at each end — everything that
+ *  turns "a grid of desks" into "an office scene," drawn once per frame
+ *  before any desk/character. Pure background; nothing here depends on
+ *  agent status. */
+function drawRoom(
+  ctx: CanvasRenderingContext2D,
+  logicalW: number,
+  logicalH: number,
+  floorY: number,
+  colors: OfficeColors,
+) {
+  const baseboardY = floorY - 14;
+
+  // Wall.
+  ctx.fillStyle = colors.wall;
+  ctx.fillRect(0, 0, logicalW, floorY);
+  // Baseboard band, a touch darker than the wall above it.
+  ctx.fillStyle = colors.baseboard;
+  ctx.globalAlpha = 0.5;
+  ctx.fillRect(0, baseboardY, logicalW, floorY - baseboardY);
+  ctx.globalAlpha = 1;
+
+  // Windows: evenly spaced, skipped on very narrow viewports rather than
+  // cramped together.
+  const windowCount = logicalW > 620 ? 3 : logicalW > 420 ? 2 : 1;
+  const winW = 74;
+  const winH = 92;
+  const winTop = 26;
+  for (let i = 0; i < windowCount; i++) {
+    const cx = ((i + 1) * logicalW) / (windowCount + 1);
+    const left = cx - winW / 2;
+    const sky = ctx.createLinearGradient(0, winTop, 0, winTop + winH);
+    sky.addColorStop(0, colors.accent);
+    sky.addColorStop(1, colors.wall);
+    ctx.save();
+    ctx.globalAlpha = 0.35;
+    ctx.fillStyle = sky;
+    ctx.fillRect(left, winTop, winW, winH);
+    ctx.globalAlpha = 1;
+    ctx.strokeStyle = colors.windowFrame;
+    ctx.lineWidth = 3;
+    ctx.strokeRect(left, winTop, winW, winH);
+    ctx.beginPath();
+    ctx.moveTo(cx, winTop);
+    ctx.lineTo(cx, winTop + winH);
+    ctx.moveTo(left, winTop + winH / 2);
+    ctx.lineTo(left + winW, winTop + winH / 2);
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  // Floor: a base fill plus faint plank seams (vertical lines at an
+  // angle-free, deliberately simple spacing — this is a flat illustration,
+  // not a perspective floor).
+  ctx.fillStyle = colors.floor;
+  ctx.fillRect(0, floorY, logicalW, logicalH - floorY);
+  ctx.strokeStyle = colors.floorSeam;
+  ctx.globalAlpha = 0.5;
+  ctx.lineWidth = 1;
+  const plankW = 54;
+  for (let x = (logicalW % plankW) / 2; x < logicalW; x += plankW) {
+    ctx.beginPath();
+    ctx.moveTo(x, floorY + 4);
+    ctx.lineTo(x, logicalH - 6);
+    ctx.stroke();
+  }
+  ctx.globalAlpha = 0.25;
+  ctx.beginPath();
+  ctx.moveTo(0, floorY + 2);
+  ctx.lineTo(logicalW, floorY + 2);
+  ctx.stroke();
+  ctx.globalAlpha = 1;
+
+  // A plant in each far corner — office dressing that also visually
+  // book-ends the row of desks.
+  drawPlant(ctx, 30, floorY, colors);
+  if (logicalW > 360) drawPlant(ctx, logicalW - 30, floorY, colors);
+}
+
+function drawPlant(ctx: CanvasRenderingContext2D, x: number, floorY: number, colors: OfficeColors) {
+  ctx.save();
+  ctx.fillStyle = colors.plantPot;
+  ctx.beginPath();
+  ctx.moveTo(x - 12, floorY);
+  ctx.lineTo(x + 12, floorY);
+  ctx.lineTo(x + 9, floorY - 20);
+  ctx.lineTo(x - 9, floorY - 20);
+  ctx.closePath();
+  ctx.fill();
+  ctx.fillStyle = colors.done;
+  const leaves: Array<[number, number]> = [
+    [0, -46],
+    [-14, -34],
+    [14, -34],
+    [-8, -50],
+    [10, -50],
+  ];
+  for (const [dx, dy] of leaves) {
+    ctx.beginPath();
+    ctx.ellipse(x + dx, floorY - 20 + dy, 11, 16, dx * 0.03, 0, Math.PI * 2);
     ctx.fill();
   }
   ctx.restore();
@@ -345,8 +583,14 @@ export function MissionOfficeFloor({
       warn: 'oklch(0.62 0.17 60)',
       muted: readToken(wrapper, '--app-text-muted', 'oklch(0.55 0.02 200)'),
       floor: readToken(wrapper, '--app-surface', '#f3f5f6'),
+      floorSeam: readToken(wrapper, '--app-border', '#d8dee2'),
       wall: readToken(wrapper, '--app-surface-muted', '#e7ebee'),
+      baseboard: readToken(wrapper, '--app-border-strong', '#c4ccd1'),
+      windowFrame: readToken(wrapper, '--app-text-muted', '#5c6570'),
       deskWood: readToken(wrapper, '--app-accent-soft', '#cbb994'),
+      deskWoodDark: '#a68a5f',
+      chair: readToken(wrapper, '--app-text-muted', '#5c6570'),
+      plantPot: '#a6673f',
       text: readToken(wrapper, '--app-text', '#1c2024'),
       textMuted: readToken(wrapper, '--app-text-muted', '#5c6570'),
       skin: '#e8b48c',
@@ -386,7 +630,7 @@ export function MissionOfficeFloor({
       const rect = wrapper.getBoundingClientRect();
       const dpr = window.devicePixelRatio || 1;
       logicalW = Math.max(rect.width, 280);
-      logicalH = 300;
+      logicalH = CANVAS_H;
       canvas.width = logicalW * dpr;
       canvas.height = logicalH * dpr;
       canvas.style.width = `${logicalW}px`;
@@ -400,28 +644,11 @@ export function MissionOfficeFloor({
       const dt = Math.min((now - lastT) / 1000, 0.05);
       lastT = now;
       const currentNodes = nodesRef.current;
-      const floorY = logicalH - 46;
+      const floorY = logicalH - 78;
       const count = currentNodes.length || 1;
 
-      // Background
       ctx.clearRect(0, 0, logicalW, logicalH);
-      ctx.fillStyle = colors.wall;
-      ctx.fillRect(0, 0, logicalW, floorY - 40);
-      ctx.fillStyle = colors.floor;
-      ctx.fillRect(0, floorY - 40, logicalW, logicalH - (floorY - 40));
-      ctx.strokeStyle = colors.textMuted;
-      ctx.globalAlpha = 0.25;
-      ctx.lineWidth = 1;
-      ctx.beginPath();
-      ctx.moveTo(0, floorY + 4);
-      ctx.lineTo(logicalW, floorY + 4);
-      ctx.stroke();
-      ctx.globalAlpha = 1;
-
-      currentNodes.forEach((_node, i) => {
-        const home = deskX(i, count);
-        drawDesk(ctx, home, floorY, colors);
-      });
+      drawRoom(ctx, logicalW, logicalH, floorY, colors);
 
       currentNodes.forEach((node, i) => {
         const home = deskX(i, count);
@@ -485,27 +712,54 @@ export function MissionOfficeFloor({
           ctx.restore();
         }
 
-        drawPerson(ctx, {
+        // Layering (see the file header + drawDeskFront comment): chair,
+        // then the desk minus its front face, then this figure's legs,
+        // then — only once seated — the desk's front face on top of
+        // those legs, then the torso/arms/head on top of everything.
+        drawChair(ctx, home, floorY, colors);
+        drawDeskBack(ctx, home, floorY, colors);
+        if (!seated) drawDeskFront(ctx, home, floorY, colors);
+
+        const headCy = floorY - STAND_HEIGHT + HEAD_R + (seated ? 22 : 0);
+        const torsoTop = headCy + HEAD_R;
+        const torsoH = seated ? TORSO_H - 8 : TORSO_H;
+        const torsoBottom = torsoTop + torsoH;
+        const hipY = seated ? torsoBottom - 6 : torsoBottom;
+
+        drawLegs(ctx, {
           x: s.x,
           floorY,
           facing: s.facing,
           stride,
           seated,
           frontFacing,
+          hipY,
+          colors,
+        });
+        if (seated) drawDeskFront(ctx, home, floorY, colors);
+        drawUpperBody(ctx, {
+          x: s.x,
+          facing: s.facing,
+          stride,
+          seated,
+          frontFacing,
           wave: s.walkPhase,
+          headCy,
+          torsoTop,
+          torsoH,
           bodyColor,
           colors,
         });
 
-        drawStatusGlyph(ctx, s.x + 14, floorY - STAND_HEIGHT - 6, node.status, s.walkPhase, colors);
+        drawStatusGlyph(ctx, s.x + 16, headCy - HEAD_R - 8, node.status, s.walkPhase, colors);
 
         ctx.fillStyle = colors.text;
         ctx.font = '600 12px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
         ctx.textAlign = 'center';
-        ctx.fillText(node.agentName, s.x, floorY - STAND_HEIGHT - 16);
+        ctx.fillText(node.agentName, s.x, headCy - HEAD_R - 20);
         ctx.fillStyle = colors.textMuted;
         ctx.font = '11px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
-        ctx.fillText(statusLabel(node.status), s.x, floorY + 20);
+        ctx.fillText(statusLabel(node.status), s.x, floorY + 24);
       });
 
       if (!reducedMotion) raf = requestAnimationFrame(draw);
@@ -515,11 +769,11 @@ export function MissionOfficeFloor({
       const rect = canvas.getBoundingClientRect();
       const x = clientX - rect.left;
       const y = clientY - rect.top;
-      const floorY = logicalH - 46;
+      const floorY = logicalH - 78;
       for (const node of nodesRef.current) {
         const s = statesRef.current.get(node.stage);
         if (!s) continue;
-        if (x >= s.x - 28 && x <= s.x + 28 && y >= floorY - STAND_HEIGHT - 24 && y <= floorY + 12) {
+        if (x >= s.x - 28 && x <= s.x + 28 && y >= floorY - STAND_HEIGHT - 32 && y <= floorY + 16) {
           return node.stage;
         }
       }
@@ -566,15 +820,24 @@ export function MissionOfficeFloor({
   }, []);
 
   return (
+    // p-3/p-4: the whole point of this round's border fix — the canvas
+    // used to fill this box edge-to-edge with zero inset, so its own
+    // drawn content (floor, desks, status captions) sat flush against
+    // the card's visible border. A real inset frame around the "room"
+    // matches how every other card in this app already presents content.
     <div
       ref={wrapperRef}
-      className="w-full overflow-hidden rounded-[var(--app-radius)] border border-[var(--app-border)]"
+      className="w-full overflow-hidden rounded-[var(--app-radius)] border border-[var(--app-border)] bg-[var(--app-surface)] p-3 sm:p-4"
     >
       {/* biome-ignore lint/a11y/noAriaHiddenOnFocusable: a plain <canvas>
           has no tabindex and isn't focusable — its pixel content just
           isn't screen-reader-accessible, which is exactly why the sr-only
           button list below exists as the real accessible equivalent. */}
-      <canvas ref={canvasRef} aria-hidden="true" className="block" />
+      <canvas
+        ref={canvasRef}
+        aria-hidden="true"
+        className="block overflow-hidden rounded-[var(--app-radius-sm)]"
+      />
       <ul className="sr-only">
         {nodes.map((n) => (
           <li key={n.stage}>
