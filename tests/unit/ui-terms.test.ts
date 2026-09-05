@@ -49,13 +49,13 @@ describe('STAGE_UI', () => {
   it('uses the brief’s exact labels', () => {
     expect(STAGE_UI.Discovery).toMatchObject({
       number: 1,
-      short: 'Need',
+      short: 'Understand',
       title: 'Define the need',
       action: 'Confirm need and continue',
     });
     expect(STAGE_UI.SoftwareBuild).toMatchObject({
       number: 5,
-      short: 'Prototype',
+      short: 'Make',
       title: 'Approve the prototype',
       action: 'Approve prototype package',
     });

@@ -37,38 +37,44 @@ export interface StageUi {
   readonly sentence: string;
 }
 
+// `short` matches the Kore.ai-comparison spec's exact progress-line words
+// (2026-09-05: "Understand → Check → Plan → Protect → Make") — used only in
+// compact spots (the mobile stepper) per direct user decision: keep the
+// fuller, already-tested `title`/`sentence` as the actual page heading,
+// since a bare single word ("Protect") is fine in a slim progress strip but
+// too vague as the only thing a first-time user reads on a page.
 export const STAGE_UI: Readonly<Record<StageName, StageUi>> = {
   Discovery: {
     number: 1,
-    short: 'Need',
+    short: 'Understand',
     title: 'Define the need',
     action: 'Confirm need and continue',
     sentence: 'Agree what the business needs before anything is designed.',
   },
   Readiness: {
     number: 2,
-    short: 'Ready',
+    short: 'Check',
     title: 'Check readiness',
     action: 'Confirm readiness and continue',
     sentence: 'Confirm the people, data and constraints are in place to go ahead.',
   },
   Workflow: {
     number: 3,
-    short: 'Workflow',
+    short: 'Plan',
     title: 'Design the workflow',
     action: 'Approve workflow and continue',
     sentence: 'Review the proposed steps, roles and handovers for the work.',
   },
   Governance: {
     number: 4,
-    short: 'Controls',
+    short: 'Protect',
     title: 'Set the controls',
     action: 'Confirm controls and continue',
     sentence: 'Decide what the prototype may do, who approves it and what evidence it must keep.',
   },
   SoftwareBuild: {
     number: 5,
-    short: 'Prototype',
+    short: 'Make',
     title: 'Approve the prototype',
     action: 'Approve prototype package',
     sentence:
