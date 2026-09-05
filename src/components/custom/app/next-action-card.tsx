@@ -16,6 +16,7 @@ import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { apiFetch } from '@/lib/api-client';
 import { useIsAdmin, useSession } from '@/lib/auth-client';
+import { nextActionFor } from '@/lib/business/forge/next-action';
 import { MissionDetail, type MissionDetailT } from '@/lib/contracts/forge';
 import { humaniseCopy, PROTOTYPE_PACKAGE, STAGE_UI, stepNumberLabel } from '@/lib/ui-terms';
 import { DecisionDialog } from './decision-dialog';
@@ -51,7 +52,7 @@ function planFor(view: ProjectWorkspaceView, isAdmin: boolean, canDraft: boolean
         return {
           heading: step.title,
           sentence: canDraft
-            ? 'CariForge has not produced a step output for this step yet. Have it draft one now, then review and decide.'
+            ? 'CariForge has not produced a step output for this step yet. Have it draft one now — it will keep working through the following steps on its own for as long as it can, and only stop here for you when a step genuinely needs your judgment.'
             : 'CariForge has not produced a step output for this step yet, so there is nothing to approve yet. Check back soon.',
           button: canDraft ? { label: 'Draft with AI', draftWithAi: true } : undefined,
         };
@@ -128,6 +129,7 @@ export function NextActionCard({
 }: NextActionCardProps) {
   const [dialogOpen, setDialogOpen] = React.useState(false);
   const [drafting, setDrafting] = React.useState(false);
+  const [draftingStep, setDraftingStep] = React.useState<number | null>(null);
   const isAdmin = useIsAdmin();
   const { data: session } = useSession();
   // Matches submitHandoff's own server-side rule exactly (isAdmin OR the
@@ -143,14 +145,58 @@ export function NextActionCard({
       ? (detail.gates.find((g) => g.gateIndex === action.gateIndex) ?? null)
       : null;
 
+  // User instruction (2026-09-05): "Draft with AI needs to be the start of
+  // work by the agents. They then proceed to build and take user through
+  // journey checking and moving to next stage in 5 agents all the way to
+  // build." Before this, one click only ever drafted+reviewed ONE stage —
+  // even a fully clean auto-advance left the person to come back and
+  // click again for every remaining stage. Now one click chains straight
+  // through every consecutive stage CariForge can clear on its own
+  // (drafted, reviewed, auto-advanced with no concerns), stopping the
+  // instant a stage genuinely needs a human: a concern to answer, low
+  // confidence, or the project reaching a terminal state. nextActionFor
+  // is the same pure function the server's own /next-action endpoint
+  // uses — no guessing at the shape from the client side.
+  const MAX_AUTO_STAGES = 5; // one loop iteration per real stage, hard cap against ever looping forever
   const draftWithAi = async () => {
     setDrafting(true);
     try {
-      await apiFetch(`/api/forge/missions/${detail.mission.id}/draft`, {
-        method: 'POST',
-        schema: MissionDetail,
-      });
-      toast.success('CariForge drafted this step — review it below.');
+      let stepsDrafted = 0;
+      for (let i = 0; i < MAX_AUTO_STAGES; i++) {
+        setDraftingStep(i + 1);
+        const updated = await apiFetch(`/api/forge/missions/${detail.mission.id}/draft`, {
+          method: 'POST',
+          schema: MissionDetail,
+        });
+        stepsDrafted += 1;
+        const nextView = nextActionFor({
+          status: updated.mission.status,
+          gates: updated.gates,
+          approvals: updated.approvals,
+          objections: updated.objections,
+          toolActions: updated.toolActions.map((t) => ({
+            id: t.id,
+            decision: t.decision,
+            tool: t.tool,
+            scope: t.scope,
+          })),
+          workItems: updated.workItems ?? [],
+        });
+        // Only keep going if the mission auto-advanced straight into
+        // ANOTHER gate with nothing drafted for it yet — anything else
+        // (a concern, a low-confidence gate already awaiting a decision,
+        // a paused/terminal mission) means a human is needed now, so stop.
+        const nextGate =
+          nextView.kind === 'ApproveGate'
+            ? (updated.gates.find((g) => g.gateIndex === nextView.gateIndex) ?? null)
+            : null;
+        if (!nextGate || nextGate.currentStageHandoffId) break;
+      }
+      toast.success(
+        stepsDrafted > 1
+          ? `CariForge worked through ${stepsDrafted} steps on its own — review below.`
+          : 'CariForge drafted this step — review it below.',
+      );
       await onWritten();
     } catch (err) {
       // apiFetch's own thrown Error.message is always the generic
@@ -161,6 +207,7 @@ export function NextActionCard({
       toast.error(cause?.error ?? 'Could not draft this step. Try again shortly.');
     } finally {
       setDrafting(false);
+      setDraftingStep(null);
     }
   };
 
@@ -204,7 +251,9 @@ export function NextActionCard({
               else if (plan.button?.section) onOpenSection(plan.button.section);
             }}
           >
-            {plan.button.draftWithAi && drafting ? 'Drafting…' : plan.button.label}
+            {plan.button.draftWithAi && drafting
+              ? `Working${draftingStep && draftingStep > 1 ? ` (step ${draftingStep})` : ''}…`
+              : plan.button.label}
           </Button>
           <Link href="/missions" className="app-link app-small inline-flex min-h-11 items-center">
             Save for later
