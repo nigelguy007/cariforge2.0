@@ -84,7 +84,7 @@ export function EvidenceIndex() {
     content = (
       <div className="app-panel p-5">
         <p className="app-body text-[var(--app-text-muted)]">
-          No projects yet. A project&rsquo;s evidence record appears here once it exists.
+          No projects yet. A project&rsquo;s proof record appears here once it exists.
         </p>
       </div>
     );

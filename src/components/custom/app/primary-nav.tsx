@@ -1,12 +1,15 @@
-// @polsia:user-owned — the app's only global navigation: Projects,
-// Approvals (with a count only when something needs the user), Evidence.
-// Desktop: a 220px left column. Mobile: a three-item bottom bar. Everything
-// else (admin, profile, sign out, the visual canvas) lives in AppShell's
-// avatar menu or is reached contextually from a project.
+// @polsia:user-owned — the app's only global navigation: Home, Projects,
+// Templates, Settings (nav restructure, 2026-09-05). Home carries a count
+// badge — the same "something needs the user" signal Approvals used to show
+// here — since Approvals itself is reached from Home's own Needs-you section
+// rather than being a persistent nav item. Desktop: a 220px left column.
+// Mobile: a four-item bottom bar. Everything else (admin, profile, sign out,
+// the visual canvas) lives in AppShell's avatar menu or is reached
+// contextually from a project.
 
 'use client';
 
-import { CheckSquare, FolderKanban, ShieldCheck } from 'lucide-react';
+import { FolderKanban, Home, LayoutTemplate, Settings } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { PRIMARY_NAV, type PrimaryNavItem } from '@/lib/app-routes';
@@ -14,9 +17,10 @@ import { cn } from '@/lib/utils';
 import { useApprovalsCount } from './use-approvals-count';
 
 const ICONS: Record<PrimaryNavItem['href'], typeof FolderKanban> = {
+  '/home': Home,
   '/missions': FolderKanban,
-  '/approvals': CheckSquare,
-  '/evidence': ShieldCheck,
+  '/templates': LayoutTemplate,
+  '/settings': Settings,
 };
 
 function isActive(pathname: string, href: string) {
@@ -32,13 +36,13 @@ export function PrimaryNav({ variant }: { variant: 'sidebar' | 'bottom' }) {
       aria-label="Main"
       className={cn(
         variant === 'sidebar' && 'flex flex-col gap-1',
-        variant === 'bottom' && 'grid grid-cols-3',
+        variant === 'bottom' && 'grid grid-cols-4',
       )}
     >
       {PRIMARY_NAV.map((item) => {
         const Icon = ICONS[item.href];
         const active = isActive(pathname, item.href);
-        const showCount = item.href === '/approvals' && approvals.total > 0;
+        const showCount = item.href === '/home' && approvals.total > 0;
         return (
           <Link
             key={item.href}

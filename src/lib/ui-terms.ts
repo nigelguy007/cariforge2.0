@@ -168,6 +168,58 @@ export function statusLabel(status: MissionStatus): string {
   return STATUS_UI[status];
 }
 
+// === Home's compact four-state view =========================================
+// Nav restructure (2026-09-05, Kore.ai-Artemis comparison brief): Home's
+// recent-projects list needs a badge a first-time user can scan at a glance,
+// not the full 13-value STATUS_UI. This collapses every MissionStatus into
+// exactly four display states. STATUS_UI/STATUS_TONE/StatusBadge are
+// unchanged and stay the detailed view used on the project workspace itself
+// (direct user decision) — this is a second, deliberately coarser map for
+// Home only, reusing the same tone system (StatusTone, TONE_CLASS/TONE_ICON
+// in status-badge.tsx) rather than inventing new colours.
+
+export type ProjectDisplayState = 'draft' | 'working' | 'needs_you' | 'done';
+
+const DISPLAY_STATE_BY_STATUS: Readonly<Partial<Record<MissionStatus, ProjectDisplayState>>> = {
+  Draft: 'draft',
+  InDiscovery: 'working',
+  InReadiness: 'working',
+  InWorkflow: 'working',
+  InGovernance: 'working',
+  InBuild: 'working',
+  Paused: 'working',
+  AwaitingApproval: 'needs_you',
+  Blocked: 'needs_you',
+  Completed: 'done',
+  WalkedAway: 'done',
+  Rejected: 'done',
+  RolledBack: 'done',
+};
+
+export const DISPLAY_STATE_UI: Readonly<Record<ProjectDisplayState, string>> = {
+  draft: 'Draft',
+  working: 'Working',
+  needs_you: 'Needs you',
+  done: 'Done',
+};
+
+export const DISPLAY_STATE_TONE: Readonly<Record<ProjectDisplayState, StatusTone>> = {
+  draft: 'neutral',
+  working: 'progress',
+  needs_you: 'attention',
+  done: 'done',
+};
+
+/**
+ * Collapses a MissionStatus into Home's compact four-state badge. Fails
+ * safe: any status this map hasn't been explicitly taught (including a
+ * genuinely new/future one) reads as `needs_you`, never `done` — an unknown
+ * state must ask a human, not look finished.
+ */
+export function displayStateFor(status: MissionStatus): ProjectDisplayState {
+  return DISPLAY_STATE_BY_STATUS[status] ?? 'needs_you';
+}
+
 // A distinct enum from MissionStatus (ReleaseRead.releaseStatus) — the
 // release panel's own view of where the build stands. Same "never a raw
 // enum on screen" rule.

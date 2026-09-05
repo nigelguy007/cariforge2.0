@@ -291,12 +291,12 @@ export function SupportingDetail({
         <p className="app-small mt-1 text-[var(--app-text-muted)]">
           The prototype, its Project plan and its Operating guide. This is a prototype boundary, not
           a production deployment. The full decision record — why this exists, who approved each
-          step, what changed — is on the Evidence page for this project.
+          step, what changed — is on the Proof page for this project.
         </p>
         <ul className="mt-3 flex flex-wrap gap-x-4 gap-y-2">
           <li>
             <Link href={`/evidence/${missionSlug}`} className="app-link app-small">
-              Open the full evidence record
+              Open the full proof record
             </Link>
           </li>
           <li>

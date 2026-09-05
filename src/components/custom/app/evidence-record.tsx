@@ -148,7 +148,7 @@ export function EvidenceRecord({ missionSlug }: { missionSlug: string }) {
       }
       const detail = await apiFetch(`/api/forge/missions/${id}`, { schema: MissionDetail });
       setState({ status: 'ready', detail });
-      setAnnouncement('Evidence record loaded');
+      setAnnouncement('Proof record loaded');
     } catch (err) {
       setState({
         status: 'error',
@@ -206,7 +206,7 @@ export function EvidenceRecord({ missionSlug }: { missionSlug: string }) {
       <div className="app-content space-y-6">
         <header className="flex flex-wrap items-start justify-between gap-x-4 gap-y-2">
           <div>
-            <p className="app-caption text-[var(--app-text-muted)]">Evidence record</p>
+            <p className="app-caption text-[var(--app-text-muted)]">Proof record</p>
             <h1 className="app-h1 mt-0.5 text-[var(--app-text)]">{view.project.name}</h1>
           </div>
           <StatusBadge status={detail.mission.status} />
@@ -256,7 +256,7 @@ export function EvidenceRecord({ missionSlug }: { missionSlug: string }) {
                 className="app-link app-small"
                 href={`/api/forge/missions/${detail.mission.id}/export?format=pdf`}
               >
-                Evidence record (PDF)
+                Proof record (PDF)
               </a>
             </li>
           </ul>
