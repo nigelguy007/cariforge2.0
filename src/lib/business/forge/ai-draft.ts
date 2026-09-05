@@ -86,12 +86,16 @@ function getClient(): Anthropic | null {
   // to { status: 'unavailable' } and the human's own fallback form still
   // works — so there is no upside to the SDK spending minutes retrying
   // before honoring that; fail fast and let the existing degrade path do
-  // its job instead.
+  // its job instead. 45s (not the 30s first tried): StepDraftV4 is a much
+  // larger schema than the proven configurator.ts/qa-review.ts ones (17
+  // fields vs ~5) — confirmed live that a real call to THIS function
+  // genuinely needs more than 30s to complete, timing out and correctly
+  // degrading at that cap on the first attempt after this fix shipped.
   cachedClient = apiKey
     ? new Anthropic({
         apiKey,
         baseURL: 'https://ai-gateway.vercel.sh',
-        timeout: 30_000,
+        timeout: 45_000,
         maxRetries: 0,
       })
     : null;

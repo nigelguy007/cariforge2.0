@@ -52,12 +52,17 @@ function getClient(): Anthropic | null {
   // to two of the up-to-five sequential calls in that same request
   // (reviewStepDraft, reconcileConcerns). Both already degrade to
   // { status: 'unavailable' } on any failure, so failing fast serves the
-  // existing design better than a long SDK-level retry ever could.
+  // existing design better than a long SDK-level retry ever could. 45s to
+  // match ai-draft.ts's budget — same reasoning applies (a fixed 5-role
+  // structured array is a larger, slower generation than the proven
+  // single-call patterns this was modeled on), and keeps the worst case
+  // for up to five chained calls in one request safely under the
+  // platform's 300s ceiling (5 × 45s = 225s).
   cachedClient = apiKey
     ? new Anthropic({
         apiKey,
         baseURL: 'https://ai-gateway.vercel.sh',
-        timeout: 30_000,
+        timeout: 45_000,
         maxRetries: 0,
       })
     : null;
