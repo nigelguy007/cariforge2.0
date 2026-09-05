@@ -25,6 +25,7 @@ import {
 } from '@/components/ui/form';
 import { Textarea } from '@/components/ui/textarea';
 import { apiFetch } from '@/lib/api-client';
+import { apiErrorMessage } from '@/lib/api-error-message';
 import {
   ConfiguratorRequest,
   ConfiguratorResponse,
@@ -128,8 +129,8 @@ export function WorkflowConfigurator() {
           'The configurator is unavailable right now — try the front-door brief instead.',
         );
       }
-    } catch {
-      toast.error('Could not run the configurator. Please try again.');
+    } catch (err) {
+      toast.error(apiErrorMessage(err, 'Could not run the configurator. Please try again.'));
     }
   });
 

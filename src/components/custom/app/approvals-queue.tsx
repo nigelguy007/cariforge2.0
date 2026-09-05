@@ -69,8 +69,13 @@ function RunRow({ task, onDecided }: { task: CanvasTaskItemT; onDecided: () => v
       });
       toast.success(decision === 'Approved' ? 'Approved — the run continues.' : 'Run stopped.');
       onDecided();
-    } catch {
-      toast.error('The decision could not be saved. Check your connection and try again.');
+    } catch (err) {
+      toast.error(
+        apiErrorMessage(
+          err,
+          'The decision could not be saved. Check your connection and try again.',
+        ),
+      );
     } finally {
       setBusy(null);
     }
