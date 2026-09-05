@@ -12,6 +12,7 @@
 // section's own <details><summary> in project-workspace.tsx, so this
 // component renders only the list and the council-review footer.
 
+import { Check } from 'lucide-react';
 import { MissionGeneratedFiles } from '@/components/custom/missions/mission-generated-files';
 import {
   GATE_DEFS,
@@ -20,6 +21,7 @@ import {
   type StageName,
 } from '@/lib/contracts/forge';
 import { AGENT_ACTIVITY_UI, DECISION_UI, humanise, reasonLabel, STEPS } from '@/lib/ui-terms';
+import { cn } from '@/lib/utils';
 
 // Generic: works for both an AI-drafted payload (known field names, see
 // ai-draft.ts's StepDraftV4) and a human-typed one (arbitrary JSON) —
@@ -175,18 +177,34 @@ export function AgentActivityPanel({
           return (
             <li key={step.stage}>
               <details className="app-disclosure">
-                <summary className="flex min-h-9 items-baseline gap-2 app-small">
+                {/* Status dot + row tint (design synthesis, 2026-09-05 —
+                    credo.ai/product + layer.ai as references): the same
+                    "circle, coloured by real status" language
+                    project-stepper.tsx's gate rail uses, so an agent's
+                    row here and its node on the pipeline bar above read
+                    as the same product rather than two different visual
+                    systems for the same five stages. The working row
+                    gets a soft tinted background (not just the glyph) so
+                    it reads as "this one is live" at a glance. */}
+                <summary
+                  className={cn(
+                    'app-small -mx-1 flex min-h-9 items-baseline gap-2 rounded-[var(--app-radius-sm)] px-1',
+                    working && 'bg-[var(--app-accent-soft)]',
+                  )}
+                >
                   <span
                     aria-hidden="true"
-                    className={
-                      done
-                        ? 'text-emerald-600'
-                        : working
-                          ? 'animate-pulse text-[var(--app-accent)]'
-                          : 'text-[var(--app-text-muted)]'
-                    }
+                    className={cn(
+                      'flex size-4 shrink-0 items-center justify-center rounded-full',
+                      done && 'bg-[var(--app-accent)] text-white',
+                      working &&
+                        'app-node-pulse bg-[var(--app-accent-soft)] text-[var(--app-accent)]',
+                      !done && !working && 'bg-[var(--app-border-strong)]/40',
+                    )}
                   >
-                    {done ? '✓' : working ? '…' : '·'}
+                    {done ? (
+                      <Check aria-hidden="true" className="size-2.5" strokeWidth={3.5} />
+                    ) : null}
                   </span>
                   <span
                     className={

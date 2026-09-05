@@ -147,6 +147,7 @@ export function ProjectWorkspace({ missionSlug }: { missionSlug: string }) {
         completedSteps={view.completedSteps}
         revisitTargetId={DETAIL_ID}
         onRevisit={(n) => openSection('decisions', n)}
+        approvals={detail.approvals}
       />
 
       <div>

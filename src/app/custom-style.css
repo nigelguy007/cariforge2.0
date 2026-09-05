@@ -1430,6 +1430,25 @@
   border-radius: var(--app-radius);
   box-shadow: var(--app-shadow-action);
 }
+/* project-stepper.tsx's current-step node: a soft pulsing glow, the same
+   "glowing" treatment pulled from the design-synthesis pass (2026-09-05,
+   credo.ai/product + layer.ai + a CI/CD-style approval-gate rail as the
+   three references). A real element (a <span>, not a pseudo-element),
+   so the existing `.app-shell * { animation-duration: 0s !important }`
+   reduced-motion rule further below already disables this for anyone
+   who's asked — no separate guard needed here. */
+.app-shell .app-node-pulse {
+  animation: app-node-pulse 2.2s ease-in-out infinite;
+}
+@keyframes app-node-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 oklch(var(--brand-l) var(--brand-c) var(--brand-h) / 0.45);
+  }
+  50% {
+    box-shadow: 0 0 0 6px oklch(var(--brand-l) var(--brand-c) var(--brand-h) / 0);
+  }
+}
 .app-shell .app-row {
   border-bottom: 1px solid var(--app-border);
 }

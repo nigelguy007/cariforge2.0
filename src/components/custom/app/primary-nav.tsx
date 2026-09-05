@@ -49,11 +49,18 @@ export function PrimaryNav({ variant }: { variant: 'sidebar' | 'bottom' }) {
             href={item.href}
             aria-current={active ? 'page' : undefined}
             className={cn(
-              'app-transition flex min-h-11 items-center gap-2 rounded-[var(--app-radius-sm)] px-3 text-[length:var(--app-body)] font-medium',
+              // Glowing active-state (design synthesis, 2026-09-05 —
+              // credo.ai/product + layer.ai as references): a persistent
+              // transparent border-l on every item, coloured only when
+              // active, so toggling active state never shifts layout —
+              // plus a soft accent glow, the same "glowing nav" treatment
+              // pulled from that pass. Bottom bar uses border-t instead
+              // (a left edge means nothing in a horizontal bar).
+              'app-transition flex min-h-11 items-center gap-2 rounded-[var(--app-radius-sm)] border-l-2 border-transparent px-3 text-[length:var(--app-body)] font-medium',
               variant === 'bottom' &&
-                'flex-col justify-center gap-0.5 rounded-none py-1.5 text-[length:var(--app-caption)]',
+                'flex-col justify-center gap-0.5 rounded-none border-t-2 border-l-0 py-1.5 text-[length:var(--app-caption)]',
               active
-                ? 'bg-[var(--app-accent-soft)] text-[var(--app-text)]'
+                ? 'border-[var(--app-accent)] bg-[var(--app-accent-soft)] text-[var(--app-text)] shadow-[0_0_16px_-6px_var(--app-accent-border)]'
                 : 'text-[var(--app-text-muted)] hover:bg-[var(--secondary)] hover:text-[var(--app-text)]',
             )}
           >
