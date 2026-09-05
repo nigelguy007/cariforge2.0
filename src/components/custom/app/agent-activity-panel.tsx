@@ -67,7 +67,7 @@ function generatedFilesFrom(payload: Record<string, unknown>): { path: string; c
  *  asked to do, what it produced, its confidence, concerns raised, and
  *  why the decision landed the way it did — all from data already on
  *  the mission, no new fetch. */
-function AgentStepDetail({
+export function AgentStepDetail({
   step,
   handoff,
   gate,

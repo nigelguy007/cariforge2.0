@@ -165,6 +165,12 @@ export function ProjectWorkspace({ missionSlug }: { missionSlug: string }) {
         onDraftingStageChange={setDraftingStage}
       />
 
+      <div className="flex justify-end">
+        <Link href={`/missions/${missionSlug}/office`} className="app-link app-small">
+          Open Office view →
+        </Link>
+      </div>
+
       <details ref={agentActivityRef} className="app-disclosure">
         <summary className="flex min-h-11 items-center justify-between gap-3">
           <span className="app-body font-medium text-[var(--app-text)]">Agent activity</span>
