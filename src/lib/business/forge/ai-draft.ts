@@ -23,28 +23,48 @@ import { GATE_DEFS, type StageName } from '@/lib/contracts/forge';
 
 // One shared shape across all five stages (simpler to maintain than five
 // bespoke schemas) — the system prompt tells the model which fields matter
-// for the stage it was asked to draft; the rest are left empty. Field names
-// match what the existing translated views already read from a handoff's
-// payload (evidence-view.ts's payloadText() keys), so an AI-drafted step
-// shows up correctly everywhere a human-typed one would have.
+// for the stage it was asked to draft; the rest come back as an empty
+// string/array (see the "leave every other field..." system-prompt line
+// below), never omitted. Field names match what the existing translated
+// views already read from a handoff's payload (evidence-view.ts's
+// payloadText() keys), so an AI-drafted step shows up correctly everywhere
+// a human-typed one would have — an empty string/array reads identically
+// to an absent key everywhere downstream (every reader checks
+// `typeof x === 'string' && x.trim()` or `.length > 0`), so nothing here
+// changes what the UI shows.
+//
+// Every field below is REQUIRED, not `.optional()` — deliberately, after a
+// live incident (2026-09-05): with ~10 of these 17 fields marked
+// `.optional()`, real calls against this schema hung indefinitely against
+// the Vercel AI Gateway (30s, 45s, and 60s client-side timeouts all
+// elapsed identically without the call ever completing), while the
+// smaller, all-required schemas in configurator.ts/qa-review.ts and this
+// same file's own oracle-review.ts sibling complete reliably in ~13s.
+// That specific difference — many optional fields in one strict
+// structured-output schema — is a known friction point for JSON-schema
+// strict mode (some fields need `anyOf: [type, null]` rather than true
+// optionality to stay satisfiable), so the model may be getting stuck
+// trying to satisfy an internally-inconsistent generated schema. This is
+// the fix for that theory; if it doesn't hold, the next thing to try is
+// splitting this into two smaller calls instead of one 17-field one.
 const StepDraftV4 = z4.object({
   summary: z4.string(),
-  problemStatement: z4.string().optional(),
-  needs: z4.array(z4.string()).optional(),
-  risks: z4.array(z4.string()).optional(),
-  questions: z4.array(z4.string()).optional(),
-  stakeholders: z4.array(z4.string()).optional(),
-  dataSourcesAvailable: z4.array(z4.string()).optional(),
-  missingEvidence: z4.array(z4.string()).optional(),
-  steps: z4.array(z4.string()).optional(),
-  owners: z4.array(z4.string()).optional(),
-  acceptanceCriteria: z4.array(z4.string()).optional(),
-  decisionControl: z4.string().optional(),
-  dataControl: z4.string().optional(),
-  evidenceRetention: z4.string().optional(),
-  controls: z4.array(z4.string()).optional(),
-  scope: z4.array(z4.string()).optional(),
-  checksPassed: z4.array(z4.string()).optional(),
+  problemStatement: z4.string(),
+  needs: z4.array(z4.string()),
+  risks: z4.array(z4.string()),
+  questions: z4.array(z4.string()),
+  stakeholders: z4.array(z4.string()),
+  dataSourcesAvailable: z4.array(z4.string()),
+  missingEvidence: z4.array(z4.string()),
+  steps: z4.array(z4.string()),
+  owners: z4.array(z4.string()),
+  acceptanceCriteria: z4.array(z4.string()),
+  decisionControl: z4.string(),
+  dataControl: z4.string(),
+  evidenceRetention: z4.string(),
+  controls: z4.array(z4.string()),
+  scope: z4.array(z4.string()),
+  checksPassed: z4.array(z4.string()),
   confidence: z4.number().min(0).max(1),
 });
 
@@ -86,19 +106,21 @@ function getClient(): Anthropic | null {
   // to { status: 'unavailable' } and the human's own fallback form still
   // works — so there is no upside to the SDK spending minutes retrying
   // before honoring that; fail fast and let the existing degrade path do
-  // its job instead. 60s (raised twice live: 30s, then 45s, both still
-  // timed out on a real call): StepDraftV4 is a much larger schema than
-  // the proven configurator.ts/qa-review.ts ones (17 fields vs ~5) —
-  // confirmed this account/tier's Gateway consistently needs meaningfully
-  // longer than 45s for this specific call shape. If 60s still isn't
-  // enough, that's a real signal this needs investigating on the Vercel
-  // AI Gateway side (usage/rate-limit dashboard, account tier), not
-  // further blind timeout tuning here.
+  // its job instead. Tried 30s, 45s, and 60s live in succession (2026-09-05)
+  // — ALL three timed out identically on the same real call, never once
+  // completing. That rules out "just needs a bit more time": this specific
+  // 17-field, mostly-optional-array StepDraftV4 shape appears to hang
+  // indefinitely against this account/Gateway, while the much smaller,
+  // proven configurator.ts/qa-review.ts schemas complete reliably in
+  // ~13s. Settled back on 45s (matching oracle-review.ts) as a sane,
+  // fail-fast bound rather than continuing to raise a number that's
+  // demonstrably not the actual problem — see the session notes for the
+  // open investigation (likely the schema shape itself, not infra).
   cachedClient = apiKey
     ? new Anthropic({
         apiKey,
         baseURL: 'https://ai-gateway.vercel.sh',
-        timeout: 60_000,
+        timeout: 45_000,
         maxRetries: 0,
       })
     : null;
@@ -149,6 +171,11 @@ genuinely unknown, say so as an open question or a risk rather than
 inventing a plausible-sounding but unfounded detail.
 
 ${STAGE_FOCUS[args.stage]}
+
+Every field in the output schema is required. For any field not named
+above (it doesn't apply to this stage), return an empty string ("") or
+empty array ([]) — never omit it, and never invent content just to fill
+it.
 
 Set confidence (0-1) honestly: lower if the described need is vague or
 this step depends on information not yet available.`;
