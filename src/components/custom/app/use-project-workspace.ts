@@ -108,9 +108,23 @@ export function buildProjectWorkspaceView(
   );
   const completedSteps = STEPS.filter((_, i) => approvedGateIndexes.has(i)).map((s) => s.number);
 
+  // Real bug found live (2026-09-05): this used to match on
+  // mission.currentStageIndex, which advances the moment a handoff is
+  // SUBMITTED (service.ts's submitHandoff bumps it eagerly, well before
+  // that gate is actually decided) — so once a step's own concerns were
+  // resolved, this could resolve to the NEXT stage's gate (state
+  // 'Awaiting', no handoff yet) instead of the CURRENT stage's still-
+  // undecided one, and NextActionCard's "Draft with AI" button (gated on
+  // `!gate?.currentStageHandoffId`) would offer to draft straight past an
+  // unapproved gate. nextAction.view.gateIndex is the same
+  // server-computed "what actually still needs a decision" the /draft
+  // route itself now uses (see that route's own fix) — matching it here
+  // keeps the button and the API route pointed at the same gate.
+  const nextActionView = nextAction.view;
   const currentGate =
-    detail.gates.find((g) => g.gateIndex === mission.currentStageIndex && g.state !== 'Approved') ??
-    null;
+    nextActionView.kind === 'ApproveGate'
+      ? (detail.gates.find((g) => g.gateIndex === nextActionView.gateIndex) ?? null)
+      : null;
 
   // Prepared summary — at most three facts, all derived from data that
   // already exists on the project. Nothing here is invented.

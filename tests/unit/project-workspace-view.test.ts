@@ -140,7 +140,24 @@ describe('buildProjectWorkspaceView', () => {
         gate(4),
       ],
     });
-    const view = buildProjectWorkspaceView(d, idle);
+    // Real bug fix (2026-09-05): currentGate now comes from the
+    // server-computed next action (nextAction.view.gateIndex), not from
+    // mission.currentStageIndex — that field advances the moment a
+    // handoff is SUBMITTED, before its gate is actually decided, and used
+    // to let currentGate silently point at a not-yet-drafted gate ahead
+    // of the real one. This scenario's actual awaiting gate is 2
+    // (Workflow) — gates 0 and 1 are already Approved above.
+    const view = buildProjectWorkspaceView(d, {
+      view: {
+        kind: 'ApproveGate',
+        gateIndex: 2,
+        stage: 'Workflow',
+        title: 'Approve Gate 2',
+        rationale: 'Workflow handoff v1 awaits approval.',
+      },
+      blockers: [],
+      isTerminal: false,
+    });
     expect(view.currentStep.number).toBe(3);
     expect(view.currentStep.title).toBe('Design the workflow');
     expect(view.completedSteps).toEqual([1, 2]);
