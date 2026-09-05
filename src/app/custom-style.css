@@ -1252,15 +1252,28 @@
    cosmoq-home.css's .cq-sun, which has exactly this problem solved
    already: a hot centre that survives blur, cooling outward) rather than
    a single translucent tint — that's what actually reads as "a warm
-   light source," not just "a warm-tinted patch of teal." */
+   light source," not just "a warm-tinted patch of teal."
+
+   Second live-screenshot correction: that near-white 0.95-lightness/hue-82
+   core read as yellow-green, not orange (hue 82 in OKLCH is already past
+   amber toward yellow, and pushing lightness that high desaturates it
+   further before blur even touches it) — AND it now sits close enough to
+   home-view.tsx's real header/subtitle text to wash it out, something the
+   fainter first pass never did. Both problems share one fix: drop the
+   near-white highlight stop and lead with an already-orange hue (78, then
+   62, then 54 — the same outward hue path cosmoq's .cq-sun uses) at a
+   materially lower peak alpha (0.5, not 0.62). Text contrast over this
+   still isn't left to chance: the header text-shadow rule further below
+   in this file (.app-shell header .app-body) got a matching strength
+   pass in the same commit as this change. */
 .app-shell.dark .app-halo::before {
   background:
     radial-gradient(
       ellipse 42% 58% at 36% 38%,
-      oklch(0.95 0.13 82 / 0.62) 0%,
-      oklch(0.88 0.16 72 / 0.5) 26%,
-      oklch(0.82 0.17 60 / 0.3) 48%,
-      transparent 72%
+      oklch(0.9 0.14 78 / 0.5) 0%,
+      oklch(0.82 0.17 62 / 0.4) 30%,
+      oklch(0.74 0.15 54 / 0.22) 54%,
+      transparent 74%
     ),
     radial-gradient(
       ellipse 55% 65% at 50% 45%,
@@ -1335,8 +1348,17 @@
      behind text) — a soft dark shadow, not dialing back the halo itself,
      which would undo the last two rounds of work to make it visible at
      all. Invisible against the app's normal dark panel backgrounds, so
-     this is safe everywhere .app-h1 is used, not just here. */
-  text-shadow: 0 1px 16px oklch(0.09 0.02 var(--brand-h) / 0.7);
+     this is safe everywhere .app-h1 is used, not just here. Two-layer as of
+  the halo's fifth pass (2026-09-05): a tight, high-alpha contact shadow
+  PLUS the original soft blur. The soft blur alone was tuned against the
+  halo's fourth-pass brightness; the fifth pass's brighter warm corner
+  washed out home-view.tsx's header text again in a live screenshot, and
+  a tight near-black shadow directly behind the glyphs restores contrast
+  independent of how bright any future halo pass gets, rather than this
+  needing to be re-tuned every time the halo's alpha moves. */
+  text-shadow:
+    0 1px 3px oklch(0.09 0.02 var(--brand-h) / 0.85),
+    0 1px 16px oklch(0.09 0.02 var(--brand-h) / 0.7);
 }
 /* Same contrast fix as .app-h1 above, scoped to a page's own <header>
    (title + one-line subtitle — see missions/page.tsx, home-view.tsx and
@@ -1344,7 +1366,9 @@
    .app-body anywhere, so panel-contained body text elsewhere is
    untouched — it never sits over the halo, so it never needed this. */
 .app-shell header .app-body {
-  text-shadow: 0 1px 12px oklch(0.09 0.02 var(--brand-h) / 0.6);
+  text-shadow:
+    0 1px 2px oklch(0.09 0.02 var(--brand-h) / 0.8),
+    0 1px 12px oklch(0.09 0.02 var(--brand-h) / 0.6);
 }
 .app-shell .app-h2 {
   font-family: var(--font-display);
