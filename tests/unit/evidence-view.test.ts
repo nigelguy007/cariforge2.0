@@ -327,6 +327,38 @@ describe('evidenceViewToDocumentSpec', () => {
     expect(spec.meta?.map((m) => m.label)).toEqual(
       expect.arrayContaining(['Decision coverage', 'Why does this project exist?']),
     );
+  });
+
+  // Real user report (2026-09-05): "it says the project is completed but
+  // i dont see any build or solution .. just a plan, nothing at all ...
+  // im confused and not happy" — the exported PDF's closing note (and the
+  // "Production boundary" fact inside "What may the solution do?") used
+  // to unconditionally claim "This is an approved, finished, ready-to-use
+  // solution package", even for a mission still at Step 1 with open
+  // concerns. This mission's own evidence record showed exactly that:
+  // decision coverage 4 of 5, 3 unresolved concerns, and this note still
+  // read as if it were done.
+  it('never claims completion for a mission still in progress', () => {
+    const view = buildEvidenceView(detail()); // status: 'InDiscovery', the default
+    expect(view.isComplete).toBe(false);
+    const spec = evidenceViewToDocumentSpec(view);
+    expect(spec.notes).not.toContain('approved, finished, ready-to-use');
+    expect(spec.notes).toContain('not been approved yet');
+    const mayDo = view.questions.find((q) => q.key === 'may-do');
+    const boundary = mayDo?.facts.find((f) => f.id === 'production-boundary');
+    expect(boundary?.value).not.toContain('approved, finished, ready-to-use');
+  });
+
+  it('states completion plainly once the mission has actually finished', () => {
+    const view = buildEvidenceView(
+      detail({ mission: { ...detail().mission, status: 'Completed' } }),
+    );
+    expect(view.isComplete).toBe(true);
+    const spec = evidenceViewToDocumentSpec(view);
+    expect(spec.notes).toContain('approved, finished, ready-to-use');
     expect(spec.notes).toContain('not a production deployment');
+    const mayDo = view.questions.find((q) => q.key === 'may-do');
+    const boundary = mayDo?.facts.find((f) => f.id === 'production-boundary');
+    expect(boundary?.value).toContain('approved, finished, ready-to-use');
   });
 });

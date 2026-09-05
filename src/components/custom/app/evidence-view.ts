@@ -13,7 +13,14 @@ import type {
 } from '@/lib/contracts/forge';
 import { StageNameValues } from '@/lib/contracts/forge';
 import type { DocumentSpec } from '@/lib/pdf/schema';
-import { DECISION_UI, humanise, humaniseCopy, REASON_UI, stageUiForIndex } from '@/lib/ui-terms';
+import {
+  DECISION_UI,
+  humanise,
+  humaniseCopy,
+  PROTOTYPE_PACKAGE,
+  REASON_UI,
+  stageUiForIndex,
+} from '@/lib/ui-terms';
 
 export interface EvidenceMeasure {
   readonly label: string;
@@ -50,6 +57,17 @@ export interface EvidenceView {
   readonly questions: readonly EvidenceQuestion[];
   readonly decisionCount: number;
   readonly lastRecordedAt: string | null;
+  // Real user report (2026-09-05): "it says the project is completed but
+  // i dont see any build or solution .. just a plan" — the PDF export's
+  // closing note unconditionally claimed "This is an approved, finished,
+  // ready-to-use solution package" regardless of how far the mission had
+  // actually gotten. This mission's own evidence record showed decision
+  // coverage 4 of 5 and 3 unresolved concerns at the very same time — the
+  // note was flatly false. next-action-card.tsx already gates this exact
+  // sentence correctly (only for a genuinely 'Complete'/'Released'
+  // mission, see its PROTOTYPE_PACKAGE usage) — this brings the export in
+  // line with that, instead of asserting completion unconditionally.
+  readonly isComplete: boolean;
 }
 
 function when(iso: string): string {
@@ -281,11 +299,13 @@ function mayDoQuestion(detail: MissionDetailT): EvidenceQuestion {
       });
     }
   }
+  const isComplete = detail.mission.status === 'Completed';
   facts.push({
     id: 'production-boundary',
     label: 'Production boundary',
-    value:
-      'The output is an approved, finished, ready-to-use solution package for review. Nothing here is deployed to production; that is a separate, later decision by your own team.',
+    value: isComplete
+      ? `The output is ${PROTOTYPE_PACKAGE} for review. Nothing here is deployed to production; that is a separate, later decision by your own team.`
+      : 'This project has not been approved yet, so there is no finished output to describe here. Once every step is approved, this will describe what the completed package may do — until then, see Decision coverage and Unresolved concerns above for what is still outstanding.',
   });
   return {
     key: 'may-do',
@@ -381,6 +401,7 @@ export function buildEvidenceView(detail: MissionDetailT): EvidenceView {
     ],
     decisionCount: detail.approvals.length,
     lastRecordedAt,
+    isComplete: mission.status === 'Completed',
   };
 }
 
@@ -414,10 +435,14 @@ export function evidenceViewToDocumentSpec(view: EvidenceView): DocumentSpec {
       ...view.measures.map((m) => ({ label: m.label, value: `${m.value} — ${m.detail}` })),
       ...view.questions.map((q) => ({ label: q.question, value: questionValue(q) })),
     ],
-    notes:
-      'This is an approved, finished, ready-to-use solution package: with its Project plan, ' +
-      'Operating guide and this evidence receipt — not a production deployment. Verify this ' +
-      "record's hash chain in the app before relying on it.",
+    notes: view.isComplete
+      ? `This is ${PROTOTYPE_PACKAGE}: with its Project plan, Operating guide and this evidence ` +
+        "receipt — not a production deployment. Verify this record's hash chain in the app " +
+        'before relying on it.'
+      : 'This project has not been approved yet — this record shows progress so far, not a ' +
+        "finished solution package. See Decision coverage and Unresolved concerns above for " +
+        "what is still outstanding. Verify this record's hash chain in the app before relying " +
+        'on it.',
     footer: `Generated ${new Date().toLocaleString()}.`,
   };
 }
