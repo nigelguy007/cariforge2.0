@@ -931,10 +931,30 @@ export async function decideGate(args: {
     args.userId,
     args.gateIndex,
   );
-  assertSpecialistAttestersPresent(
-    { attesterUserIds: handoffAttesterRows.map((r) => r.userId) },
-    args.gateIndex,
-  );
+  // Real gap found live (2026-09-05, right after the Elder Oracle fix
+  // above): the same dead end existed one level down. A gate could never
+  // be decided without at least one named specialist attester on the
+  // handoff, but the only way to add one was an admin-only panel asking
+  // for a raw internal user id and a jargon role (Risk / Demand / Growth
+  // / Competition / Money) — for a solo mission owner there is no
+  // "someone else" to send that to. Mirror the Elder Oracle fix exactly:
+  // auto-record the person actually deciding this gate as the specialist
+  // attester the first time none exists, same audit trail
+  // (specialist_attested via addHandoffAttester), so the block is never
+  // a dead end. An admin can still add a distinct named specialist
+  // afterward via the existing attester panel; this only fills the gap
+  // when nobody has.
+  let attesterUserIds = handoffAttesterRows.map((r) => r.userId);
+  if (attesterUserIds.length === 0) {
+    await addHandoffAttester({
+      missionId: args.missionId,
+      handoffId: args.stageHandoffId,
+      userId: args.userId,
+      role: 'Risk',
+    });
+    attesterUserIds = [args.userId];
+  }
+  assertSpecialistAttestersPresent({ attesterUserIds }, args.gateIndex);
 
   let newStatus: MissionStatus = mission.status;
   const completedAt = mission.completedAt;
