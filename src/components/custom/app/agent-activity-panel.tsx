@@ -12,7 +12,12 @@
 // section's own <details><summary> in project-workspace.tsx, so this
 // component renders only the list and the council-review footer.
 
-import { GATE_DEFS, type MissionDetailT, SPECIALIST_ROLE_VALUES } from '@/lib/contracts/forge';
+import {
+  GATE_DEFS,
+  type MissionDetailT,
+  SPECIALIST_ROLE_VALUES,
+  type StageName,
+} from '@/lib/contracts/forge';
 import { AGENT_ACTIVITY_UI, DECISION_UI, humanise, reasonLabel, STEPS } from '@/lib/ui-terms';
 
 // Generic: works for both an AI-drafted payload (known field names, see
@@ -102,7 +107,19 @@ export function agentActivityDoneCount(detail: MissionDetailT): number {
   ).length;
 }
 
-export function AgentActivityPanel({ detail }: { detail: MissionDetailT }) {
+export function AgentActivityPanel({
+  detail,
+  draftingStage = null,
+}: {
+  detail: MissionDetailT;
+  // Real user report (2026-09-05): "nothing happening at all" / "why is
+  // draft with ai button still avaioable" — this list used to render
+  // purely from already-loaded `detail`, with zero signal while a Draft
+  // with AI click was actually mid-flight (see next-action-card.tsx's
+  // draftWithAi). When set, the matching stage's row shows "Working…"
+  // live instead of "Not started yet", in sync with the button above it.
+  draftingStage?: StageName | null;
+}) {
   const latestHandoff = detail.handoffs.find((h) => h.supersededById === null) ?? null;
   const reviewCount = latestHandoff
     ? new Set(
@@ -127,23 +144,39 @@ export function AgentActivityPanel({ detail }: { detail: MissionDetailT }) {
           const objections = handoff
             ? detail.objections.filter((o) => o.stageHandoffId === handoff.id)
             : [];
+          const working = !done && step.stage === draftingStage;
           return (
             <li key={step.stage}>
               <details className="app-disclosure">
                 <summary className="flex min-h-9 items-baseline gap-2 app-small">
                   <span
                     aria-hidden="true"
-                    className={done ? 'text-emerald-600' : 'text-[var(--app-text-muted)]'}
+                    className={
+                      done
+                        ? 'text-emerald-600'
+                        : working
+                          ? 'animate-pulse text-[var(--app-accent)]'
+                          : 'text-[var(--app-text-muted)]'
+                    }
                   >
-                    {done ? '✓' : '·'}
+                    {done ? '✓' : working ? '…' : '·'}
                   </span>
                   <span
-                    className={done ? 'text-[var(--app-text)]' : 'text-[var(--app-text-muted)]'}
+                    className={
+                      done || working ? 'text-[var(--app-text)]' : 'text-[var(--app-text-muted)]'
+                    }
                   >
                     {ui.agent}
                   </span>
-                  <span className="text-[var(--app-text-muted)]">
-                    {done ? ui.done : 'Not started yet'}
+                  <span
+                    className={
+                      working
+                        ? 'font-medium text-[var(--app-accent)]'
+                        : 'text-[var(--app-text-muted)]'
+                    }
+                    aria-live={working ? 'polite' : undefined}
+                  >
+                    {done ? ui.done : working ? 'Working…' : 'Not started yet'}
                   </span>
                 </summary>
                 <AgentStepDetail

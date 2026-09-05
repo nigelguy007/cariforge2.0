@@ -17,7 +17,7 @@ import { Button } from '@/components/ui/button';
 import { apiFetch } from '@/lib/api-client';
 import { useIsAdmin, useSession } from '@/lib/auth-client';
 import { nextActionFor } from '@/lib/business/forge/next-action';
-import { MissionDetail, type MissionDetailT } from '@/lib/contracts/forge';
+import { MissionDetail, type MissionDetailT, type StageName } from '@/lib/contracts/forge';
 import { humaniseCopy, PROTOTYPE_PACKAGE, STAGE_UI, stepNumberLabel } from '@/lib/ui-terms';
 import { DecisionDialog } from './decision-dialog';
 import type { DetailSection } from './supporting-detail';
@@ -29,6 +29,15 @@ export interface NextActionCardProps {
   readonly onWritten: () => Promise<void> | void;
   readonly onOpenSection: (section: DetailSection) => void;
   readonly detailId: string;
+  // Real user report (2026-09-05): "if the agent activity is ongoing why
+  // is draft with ai button still avaioable" — the Draft with AI loop's
+  // own in-flight `drafting`/stage state lived only in this component, so
+  // the Agent activity list below had zero live signal that anything was
+  // running: everything above it looked static/stuck even while a real
+  // multi-stage chain was mid-flight. Optional so callers that don't need
+  // it (there are none yet, but this stays a plain prop, not required)
+  // don't have to pass a no-op.
+  readonly onDraftingStageChange?: (stage: StageName | null) => void;
 }
 
 interface Plan {
@@ -161,6 +170,7 @@ export function NextActionCard({
   onWritten,
   onOpenSection,
   detailId,
+  onDraftingStageChange,
 }: NextActionCardProps) {
   const [dialogOpen, setDialogOpen] = React.useState(false);
   const [drafting, setDrafting] = React.useState(false);
@@ -195,10 +205,21 @@ export function NextActionCard({
   const MAX_AUTO_STAGES = 5; // one loop iteration per real stage, hard cap against ever looping forever
   const draftWithAi = async () => {
     setDrafting(true);
+    // Real user report (2026-09-05): "system seems to be [s]tuck at
+    // workflow agent. nothing happening at all" — the loop below was
+    // already chaining through stages correctly, but nothing outside this
+    // button's own text ever reflected that, so the whole rest of the
+    // page (the Agent activity list in particular) looked frozen the
+    // entire time a multi-stage chain was running. Track which real stage
+    // is being worked on right now and report it up so Agent activity can
+    // show that stage as "Working…" live, in sync with this button.
+    let currentStage: StageName | null =
+      action.kind === 'ApproveGate' || action.kind === 'ReviseStage' ? action.stage : null;
     try {
       let stepsDrafted = 0;
       for (let i = 0; i < MAX_AUTO_STAGES; i++) {
         setDraftingStep(i + 1);
+        onDraftingStageChange?.(currentStage);
         const updated = await apiFetch(`/api/forge/missions/${detail.mission.id}/draft`, {
           method: 'POST',
           schema: MissionDetail,
@@ -226,6 +247,8 @@ export function NextActionCard({
             ? (updated.gates.find((g) => g.gateIndex === nextView.gateIndex) ?? null)
             : null;
         if (!nextGate || nextGate.currentStageHandoffId) break;
+        if (nextView.kind !== 'ApproveGate') break; // unreachable — nextGate is only ever set for this kind, but keeps TS's narrowing honest
+        currentStage = nextView.stage;
       }
       toast.success(
         stepsDrafted > 1
@@ -243,6 +266,7 @@ export function NextActionCard({
     } finally {
       setDrafting(false);
       setDraftingStep(null);
+      onDraftingStageChange?.(null);
     }
   };
 

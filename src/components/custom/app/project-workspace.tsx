@@ -12,6 +12,7 @@ import Link from 'next/link';
 import * as React from 'react';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
+import type { StageName } from '@/lib/contracts/forge';
 import { STEPS } from '@/lib/ui-terms';
 import { AgentActivityPanel, agentActivityDoneCount } from './agent-activity-panel';
 import { NextActionCard } from './next-action-card';
@@ -59,6 +60,24 @@ function WorkspaceSkeleton() {
 export function ProjectWorkspace({ missionSlug }: { missionSlug: string }) {
   const { state, refresh } = useProjectWorkspace(missionSlug);
   const [request, setRequest] = React.useState<DetailRequest | null>(null);
+  // Real user report (2026-09-05): the Agent activity list had no live
+  // signal while a Draft with AI click was actually running — see
+  // next-action-card.tsx's draftWithAi and agent-activity-panel.tsx's
+  // draftingStage prop. Lifted here since it's the shared parent of both.
+  const [draftingStage, setDraftingStage] = React.useState<StageName | null>(null);
+  const agentActivityRef = React.useRef<HTMLDetailsElement>(null);
+  // Force the (collapsed-by-default) section open the moment drafting
+  // starts, so "Working…" is visible without the user having to already
+  // know to expand it — but only on that one rising edge. Setting `open`
+  // as a controlled JSX prop instead would fight the user's own manual
+  // toggle on every unrelated re-render (this section re-renders often,
+  // e.g. on every onWritten() refresh), silently snapping it shut again;
+  // an imperative one-shot set on the DOM node avoids that entirely.
+  React.useEffect(() => {
+    if (draftingStage !== null && agentActivityRef.current) {
+      agentActivityRef.current.open = true;
+    }
+  }, [draftingStage]);
 
   const openSection = React.useCallback((section: DetailSection, step?: number) => {
     setRequest((prev) => ({ section, step, tick: (prev?.tick ?? 0) + 1 }));
@@ -143,17 +162,20 @@ export function ProjectWorkspace({ missionSlug }: { missionSlug: string }) {
         onWritten={onWritten}
         onOpenSection={openSection}
         detailId={DETAIL_ID}
+        onDraftingStageChange={setDraftingStage}
       />
 
-      <details className="app-disclosure">
+      <details ref={agentActivityRef} className="app-disclosure">
         <summary className="flex min-h-11 items-center justify-between gap-3">
           <span className="app-body font-medium text-[var(--app-text)]">Agent activity</span>
           <span className="app-small text-right text-[var(--app-text-muted)]">
-            {agentActivityDoneCount(detail)} of {STEPS.length} complete
+            {draftingStage !== null
+              ? 'Working…'
+              : `${agentActivityDoneCount(detail)} of ${STEPS.length} complete`}
           </span>
         </summary>
         <div className="mt-2">
-          <AgentActivityPanel detail={detail} />
+          <AgentActivityPanel detail={detail} draftingStage={draftingStage} />
         </div>
       </details>
 
