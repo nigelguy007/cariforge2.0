@@ -43,57 +43,73 @@
    light presentation to match. (The rest of the app already defaults new
    visitors to dark anyway; see providers.tsx.) site-nav.tsx's `pathname ===
    '/'` check suppresses the global SiteNav/SiteFooter on this one route, so
-   the page's own header and footer below don't fight them. */
+   the page's own header and footer below don't fight them.
+
+   COLOUR OVERRIDE (2026-09-06, explicit direct instruction, superseding the
+   "retain the cariforge colours" note above): "use the template to redesign
+   the entire [site] ... stop doing what you think in these situations." The
+   template this time is Framer's Span (span.framer.ai), captured with live
+   screenshots, not a text description — its real palette is a near-black
+   navy field with ONE vivid blue accent (no amber, no teal), bold/tight
+   headline type (weight ~700-800, not the light 500 measured off the
+   earlier cosmoq reference), pill badges with a blue border+text on a dark
+   blue-tinted fill, and a solid white pill primary button — a different
+   control shape from this file's earlier dark gradient-ring button. Two new
+   tokens, --cq-hue (258, the primary blue) and --cq-hue2 (268, a slightly
+   more violet-blue used wherever a rule wanted a second gradient stop),
+   replace every hue reference that used to read the app-wide --brand-h
+   variable throughout this file — the teal/indigo two-tone accent is gone
+   from this page entirely, on purpose.
+   The rest of the app's --brand-h (used everywhere else) is untouched; this
+   override is scoped to this one file, matching how tightly this route
+   already isolates its own styling. */
 
 html,
 body {
-  /* biome-ignore lint/complexity/noImportantStyles: deliberate defensive rule, not an accident — guarantees no unstyled white flash regardless of load order, before any other rule (including the var()-based one below) has a chance to apply. Carried over from vesper-home.css, where the same guarantee was a spec requirement. */
-  background: oklch(0.09 0.022 var(--brand-h, 169)) !important;
+  /* biome-ignore lint/complexity/noImportantStyles: deliberate defensive rule, not an accident — guarantees no unstyled white flash regardless of load order, before any other rule (including the var()-based one below) has a chance to apply. Carried over from vesper-home.css, where the same guarantee was a spec requirement. Hardcoded to the Span-blue hue (see this file's COLOUR OVERRIDE header comment) rather than the app-wide --brand-h, since this pre-paint fallback has to match --cq-bg below and --cq-hue isn't in scope yet at this element. */
+  background: oklch(0.07 0.018 258) !important;
   color: #f2f5f4;
 }
 
 .cq-root {
   /* === FIELD ===============================================================
-     Near-black. The reference is pure rgb(0,0,0); this keeps a trace of
-     chroma on the brand hue (L 0.09 / C 0.022) so the field still reads as
-     CariForge's aquamarine-cast black rather than a neutral void — the
-     retain-the-colours half of the instruction. Visually it is black. */
-  --cq-bg: oklch(0.09 0.022 var(--brand-h, 169));
+     Near-black navy — Span's field is closer to pure black-with-a-blue-cast
+     than CariForge's earlier aquamarine-cast black (see the COLOUR OVERRIDE
+     header comment). */
+  --cq-hue: 258;
+  --cq-hue2: 268;
+  --cq-bg: oklch(0.07 0.018 var(--cq-hue));
 
   --cq-text: #f2f5f4;
-  --cq-muted: oklch(0.72 0.014 var(--brand-h, 169));
-  --cq-dim: oklch(0.58 0.014 var(--brand-h, 169));
+  --cq-muted: oklch(0.72 0.014 var(--cq-hue));
+  --cq-dim: oklch(0.58 0.014 var(--cq-hue));
 
   --cq-line: oklch(1 0 0 / 0.1);
   --cq-line-soft: oklch(1 0 0 / 0.06);
   --cq-line-strong: oklch(1 0 0 / 0.18);
 
-  /* === THE TWO-TONE ACCENT =================================================
-     CariForge aquamarine -> indigo. Used for every orb, glow, ring and
-     gradient on the page; nothing else carries colour, which is what keeps
-     a near-black page from looking merely grey. */
-  --cq-accent: oklch(0.74 0.15 var(--brand-h, 169));
-  --cq-accent-deep: oklch(0.55 0.17 calc(var(--brand-h, 169) + 96));
-  --cq-accent-soft: oklch(0.74 0.15 var(--brand-h, 169) / 0.16);
+  /* === THE ACCENT ===========================================================
+     One vivid blue (Span has no second brand colour) instead of the earlier
+     aquamarine -> indigo two-tone. --cq-accent-deep still exists for the
+     rules that want a second, slightly-shifted stop for gradient depth —
+     it's now a nearby blue-violet (--cq-hue2), not a hue-rotated opposite. */
+  --cq-accent: oklch(0.62 0.19 var(--cq-hue));
+  --cq-accent-deep: oklch(0.42 0.19 var(--cq-hue2));
+  --cq-accent-soft: oklch(0.62 0.19 var(--cq-hue) / 0.16);
 
-  /* THE SUN. Warm amber, and the one colour on this page deliberately NOT
-     derived from --brand-h (2026-09-03, explicit direction: "make the
-     colours a bit brighter with the colour of the sun similar to the
-     reference site"). The first pass here avoided the reference's amber on
-     the grounds that it was a foreign brand colour; that call is overridden
-     — a warm sun over turquoise water is what a Caribbean sunrise actually
-     looks like, so the warm core and the sea-coloured atmosphere around it
-     are doing different jobs rather than competing. It is scoped to the
-     sunrise alone: nothing else on the page uses it, so the brand hue still
-     owns every button, chip, orb and card glow. */
-  --cq-sun: oklch(0.88 0.16 72);
-  --cq-sun-core: oklch(0.98 0.06 88);
+  /* THE GLOW. Span's hero and closing CTA both sit on a bright blue horizon
+     glow — no warm/amber core the way the earlier cosmoq reference had
+     (see this file's COLOUR OVERRIDE comment). Kept the --cq-sun/-core names
+     so every consuming rule below (the sunrise/horizon block) needed no
+     renaming, just new values: a blue-white bloom rather than an amber one. */
+  --cq-sun: oklch(0.62 0.19 var(--cq-hue));
+  --cq-sun-core: oklch(0.94 0.05 var(--cq-hue));
 
   --cq-grad: linear-gradient(135deg, var(--cq-accent) 0%, var(--cq-accent-deep) 100%);
   --cq-grad-ring: linear-gradient(
     135deg,
     var(--cq-accent) 0%,
-    oklch(0.6 0.12 calc(var(--brand-h, 169) + 40)) 45%,
+    oklch(0.58 0.15 var(--cq-hue2)) 45%,
     var(--cq-accent-deep) 100%
   );
 
@@ -154,33 +170,14 @@ body {
   mask-image: linear-gradient(180deg, #000 0%, #000 42%, transparent 88%);
 }
 
-/* === SUNRISE ================================================================
-   The reference's defining hero image, and the thing the first pass here
-   missed: a SUNRISE OVER A PLANET'S EDGE. A bright band sits on a curved
-   horizon, vertical light curtains rise off it like an aurora, and the
-   planet itself is a dark disc with a lit rim cutting across the bottom of
-   the hero. The first pass had only a soft centred bloom, which read as a
-   vague glow rather than a sunrise — the curve and the curtains are what
-   make it legible as one.
-
-   COLOUR (explicit user direction, 2026-09-03): "look at the colours behind
-   like a sun rising — give me the colours of the caribbean sea for this".
-   So the sunrise keeps the reference's STRUCTURE but not its amber; the ramp
-   below runs through actual Caribbean-sea water colours, brightest at the
-   horizon and deepening outward, the way that sea reads from shallow sand
-   flats out to open water:
-
-     shallow turquoise   oklch(0.95 0.07 185)  — the bright core
-     vivid aquamarine    oklch(0.80 0.15 178)
-     CariForge brand     oklch(0.72 0.16 169)  — --brand-h, unchanged
-     sea green / teal    oklch(0.58 0.15 200)
-     deep ocean blue     oklch(0.42 0.16 240)  — the outer falloff
-
-   The brand hue sits in the middle of that ramp rather than beside it, so
-   "retain the CariForge colours" and "Caribbean sea" are the same
-   instruction here, not competing ones. Every stop is read live off
-   --brand-h with a fixed offset, so re-seeding the brand still moves the
-   whole sunrise together. */
+/* === HORIZON GLOW ============================================================
+   Replaces the earlier "Caribbean sunrise" (amber sun + turquoise sea, kept
+   in git history) for the Span pass (2026-09-06, see this file's COLOUR
+   OVERRIDE comment). Span's own hero sits on ONE bright blue glow low in
+   the frame — no warm core, no hue-sweep, and the same treatment repeats at
+   the bottom of the closing CTA section. Kept the .cq-sun/.cq-planet class
+   names (page.tsx renders them as children of .cq-sunrise) so no JSX needed
+   to change — only what each one paints. */
 .cq-sunrise {
   position: absolute;
   top: 0;
@@ -193,43 +190,28 @@ body {
   overflow: hidden;
 }
 
-/* The horizon bloom — a very wide, short ellipse sitting ON the planet rim.
-   Wide-and-short is what reads as a sun low on a horizon; a circular glow
-   reads as a lamp. */
+/* The horizon bloom — a very wide, short ellipse, low in the hero. */
 .cq-sunrise::before {
   content: "";
   position: absolute;
   left: 50%;
   top: 560px;
   width: 132%;
-  /* Shorter than it first was (660px). The sea glow is atmosphere around a
-     sun sitting ON the horizon, so it has to hug the horizon; when it rose
-     too high it washed out the lede text sitting above it. */
   height: 500px;
   transform: translate(-50%, -50%);
-  /* The CENTRE is deliberately the dimmest part of this gradient, which is
-     the opposite of how it started. The warm sun (.cq-sun) paints on top of
-     this, and a near-opaque turquoise core underneath it turned the amber to
-     a desaturated white — two bright layers cancelling into nothing. Pulling
-     the middle back lets the sun own the core and leaves the sea colours
-     doing what they should: flanking it and cooling outward. */
   background: radial-gradient(
     ellipse 50% 50% at 50% 50%,
-    oklch(0.9 0.12 calc(var(--brand-h, 169) + 18) / 0.3) 0%,
-    oklch(0.87 0.16 calc(var(--brand-h, 169) + 12) / 0.6) 20%,
-    oklch(0.79 0.18 var(--brand-h, 169) / 0.62) 34%,
-    oklch(0.63 0.18 calc(var(--brand-h, 169) + 31) / 0.44) 52%,
-    oklch(0.47 0.19 calc(var(--brand-h, 169) + 71) / 0.26) 68%,
-    transparent 85%
+    var(--cq-sun-core) 0%,
+    oklch(0.7 0.18 var(--cq-hue) / 0.55) 28%,
+    oklch(0.5 0.19 var(--cq-hue2) / 0.32) 52%,
+    transparent 82%
   );
   filter: blur(46px);
 }
 
-/* The sun itself. A tight, warm bloom sitting ON the horizon, painted over
-   the sea-coloured atmosphere above — the reference puts a warm core at the
-   centre of its glow and lets it cool outward, and that contrast is most of
-   why its hero reads as a sunrise rather than as backlighting. Kept small
-   and low so it stays a sun and never becomes a wash. */
+/* The bright core of the glow — a tighter, brighter bloom sitting on top of
+   the wider one above, the way Span's own horizon light reads: one clear
+   bright point rather than a flat wash. */
 .cq-sun {
   position: absolute;
   left: 50%;
@@ -241,18 +223,15 @@ body {
   background: radial-gradient(
     ellipse 50% 50% at 50% 50%,
     var(--cq-sun-core) 0%,
-    oklch(0.95 0.13 82 / 0.98) 14%,
-    var(--cq-sun) 30%,
-    oklch(0.82 0.17 60 / 0.62) 46%,
-    oklch(0.74 0.15 52 / 0.28) 62%,
-    transparent 78%
+    var(--cq-sun) 34%,
+    oklch(0.48 0.18 var(--cq-hue2) / 0.4) 58%,
+    transparent 80%
   );
   filter: blur(38px);
 }
 
-/* The light curtains. Fine vertical banding, masked to an ellipse around the
-   horizon so it only shows where the bloom is bright, then blurred just
-   enough to stop it reading as a hard pinstripe. */
+/* Faint vertical banding — Span's hero has soft light rays rising off its
+   own horizon glow; kept subtle so it reads as atmosphere, not stripes. */
 .cq-sunrise::after {
   content: "";
   position: absolute;
@@ -260,9 +239,9 @@ body {
   background: repeating-linear-gradient(
     90deg,
     transparent 0 22px,
-    oklch(0.92 0.09 calc(var(--brand-h, 169) + 14) / 0.2) 22px 24px,
+    oklch(0.7 0.15 var(--cq-hue) / 0.16) 22px 24px,
     transparent 24px 54px,
-    oklch(0.74 0.14 calc(var(--brand-h, 169) + 34) / 0.13) 54px 55px,
+    oklch(0.55 0.16 var(--cq-hue2) / 0.11) 54px 55px,
     transparent 55px 88px
   );
   -webkit-mask-image: radial-gradient(ellipse 56% 40% at 50% 66%, #000 0%, transparent 76%);
@@ -270,41 +249,24 @@ body {
   filter: blur(1.5px);
 }
 
-/* The planet. A disc far wider than the viewport, positioned so only its top
-   arc crosses the hero — that arc is the horizon. Filled with the page's own
-   field colour so it reads as an unlit body, with a lit rim along the top
-   edge and a bloom hugging it.
-
-   It is a CHILD of .cq-sunrise, not of .cq-root, and offset in px rather
-   than %. First pass had it as a sibling with `top: 62%`, which resolves
-   against .cq-root — i.e. 62% of the ENTIRE page height — so the horizon
-   was rendered somewhere around the pricing section instead of in the hero,
-   and the hero just showed a vague blur. Percentages against a
-   whole-page-height ancestor are the trap here; the fixed 940px sunrise box
-   makes px offsets predictable, and its overflow:hidden trims the disc to
-   the hero. */
+/* A faint horizon-line arc, echoing Span's own thin background orbit arcs —
+   a lit rim rather than a lit planet's edge; the enormous-disc technique is
+   unchanged (see the original comment history for why it has to be this
+   large and offset in px), just recoloured and with the warm first shadow
+   layer dropped. */
 .cq-sunrise .cq-planet {
   position: absolute;
   top: 585px;
   left: 50%;
-  /* Deliberately enormous. At 2600px the visible arc was steep enough to
-     read as a chevron meeting in the middle rather than a horizon; the
-     curve only looks like a planet's edge when the disc is several times
-     the viewport and just the shallowest slice of its top shows. */
   width: min(7000px, 620vw);
   aspect-ratio: 1;
   transform: translateX(-50%);
   border-radius: 50%;
   background: var(--cq-bg);
-  border-top: 1.5px solid oklch(0.99 0.04 calc(var(--brand-h, 169) + 18) / 0.98);
-  /* Three stacked glows off the rim: a tight warm one (the sun striking the
-     horizon), then the turquoise and deep-ocean falloff. Warm first so it
-     sits closest to the edge, which is what makes the rim read as lit by
-     the sun rather than merely outlined. */
+  border-top: 1.5px solid oklch(0.85 0.06 var(--cq-hue) / 0.7);
   box-shadow:
-    0 -3px 30px -2px oklch(0.92 0.13 78 / 0.75),
-    0 -10px 70px -10px oklch(0.85 0.16 calc(var(--brand-h, 169) + 8) / 0.72),
-    0 -34px 200px -34px oklch(0.64 0.18 calc(var(--brand-h, 169) + 44) / 0.6);
+    0 -10px 70px -10px oklch(0.6 0.19 var(--cq-hue) / 0.55),
+    0 -34px 200px -34px oklch(0.45 0.19 var(--cq-hue2) / 0.45);
   pointer-events: none;
 }
 
@@ -363,7 +325,7 @@ body {
   background: linear-gradient(
     180deg,
     var(--cq-bg) 0%,
-    oklch(0.09 0.022 var(--brand-h, 169) / 0.92) 46%,
+    oklch(0.09 0.022 var(--cq-hue) / 0.92) 46%,
     transparent 100%
   );
 }
@@ -386,7 +348,7 @@ body {
   height: 30px;
   border-radius: 9px;
   background: var(--cq-grad);
-  color: oklch(0.14 0.03 var(--brand-h, 169));
+  color: oklch(0.14 0.03 var(--cq-hue));
 }
 
 .cq-nav {
@@ -400,7 +362,7 @@ body {
      bleed-through fix documented on .cq-header::before above — the scrim
      handles content approaching the header, this stops anything still
      showing through the pill itself. */
-  background: oklch(0.16 0.02 var(--brand-h, 169) / 0.88);
+  background: oklch(0.16 0.02 var(--cq-hue) / 0.88);
   backdrop-filter: blur(20px) saturate(140%);
   -webkit-backdrop-filter: blur(20px) saturate(140%);
 }
@@ -448,12 +410,11 @@ body {
 }
 
 /* === BUTTONS ================================================================
-   .cq-btn-primary is the reference's signature control: a near-black pill
-   whose BORDER is a two-tone gradient, with a soft bloom of the same
-   gradient sitting behind it. Built with the standard two-background
-   padding-box/border-box trick so it stays a single element — the fill
-   paints inside the padding box, the gradient paints in the border box, and
-   the 1px transparent border is the only place the gradient shows. */
+   .cq-btn-primary was the earlier cosmoq reference's own signature control:
+   a near-black pill with a two-tone gradient border. Span's own primary CTA
+   is different and simpler — a solid white pill with dark text, plus a
+   soft blue bloom sitting behind it — replaced below for the Span pass
+   (2026-09-06, see this file's COLOUR OVERRIDE comment). */
 .cq-btn {
   display: inline-flex;
   align-items: center;
@@ -477,24 +438,22 @@ body {
   position: relative;
   isolation: isolate;
   border: 1px solid transparent;
-  color: var(--cq-text);
-  background:
-    linear-gradient(oklch(0.14 0.024 var(--brand-h, 169)), oklch(0.14 0.024 var(--brand-h, 169)))
-    padding-box,
-    var(--cq-grad-ring) border-box;
+  color: oklch(0.13 0.02 var(--cq-hue));
+  background: #fff;
+  font-weight: 600;
 }
 /* The bloom. Sits behind the button (z-index -1 inside the button's own
-   isolation context, so it can never paint over page content) and is the
-   reason the ring reads as "glowing" rather than merely "outlined". */
+   isolation context, so it can never paint over page content) — a soft
+   blue glow behind a white pill, same as Span's own hero CTA. */
 .cq-btn-primary::before {
   content: "";
   position: absolute;
-  inset: -3px;
+  inset: -6px;
   z-index: -1;
   border-radius: inherit;
-  background: var(--cq-grad-ring);
-  filter: blur(11px);
-  opacity: 0.5;
+  background: var(--cq-accent);
+  filter: blur(16px);
+  opacity: 0.45;
   transition: opacity 220ms var(--cq-ease);
 }
 .cq-btn-primary:hover {
@@ -520,17 +479,20 @@ body {
 }
 
 /* === BADGE ==================================================================
-   The small rounded pill the reference sits directly above its H1. */
+   Span's own badge above its H1: a blue-bordered, blue-text pill on a
+   dark blue-tinted fill — not the muted-gray-text pill this used to be
+   (2026-09-06 Span pass, see this file's COLOUR OVERRIDE comment). */
 .cq-badge {
   display: inline-flex;
   align-items: center;
   gap: 0.45rem;
   padding: 0.45rem 0.95rem;
-  border: 1px solid var(--cq-line);
+  border: 1px solid oklch(0.62 0.19 var(--cq-hue) / 0.4);
   border-radius: 999px;
-  background: oklch(0.17 0.022 var(--brand-h, 169) / 0.7);
-  color: var(--cq-muted);
+  background: oklch(0.62 0.19 var(--cq-hue) / 0.14);
+  color: var(--cq-accent);
   font-size: 0.85rem;
+  font-weight: 500;
   letter-spacing: -0.005em;
 }
 .cq-badge svg {
@@ -550,11 +512,13 @@ body {
   margin: 1.5rem auto 0;
   max-width: 15ch;
   font-size: var(--cq-display);
-  /* The measured reference values. Weight 500 and -0.03em tracking are the
-     defining characteristics — see the file header. */
-  font-weight: 500;
-  line-height: 1.2;
-  letter-spacing: -0.03em;
+  /* Weight bumped 500 -> 800 for the Span pass (2026-09-06, see this file's
+     COLOUR OVERRIDE comment): Span's own hero headline is bold and tight,
+     the opposite of the light 500 measured off the earlier cosmoq
+     reference. Tracking tightened to match. */
+  font-weight: 800;
+  line-height: 1.15;
+  letter-spacing: -0.035em;
   color: #fff;
   text-wrap: balance;
 }
@@ -571,10 +535,10 @@ body {
      band — caught in review, and exactly the class of legibility problem
      this site has been bitten by before. A soft dark halo restores contrast
      without darkening the artwork or forcing the text to pure white. */
-  text-shadow: 0 1px 18px oklch(0.09 0.03 var(--brand-h, 169) / 0.85);
+  text-shadow: 0 1px 18px oklch(0.09 0.03 var(--cq-hue) / 0.85);
 }
 .cq-hero .cq-lede {
-  color: oklch(0.86 0.012 var(--brand-h, 169));
+  color: oklch(0.86 0.012 var(--cq-hue));
 }
 
 .cq-hero-actions {
@@ -599,8 +563,8 @@ body {
   border-radius: var(--cq-radius-lg);
   background: linear-gradient(
     180deg,
-    oklch(0.15 0.026 var(--brand-h, 169)) 0%,
-    oklch(0.11 0.022 var(--brand-h, 169)) 100%
+    oklch(0.15 0.026 var(--cq-hue)) 0%,
+    oklch(0.11 0.022 var(--cq-hue)) 100%
   );
   box-shadow: 0 40px 120px -40px oklch(0 0 0 / 0.9);
   overflow: hidden;
@@ -614,8 +578,8 @@ body {
   pointer-events: none;
   background: radial-gradient(
     62% 78% at 88% 108%,
-    oklch(0.55 0.15 calc(var(--brand-h, 169) + 96) / 0.34) 0%,
-    oklch(0.7 0.13 var(--brand-h, 169) / 0.12) 42%,
+    oklch(0.55 0.15 var(--cq-hue2) / 0.34) 0%,
+    oklch(0.7 0.13 var(--cq-hue) / 0.12) 42%,
     transparent 72%
   );
 }
@@ -694,7 +658,7 @@ body {
   padding: 0.7rem 0.9rem;
   border: 1px solid var(--cq-line);
   border-radius: 12px;
-  background: oklch(0.18 0.026 var(--brand-h, 169) / 0.92);
+  background: oklch(0.18 0.026 var(--cq-hue) / 0.92);
   font-size: 0.875rem;
   color: var(--cq-text);
 }
@@ -710,8 +674,8 @@ body {
   font-weight: 600;
 }
 .cq-node[data-tone="approval"] {
-  border-color: oklch(0.74 0.15 var(--brand-h, 169) / 0.45);
-  box-shadow: 0 0 0 3px oklch(0.74 0.15 var(--brand-h, 169) / 0.1);
+  border-color: oklch(0.74 0.15 var(--cq-hue) / 0.45);
+  box-shadow: 0 0 0 3px oklch(0.74 0.15 var(--cq-hue) / 0.1);
 }
 .cq-node-meta {
   margin-left: auto;
@@ -744,9 +708,11 @@ body {
   background: var(--cq-bg);
 }
 .cq-stat-value {
-  font-size: 1.75rem;
-  font-weight: 500;
-  letter-spacing: -0.025em;
+  /* Bumped size+weight for the Span pass — its own metric numbers are much
+     bigger and heavier than a plain stat label. */
+  font-size: 2.25rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
   color: #fff;
 }
 .cq-stat-label {
@@ -789,9 +755,10 @@ body {
 }
 .cq-h2 {
   font-size: var(--cq-h2);
-  font-weight: 400;
-  line-height: 1.2;
-  letter-spacing: -0.02em;
+  /* 400 -> 700 for the Span pass — see .cq-display's comment above. */
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: -0.025em;
   color: #fff;
   text-wrap: balance;
 }
@@ -823,7 +790,7 @@ body {
   padding: 1.15rem;
   border: 1px solid var(--cq-line-soft);
   border-radius: var(--cq-radius-lg);
-  background: oklch(0.115 0.022 var(--brand-h, 169));
+  background: oklch(0.115 0.022 var(--cq-hue));
   overflow: hidden;
 }
 /* The artwork glow. Positioned upper-centre and blurred hard, so the card's
@@ -840,8 +807,8 @@ body {
   pointer-events: none;
   background: radial-gradient(
     closest-side,
-    oklch(0.74 0.15 var(--brand-h, 169) / 0.5) 0%,
-    oklch(0.55 0.17 calc(var(--brand-h, 169) + 96) / 0.34) 52%,
+    oklch(0.74 0.15 var(--cq-hue) / 0.5) 0%,
+    oklch(0.55 0.17 var(--cq-hue2) / 0.34) 52%,
     transparent 76%
   );
   filter: blur(34px);
@@ -851,8 +818,8 @@ body {
 .cq-card:nth-child(even)::before {
   background: radial-gradient(
     closest-side,
-    oklch(0.55 0.17 calc(var(--brand-h, 169) + 96) / 0.46) 0%,
-    oklch(0.74 0.15 var(--brand-h, 169) / 0.32) 52%,
+    oklch(0.55 0.17 var(--cq-hue2) / 0.46) 0%,
+    oklch(0.74 0.15 var(--cq-hue) / 0.32) 52%,
     transparent 76%
   );
 }
@@ -873,13 +840,13 @@ body {
   padding: 1.15rem 1.25rem 1.3rem;
   border: 1px solid var(--cq-line);
   border-radius: var(--cq-radius);
-  background: oklch(0.14 0.024 var(--brand-h, 169) / 0.82);
+  background: oklch(0.14 0.024 var(--cq-hue) / 0.82);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
 }
 .cq-card-title {
   font-size: var(--cq-h3);
-  font-weight: 500;
+  font-weight: 700;
   letter-spacing: -0.02em;
   color: #fff;
 }
@@ -902,7 +869,7 @@ body {
 }
 .cq-statement {
   font-size: clamp(1.5rem, 3vw, 2.4rem);
-  font-weight: 400;
+  font-weight: 600;
   line-height: 1.32;
   letter-spacing: -0.024em;
   color: #fff;
@@ -923,14 +890,14 @@ body {
   background: linear-gradient(
     150deg,
     var(--cq-accent) 0%,
-    oklch(0.4 0.08 calc(var(--brand-h, 169) + 50)) 46%,
+    oklch(0.4 0.08 var(--cq-hue2)) 46%,
     var(--cq-accent-deep) 100%
   );
   /* Inner shadow rounds it into a sphere rather than a flat disc; the outer
      bloom is what makes it glow against the black field. */
   box-shadow:
     inset 0 0 70px 12px oklch(0 0 0 / 0.5),
-    0 0 110px -12px oklch(0.6 0.15 var(--brand-h, 169) / 0.4);
+    0 0 110px -12px oklch(0.6 0.15 var(--cq-hue) / 0.4);
 }
 .cq-orb::after {
   content: "";
@@ -968,7 +935,7 @@ body {
   padding: clamp(1.5rem, 3vw, 2.25rem);
   border: 1px solid var(--cq-line-soft);
   border-radius: var(--cq-radius-lg);
-  background: oklch(0.115 0.022 var(--brand-h, 169));
+  background: oklch(0.115 0.022 var(--cq-hue));
   overflow: hidden;
 }
 .cq-row::after {
@@ -978,8 +945,8 @@ body {
   pointer-events: none;
   background: radial-gradient(
     54% 90% at 92% 50%,
-    oklch(0.55 0.17 calc(var(--brand-h, 169) + 96) / 0.24) 0%,
-    oklch(0.74 0.15 var(--brand-h, 169) / 0.08) 46%,
+    oklch(0.55 0.17 var(--cq-hue2) / 0.24) 0%,
+    oklch(0.74 0.15 var(--cq-hue) / 0.08) 46%,
     transparent 74%
   );
 }
@@ -989,7 +956,7 @@ body {
 }
 .cq-row-title {
   font-size: var(--cq-h3);
-  font-weight: 500;
+  font-weight: 700;
   letter-spacing: -0.02em;
   color: #fff;
 }
@@ -1012,7 +979,7 @@ body {
   padding: 0.5rem 0.85rem;
   border: 1px solid var(--cq-line);
   border-radius: 10px;
-  background: oklch(0.17 0.024 var(--brand-h, 169) / 0.8);
+  background: oklch(0.17 0.024 var(--cq-hue) / 0.8);
   color: var(--cq-text);
   font-size: 0.875rem;
 }
@@ -1053,7 +1020,7 @@ body {
   padding: 0.7rem 0.9rem;
   border: 1px solid var(--cq-line-soft);
   border-radius: 12px;
-  background: oklch(0.155 0.024 var(--brand-h, 169) / 0.75);
+  background: oklch(0.155 0.024 var(--cq-hue) / 0.75);
   font-size: 0.9rem;
 }
 .cq-ladder-num {
@@ -1093,7 +1060,7 @@ body {
   padding: clamp(1.5rem, 3vw, 2.25rem);
   border: 1px solid var(--cq-line-soft);
   border-radius: var(--cq-radius-lg);
-  background: oklch(0.115 0.022 var(--brand-h, 169));
+  background: oklch(0.115 0.022 var(--cq-hue));
   overflow: hidden;
 }
 .cq-step::after {
@@ -1103,8 +1070,8 @@ body {
   pointer-events: none;
   background: radial-gradient(
     50% 88% at 88% 46%,
-    oklch(0.72 0.16 var(--brand-h, 169) / 0.2) 0%,
-    oklch(0.5 0.16 calc(var(--brand-h, 169) + 66) / 0.14) 44%,
+    oklch(0.72 0.16 var(--cq-hue) / 0.2) 0%,
+    oklch(0.5 0.16 var(--cq-hue2) / 0.14) 44%,
     transparent 74%
   );
 }
@@ -1120,7 +1087,7 @@ body {
   margin-bottom: 0.9rem;
   border-radius: 10px;
   background: var(--cq-accent-soft);
-  border: 1px solid oklch(0.74 0.15 var(--brand-h, 169) / 0.4);
+  border: 1px solid oklch(0.74 0.15 var(--cq-hue) / 0.4);
   color: var(--cq-accent);
   font-size: 0.85rem;
   font-weight: 600;
@@ -1137,7 +1104,7 @@ body {
   padding: 1.4rem;
   border: 1px solid var(--cq-line-soft);
   border-radius: var(--cq-radius-lg);
-  background: oklch(0.12 0.024 var(--brand-h, 169));
+  background: oklch(0.12 0.024 var(--cq-hue));
   overflow: hidden;
 }
 .cq-layers::after {
@@ -1147,8 +1114,8 @@ body {
   pointer-events: none;
   background: radial-gradient(
     70% 60% at 50% 0%,
-    oklch(0.76 0.16 var(--brand-h, 169) / 0.22) 0%,
-    oklch(0.5 0.16 calc(var(--brand-h, 169) + 66) / 0.12) 46%,
+    oklch(0.76 0.16 var(--cq-hue) / 0.22) 0%,
+    oklch(0.5 0.16 var(--cq-hue2) / 0.12) 46%,
     transparent 76%
   );
 }
@@ -1161,7 +1128,7 @@ body {
   padding: 0.8rem 1rem;
   border: 1px solid var(--cq-line);
   border-radius: 12px;
-  background: oklch(0.17 0.026 var(--brand-h, 169) / 0.86);
+  background: oklch(0.17 0.026 var(--cq-hue) / 0.86);
   font-size: 0.9rem;
 }
 .cq-layer svg {
@@ -1188,12 +1155,12 @@ body {
   padding: 1.6rem 1.5rem;
   border: 1px solid var(--cq-line-soft);
   border-radius: var(--cq-radius-lg);
-  background: oklch(0.115 0.022 var(--brand-h, 169));
+  background: oklch(0.115 0.022 var(--cq-hue));
   overflow: hidden;
 }
 .cq-plan[data-featured="true"] {
-  border-color: oklch(0.74 0.15 var(--brand-h, 169) / 0.45);
-  background: oklch(0.135 0.03 var(--brand-h, 169));
+  border-color: oklch(0.74 0.15 var(--cq-hue) / 0.45);
+  background: oklch(0.135 0.03 var(--cq-hue));
 }
 .cq-plan[data-featured="true"]::before {
   content: "";
@@ -1202,7 +1169,7 @@ body {
   pointer-events: none;
   background: radial-gradient(
     80% 55% at 50% 0%,
-    oklch(0.74 0.15 var(--brand-h, 169) / 0.2) 0%,
+    oklch(0.74 0.15 var(--cq-hue) / 0.2) 0%,
     transparent 72%
   );
 }
@@ -1212,14 +1179,14 @@ body {
 }
 .cq-plan-name {
   font-size: 1.2rem;
-  font-weight: 500;
+  font-weight: 700;
   letter-spacing: -0.02em;
   color: #fff;
 }
 .cq-plan-tag {
   align-self: flex-start;
   padding: 0.28rem 0.6rem;
-  border: 1px solid oklch(0.74 0.15 var(--brand-h, 169) / 0.4);
+  border: 1px solid oklch(0.74 0.15 var(--cq-hue) / 0.4);
   border-radius: 999px;
   background: var(--cq-accent-soft);
   color: var(--cq-accent);
@@ -1242,7 +1209,7 @@ body {
   padding: clamp(3rem, 7vw, 5rem) clamp(1.5rem, 5vw, 4rem);
   border: 1px solid var(--cq-line);
   border-radius: var(--cq-radius-lg);
-  background: oklch(0.115 0.022 var(--brand-h, 169));
+  background: oklch(0.115 0.022 var(--cq-hue));
   text-align: center;
   overflow: hidden;
 }
@@ -1257,8 +1224,8 @@ body {
   pointer-events: none;
   background: radial-gradient(
     closest-side,
-    oklch(0.74 0.15 var(--brand-h, 169) / 0.3) 0%,
-    oklch(0.55 0.17 calc(var(--brand-h, 169) + 96) / 0.2) 48%,
+    oklch(0.74 0.15 var(--cq-hue) / 0.3) 0%,
+    oklch(0.55 0.17 var(--cq-hue2) / 0.2) 48%,
     transparent 74%
   );
   filter: blur(30px);
@@ -1294,22 +1261,14 @@ body {
   inset: 0;
   pointer-events: none;
   background:
-    radial-gradient(
-      60% 140% at 30% 50%,
-      oklch(0.74 0.15 var(--brand-h, 169) / 0.32) 0%,
-      transparent 65%
-    ),
-    radial-gradient(
-      55% 130% at 72% 50%,
-      oklch(0.55 0.17 calc(var(--brand-h, 169) + 96) / 0.32) 0%,
-      transparent 65%
-    );
+    radial-gradient(60% 140% at 30% 50%, oklch(0.74 0.15 var(--cq-hue) / 0.32) 0%, transparent 65%),
+    radial-gradient(55% 130% at 72% 50%, oklch(0.55 0.17 var(--cq-hue2) / 0.32) 0%, transparent 65%);
   filter: blur(50px);
 }
 .cq-wordmark {
   position: relative;
   font-size: clamp(3.5rem, 14vw, 11rem);
-  font-weight: 600;
+  font-weight: 800;
   letter-spacing: -0.03em;
   line-height: 1;
   white-space: nowrap;
