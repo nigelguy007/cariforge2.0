@@ -56,8 +56,8 @@ describe('STAGE_UI', () => {
     expect(STAGE_UI.SoftwareBuild).toMatchObject({
       number: 5,
       short: 'Make',
-      title: 'Approve the solution',
-      action: 'Approve solution package',
+      title: 'Approve the MVP',
+      action: 'Approve MVP build',
     });
   });
 
@@ -66,7 +66,11 @@ describe('STAGE_UI', () => {
       expect(step.sentence.length, step.stage).toBeGreaterThan(20);
       expect(step.sentence, step.stage).not.toMatch(/deploy(ed|able)? (to )?production/i);
     }
-    expect(STAGE_UI.SoftwareBuild.sentence).toMatch(/solution/i);
+    // "solution" -> "MVP" (2026-09-06, direct user correction: "state an
+    // mvp will be created"). The invariant above still holds with the new
+    // wording: it says "ready for your team to deploy", not "deployed to
+    // production" — CariForge still never claims it did the deploying.
+    expect(STAGE_UI.SoftwareBuild.sentence).toMatch(/mvp/i);
   });
 
   it('maps a zero-based gate index to a one-based step, safely', () => {
@@ -149,7 +153,7 @@ describe('roles', () => {
 describe('humaniseCopy', () => {
   it('rewrites zero-based gates and internal nouns', () => {
     expect(humaniseCopy('Approve Gate 2 for the SoftwareBuild stage')).toBe(
-      'Approve Step 3 for the Approve the solution stage',
+      'Approve Step 3 for the Approve the MVP stage',
     );
     expect(humaniseCopy('Elder Oracle must sign this handoff')).toBe(
       'Council Chair must sign this step output',

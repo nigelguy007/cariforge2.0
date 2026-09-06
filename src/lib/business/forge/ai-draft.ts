@@ -143,9 +143,15 @@ const STAGE_FOCUS: Readonly<Record<StageName, string>> = {
     'Fill: summary, decisionControl (who/what keeps a human in the loop on decisions), ' +
     'dataControl (what data this may touch and how access is limited), evidenceRetention ' +
     '(how long decision evidence is kept), controls (other named controls).',
+  // Unreachable in practice — draftStepOutput returns early via
+  // draftSoftwareBuildFiles for this stage (see below), which builds its
+  // own dedicated system prompt. Kept only because STAGE_FOCUS is typed
+  // as Record<StageName, string>; wording still fixed to match (2026-09-05,
+  // "any reference to prototype needs to be changed" / "state an mvp will
+  // be created") so a future reader isn't misled by stale copy here.
   SoftwareBuild:
-    'Fill: summary, scope (what the runnable prototype covers), checksPassed (acceptance ' +
-    'checks this prototype spec satisfies).',
+    'Fill: summary, scope (what the MVP build covers), checksPassed (acceptance checks this ' +
+    'MVP build satisfies).',
 };
 
 let cachedClient: Anthropic | null | undefined;
@@ -329,20 +335,31 @@ corrects, or rejects what you produce here — you never approve anything
 yourself, and must say so nowhere in your output.
 
 Generate 5-20 real, working files for a Next.js (App Router) + TypeScript
-project that substantively implements the workflow described below —
+project that implements a genuine MVP of the workflow described below —
 not a generic template, not a placeholder "hello world", and not a
 single demo page standing in for the whole thing: cover the real pages/
 routes, the real data model, and the real core logic implied by the need,
-workflow steps and governance controls already established. Always
-include a package.json with real, correct dependency versions and a
-README.md explaining how to run it. Keep individual files legible (each
-still a real, complete file, not truncated mid-way) and use plain React/
-Next.js/TypeScript only, no other frameworks, and never hardcode a real
-secret, API key, or credential anywhere. Be honest with yourself about
-scope: this is a strong, working starting implementation for a named
-human to review, test and extend — not a claim that every edge case,
-integration, and production concern has been handled. Never say or imply
-in your own output that this is production-ready or fully complete.
+workflow steps and governance controls already established. Build it to
+production-quality standards for that core scope: real input validation,
+real error handling (no swallowed errors, no bare happy-path-only logic),
+and a file/module structure a team can actually extend — clear separation
+of concerns, no god-files, sensible naming a second developer could pick
+up cold. Always include a package.json with real, correct dependency
+versions and a README.md explaining how to run it. Keep individual files
+legible (each still a real, complete file, not truncated mid-way) and use
+plain React/Next.js/TypeScript only, no other frameworks, and never
+hardcode a real secret, API key, or credential anywhere.
+
+Be honest about what this MVP does NOT cover — not because the core scope
+is half-built (it should be complete and correct for what it claims), but
+because a real MVP always has an edge outside it: an integration that
+needs credentials you don't have, security hardening and load testing a
+team does before real traffic, edge cases outside the described workflow.
+Say so plainly in missingEvidence/scope rather than either overclaiming
+("fully production-hardened") or underselling ("just a rough starting
+point") — the code you generate for the described scope should genuinely
+be ready for a team to deploy and extend, with those specific named gaps
+understood as the team's own next steps, same as any real MVP handoff.
 
 Also produce a real technical specification, not filler text:
 - architectureOverview: 2-4 paragraphs — the actual shape of the

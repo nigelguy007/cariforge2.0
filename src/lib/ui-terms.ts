@@ -70,15 +70,25 @@ export const STAGE_UI: Readonly<Record<StageName, StageUi>> = {
     short: 'Protect',
     title: 'Set the controls',
     action: 'Confirm controls and continue',
-    sentence: 'Decide what the prototype may do, who approves it and what evidence it must keep.',
+    // "prototype" -> "MVP" (2026-09-05, direct user correction: "this is
+    // creating the real build so any reference to prototype needs to be
+    // changed" / "state an mvp will be created").
+    sentence: 'Decide what the MVP may do, who approves it and what evidence it must keep.',
   },
   SoftwareBuild: {
     number: 5,
     short: 'Make',
-    title: 'Approve the solution',
-    action: 'Approve solution package',
+    title: 'Approve the MVP',
+    action: 'Approve MVP build',
+    // "solution package" -> "MVP", and dropped the old "not a production
+    // deployment" hedge on the BUILD itself (2026-09-05, direct user
+    // correction: "I want the real build to be created so it's
+    // production ready and able to be expanded"). CariForge still never
+    // hosts/launches it live for you — that stays the team's own later
+    // action — but the code itself is meant to be production-quality
+    // from this gate on, not just "a starting point."
     sentence:
-      'Approve the finished, ready-to-use solution package — with its plan, operating guide and evidence, not a production deployment.',
+      'Approve the finished, production-ready MVP — with its plan, operating guide and evidence, ready for your team to deploy and expand.',
   },
 };
 

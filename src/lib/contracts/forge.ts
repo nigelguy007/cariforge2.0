@@ -208,10 +208,19 @@ export const GATE_DEFS: readonly GateDef[] = [
     // ~15 business-logic files, prisma/schema/forge.prisma, and db/01-schema.sql;
     // that's the doc's "Longer term (high effort)" option, scoped separately.
     stage: 'SoftwareBuild',
-    name: 'Prototype spec approved',
+    // Renamed from "Prototype spec approved" (2026-09-05, direct user
+    // correction: "this is creating the real build so any reference to
+    // prototype needs to be changed" — "state an mvp will be created").
+    // That name was accurate when this gate only ever produced a
+    // Blueprint + Runbook specification (see this comment block's own
+    // history above) — draftSoftwareBuildFiles (ai-draft.ts) has since
+    // been upgraded to generate a real, production-quality MVP (5-20
+    // working code files) alongside the spec, per the same direct
+    // instruction, so "prototype" badly understated what gets produced.
+    name: 'MVP build approved',
     predecessorStage: 'Governance',
     purpose:
-      'Confirm the prototype spec (Blueprint + Runbook) matches acceptance criteria and is approved to hand off — not yet a deployable build.',
+      'Confirm the generated MVP (real code files, plus the Blueprint + Runbook spec) matches acceptance criteria and is approved to hand off — ready for your team to deploy and expand.',
     allowedReasonCodes: [
       'Approved',
       'InsufficientConfidence',

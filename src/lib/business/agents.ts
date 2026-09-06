@@ -164,25 +164,20 @@ export const CORE_AGENTS: CoreAgents = {
       ordinal: 5,
       role: 'AI Build',
       roleLong: 'AI Build agent',
-      // COPY ACCURACY (2026-09-03, rebuild-brief review): was "ships the
-      // runnable Next.js + TypeScript codebase... route handlers, the
-      // append-only audit-trail prisma model" — overclaimed against the
-      // product's own contract. This stage's real gate (GATE_DEFS[4] in
-      // src/lib/contracts/forge.ts) is named 'Prototype spec approved', and
-      // that file's own comment states its output is "a pair of
-      // schema-versioned *specification* documents, not deployable code."
-      // Rewritten to what the agent actually hands off, matching the fix
-      // already made to the STAGES table on /how-it-works — this exact
-      // mandate string was rendering on that page directly beneath the
-      // corrected stage description, contradicting it. NOTE: the deeper
-      // `boundary` fields below (tools/outputs/evidence/successMeasures)
-      // still describe code-generation outputs ("The generated repository",
-      // "Next.js + TypeScript code generation") — left untouched here.
-      // Rewriting those accurately is a real, separate content decision
-      // (what tools/outputs a spec-producing agent actually has) that
-      // deserves its own dedicated pass, not a rushed patch alongside this.
+      // COPY ACCURACY, round 2 (2026-09-06, direct user correction: "this
+      // is creating the real build so any reference to prototype needs
+      // to be changed" / "state an mvp will be created"). Round 1
+      // (2026-09-03) had deliberately dumbed this mandate down to
+      // spec-only language because the gate's real output WAS just the
+      // Blueprint + Runbook then — but draftSoftwareBuildFiles
+      // (ai-draft.ts) has since been upgraded to also generate a real,
+      // production-quality MVP codebase, which is exactly what the
+      // `boundary` fields below (tools/outputs/evidence) already
+      // described the whole time and round 1's note flagged as
+      // deliberately left untouched. Reconciled here: the mandate now
+      // matches those fields instead of contradicting them.
       mandate:
-        'Runs Stage 5 (Software Build) of the pipeline and produces the approved Blueprint and Runbook — the schema-versioned build spec — from the binding spec handed over by Governance. AI Build is the agent name; "Software Build" is the stage name it operates.',
+        'Runs Stage 5 (Software Build) of the pipeline and produces a real, production-quality MVP codebase plus the approved Blueprint and Runbook spec, from the binding spec handed over by Governance. AI Build is the agent name; "Software Build" is the stage name it operates.',
       relatesToStage: 'Software Build',
       scope: 'Pipeline',
       boundary: {

@@ -100,7 +100,7 @@ job:
    defined workflow, a speculative model comparison with no business
    outcome, a request for fully autonomous uncontrolled decisions, no
    lawful/approved data access, or a full enterprise transformation
-   disguised as a 21-day prototype.
+   disguised as a 21-day MVP build.
 2. Map which of the seven real CARI Forge agents would carry the most
    weight for this case (Discovery, Readiness, Workflow, Governance,
    AI Build, Partner, Impact) and say briefly why for each one you name.

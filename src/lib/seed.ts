@@ -54,7 +54,7 @@ export async function seed(): Promise<void> {
       category: 'forge-crew',
       riskClass: 'high',
       description:
-        'Turns the approved spec into a runnable prototype blueprint, wiring the agents, checks and approval gates it needs.',
+        'Turns the approved spec into a real, working MVP build, wiring the agents, checks and approval gates it needs.',
     },
     {
       slug: 'forge-partner',
