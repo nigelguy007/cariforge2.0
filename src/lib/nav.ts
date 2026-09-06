@@ -17,6 +17,9 @@ export interface NavItem {
   menu?: string;
   /** When true, render only if a session exists (see site-nav.tsx). */
   requiresAuth?: boolean;
+  /** When true, render only if NO session exists — for Log in / Sign up,
+   * so a signed-in user doesn't see a prompt to sign in again. */
+  hideWhenAuth?: boolean;
   /** Sort key within a group (ascending); unordered items fall to the end. */
   order?: number;
 }
@@ -24,14 +27,56 @@ export interface NavItem {
 // Keep the bar short: ~3-5 primary slots, group the tail with `menu`, push the
 // rest to 'footer' (SiteNav overflows extras into a "More" dropdown).
 export const navItems: NavItem[] = [
-  { label: 'How it works', href: '/#how-it-works', group: 'primary', order: 0 },
-  { label: 'Council', href: '/#council', group: 'primary', order: 1 },
-  { label: 'Stages', href: '/#stages', group: 'primary', order: 2 },
+  // The / homepage is a single fixed-viewport hero (see
+  // src/app/(setup)/page.tsx) — these anchors live on /how-it-works now,
+  // where the Oracles/Agents/Stages sections + the real brief-intake form
+  // moved to.
+  // Nav-discipline pass (2026-09-03, rebuild-brief review): public primary
+  // was 6 slots (How it works, Council, Stages, Oracles, FAQ, Blog) against
+  // a target of "no more than 5" — real, worth fixing, and fixable without
+  // moving a single URL. Council/Stages were never separate PAGES, just
+  // anchors on /how-it-works itself (#council, #stages) — a visitor already
+  // on that page can scroll to them; they don't need their own top-bar
+  // slot. Removed from primary here, but the anchors and the sections they
+  // point at are untouched, so nothing that used to work stops working —
+  // only the top-bar entry point is gone.
+  { label: 'How it works', href: '/how-it-works', group: 'primary', order: 0 },
   { label: 'Oracles', href: '/pilot/oracle-council', group: 'primary', order: 3 },
   { label: 'FAQ', href: '/faq', group: 'primary', order: 4 },
-  { label: 'Blog', href: '/blog', group: 'primary', order: 5 },
-  // Mission Control — signed-in users see this; the page itself enforces auth.
-  { label: 'Missions', href: '/missions', group: 'primary', requiresAuth: true, order: 5 },
+  // Blog demoted out of primary (footer entry below is unaffected): verified
+  // 2026-09-03 the page has zero real articles (0 matches for a `title:`
+  // entry in its own source) — it is a newsletter-signup shell describing
+  // future editor notes, not existing content. Publishing it as a top-bar
+  // destination overpromises; the brief's "remove until 3+ real articles
+  // exist" holds here. The route/page itself is untouched — a direct visit
+  // or the footer link still reaches it.
+  // Signed-in users see this; the page itself enforces auth. Labelled
+  // "Projects" to match the simplified workspace's own nav and copy
+  // (redesign brief, Step 2/3) — the route and page are unchanged.
+  { label: 'Projects', href: '/missions', group: 'primary', requiresAuth: true, order: 5 },
+  // Evidence page shipped (brief Step 5, redesign brief's three-item nav:
+  // Projects/Approvals/Evidence) but was never added here — a real gap,
+  // not a deliberate omission: the page has existed and worked all along,
+  // it just had no link a signed-in user could find it from.
+  { label: 'Evidence', href: '/evidence', group: 'primary', requiresAuth: true, order: 5.5 },
+  // "Build" (/forge, the self-service DIY canvas) removed (2026-09-05):
+  // real user report — "dont know what this page is doing" — and with the
+  // redesign's single governed "Start a project" flow now the one path,
+  // a second unexplained builder floating in the top nav is exactly the
+  // kind of confusion that caused. The route and its underlying
+  // ForgeCanvasBuilder component are untouched, just not linked anywhere
+  // right now; a deliberate, well-introduced return is a later decision,
+  // not a deletion.
+  // UX review C3 (wireframe v2): one unified Approvals inbox — gate
+  // decisions + run pauses. /forge/approvals redirects here.
+  {
+    label: 'Approvals',
+    href: '/approvals',
+    group: 'primary',
+    requiresAuth: true,
+    menu: 'Forge',
+    order: 6,
+  },
   // Admin-only — visible when signed in; the page itself gates with role === 'admin'
   // server-side, so a non-admin who reaches the link is redirected to /. Grouped
   // under `menu: 'Admin'` so the top bar stays short (SiteNav collapses these
@@ -89,12 +134,20 @@ export const navItems: NavItem[] = [
     group: 'footer',
     order: 7,
   },
-  { label: 'Mission control', href: '/missions', group: 'footer', order: 8 },
+  { label: 'Projects', href: '/missions', group: 'footer', order: 8 },
   { label: 'Pilot intro', href: '/pilot-intro', group: 'footer', order: 9 },
   {
     label: 'Submit a brief',
-    href: '/#how-it-works',
+    href: '/how-it-works#front-door',
     group: 'secondary',
     order: 0,
   },
+  // Root cause of a real, user-reported bug: there was no discoverable path
+  // from the public site to the signed-in product at all — /missions only
+  // appears once a session already exists (requiresAuth above), and no
+  // secondary nav item pointed at /login or /signup, so a visitor had no
+  // way to find either short of already knowing the URL. hideWhenAuth so a
+  // signed-in user doesn't see a prompt to log in again.
+  { label: 'Log in', href: '/login', group: 'secondary', hideWhenAuth: true, order: 1 },
+  { label: 'Sign up', href: '/signup', group: 'secondary', hideWhenAuth: true, order: 2 },
 ];

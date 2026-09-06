@@ -30,7 +30,7 @@ export function validateParent(child: HandoffRef, parent: HandoffRef | null): vo
     if (parent.version >= child.version) {
       throw new ForgeError(
         FORGE_ERROR_CODES.VERSION_NOT_PARENT,
-        `parent version ${parent.version} must be lower than child version ${child.version}.`,
+        `parentVersionId must point at an earlier version of this same stage (parent is v${parent.version}, this submission would be v${child.version}). Omit parentVersionId, or point it at an earlier version.`,
       );
     }
     return;
@@ -47,7 +47,7 @@ export function validateParent(child: HandoffRef, parent: HandoffRef | null): vo
   if (parentIdx < 0 || childIdx < 0 || childIdx - parentIdx !== 1) {
     throw new ForgeError(
       FORGE_ERROR_CODES.VERSION_NOT_PARENT,
-      `parent stage ${parent.stage} is not the immediate predecessor of ${child.stage}.`,
+      `parentVersionId must reference a handoff from either the same stage or the immediately-preceding stage — ${parent.stage} is not the immediate predecessor of ${child.stage}. Omit parentVersionId, or point it at a ${child.stage} or immediately-prior-stage handoff.`,
     );
   }
 }
@@ -63,4 +63,51 @@ export function markDownstreamInvalidated(fromStageIndex: number): readonly Stag
     'SoftwareBuild',
   ];
   return order.slice(fromStageIndex + 1);
+}
+
+// Real user reports (2026-09-05): "it says there are 3 outstanding
+// concerns unresolved .. yet the system says they are resolved" and
+// later "system says 2 unresolved concerns but nothing there" — a
+// handoff is stale (no longer the live step output) once it's either
+// been directly superseded (a fresh handoff exists for the same stage)
+// or invalidated (a redraft/replay/rollback further upstream marked it
+// as based on now-outdated information). Either way, anything hanging
+// off it — most importantly, its own unresolved objections — should stop
+// being treated as current. One canonical predicate, used by BOTH
+// service.ts (the write path: carryForwardStaleObjections and
+// getMissionDetail's self-heal) and supporting-detail.tsx (the read/
+// display path: partitionObjections), so "is this handoff stale" can
+// never quietly drift into two different answers between them again.
+export interface StaleCheckableHandoff {
+  readonly supersededById: string | null;
+  readonly invalidationReasonCode: string | null;
+}
+export function isStaleHandoff(handoff: StaleCheckableHandoff): boolean {
+  return handoff.supersededById !== null || handoff.invalidationReasonCode !== null;
+}
+
+export interface HandoffStaleRef extends StaleCheckableHandoff {
+  readonly id: string;
+}
+export interface OrphanableObjection {
+  readonly id: string;
+  readonly stageHandoffId: string;
+  readonly resolution: string | null;
+}
+
+/** Objections still marked unresolved (resolution: null) whose own
+ *  handoff has already gone stale — real orphans that carryForward
+ *  StaleObjections should already have caught at the moment the handoff
+ *  went stale, but didn't for data created before that write path
+ *  existed. getMissionDetail's self-heal calls this on every read so the
+ *  fix reaches every mission the next time anyone actually opens it, not
+ *  only ones redrafted after the fix shipped. */
+export function findOrphanedObjectionIds(
+  handoffs: readonly HandoffStaleRef[],
+  objections: readonly OrphanableObjection[],
+): string[] {
+  const staleHandoffIds = new Set(handoffs.filter(isStaleHandoff).map((h) => h.id));
+  return objections
+    .filter((o) => o.resolution === null && staleHandoffIds.has(o.stageHandoffId))
+    .map((o) => o.id);
 }

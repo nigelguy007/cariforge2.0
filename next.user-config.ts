@@ -50,7 +50,57 @@ export const cspExtraSources: CspExtraSources = {
 };
 
 /** Package-level Next options (transpilePackages, experimental.optimizePackageImports, …). */
-export const userNextConfig: NextConfig = {};
+export const userNextConfig: NextConfig = {
+  // 2026-09-06, direct user instruction: embed this exact build under
+  // www.cariforge.com/888 (a Vercel rewrite proxying to a dedicated second
+  // deployment of this same repo, distinct from the app's own root
+  // deployment at cariforge2-0.vercel.app). Env-var-driven so ONLY that
+  // dedicated deployment sets NEXT_BASE_PATH=/888 — cariforge2-0.vercel.app
+  // itself is unaffected (the var is unset there, basePath stays undefined).
+  // Without this, every asset request and internal <Link> navigation
+  // escapes the /888 prefix and 404s through the proxy — confirmed live.
+  basePath: process.env.NEXT_BASE_PATH || undefined,
+  // UX review C3 (wireframe v2): the run-only Approval Desk merged into the
+  // unified /approvals inbox. Config-level redirect so old bookmarks get a
+  // real 308 instead of a streamed page-level redirect.
+  async redirects() {
+    return [{ source: '/forge/approvals', destination: '/approvals', permanent: true }];
+  },
+  // Confirmed as a real bug live 2026-09-06 on the /888 basePath deployment:
+  // the framework-owned better-auth client (src/lib/auth-client.ts — DO NOT
+  // EDIT) deliberately calls same-origin `/api/auth/*` with NO baseURL/
+  // basePath, by design, so ONE build works on every polsia tenant host. But
+  // a raw client-side fetch() is never auto-prefixed by Next's basePath
+  // (unlike <Link>/router.push), so under this basePath deployment every
+  // sign-in/sign-up/get-session call escaped to the bare, unprefixed path —
+  // 404 on this app, and through the www.cariforge.com/888 proxy it lands on
+  // the marketing site's own project instead. Every login attempt failed
+  // with a generic "Could not sign in" no matter the credentials.
+  // Fixed at the config layer instead of touching the framework-owned
+  // client: catch the bare path and forward it internally to the real,
+  // prefixed route. `basePath: false` disables Next's automatic prefixing
+  // for BOTH source and destination on this rule, so the hand-written
+  // prefix below is taken literally — only active when NEXT_BASE_PATH is
+  // set, so the primary multi-tenant deployment (no basePath) is untouched.
+  async rewrites() {
+    const basePath = process.env.NEXT_BASE_PATH;
+    // Next requires a `basePath: false` rewrite's destination to be a full
+    // http(s) URL, not a relative path (even one already inside basePath) —
+    // confirmed live: a relative "${basePath}/api/auth/:path*" destination
+    // is rejected as "outside of the basePath". This deployment's own
+    // stable Vercel alias is hardcoded deliberately: this rule only exists
+    // when NEXT_BASE_PATH is set, which is true on ONLY this one dedicated
+    // deployment, so it can never point at the wrong host.
+    if (!basePath) return [];
+    return [
+      {
+        source: '/api/auth/:path*',
+        destination: `https://cariforgeplatform-web.vercel.app${basePath}/api/auth/:path*`,
+        basePath: false as const,
+      },
+    ];
+  },
+};
 
 export type ConfigPlugin = (config: NextConfig) => NextConfig;
 

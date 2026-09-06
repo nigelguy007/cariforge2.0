@@ -4,17 +4,32 @@
 
 'use client';
 
+import Link from 'next/link';
 import * as React from 'react';
+// 2026-09-01 UX pass: these two used to render standalone below the whole
+// page (in the server-component shell, missions/[slug]/page.tsx) — moved
+// into the Governance tab here alongside the rest of the audit/tracking
+// detail, so the shell no longer needs to know about them at all.
+import { MissionAutonomyCard } from '@/components/custom/forge-telemetry/mission-autonomy-card';
+import { MissionCostCard } from '@/components/custom/forge-telemetry/mission-cost-card';
+import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { apiFetch } from '@/lib/api-client';
+import { apiErrorMessage } from '@/lib/api-error-message';
+import { apiHref } from '@/lib/api-href';
 import {
+  type ApprovalItemT,
+  GATE_DEFS,
   type GateStateT,
   MissionDetail as MissionDetailSchema,
   type MissionDetailT,
 } from '@/lib/contracts/forge';
+import { friendlyLeadReference } from '@/lib/contracts/leads';
+import { AssurancePackCard } from './assurance-pack-card';
 import { GapListCard } from './gap-list-card';
 import { MissionAuditTimeline } from './mission-audit-timeline';
 import { MissionBlockersPanel } from './mission-blockers-panel';
+import { MissionBuildPanel } from './mission-build-panel';
 import { MissionEvidenceForm } from './mission-evidence-form';
 import { MissionEvidenceList } from './mission-evidence-list';
 import { MissionGatePanel } from './mission-gate-panel';
@@ -34,6 +49,7 @@ import { MissionToolActionsTimeline } from './mission-tool-actions-timeline';
 import { MissionWorkItemsPanel } from './mission-work-items-panel';
 import { OracleAttestationList } from './oracle-attestation-list';
 import { OracleCouncilCard } from './oracle-council-card';
+import { QAReviewCard } from './qa-review-card';
 
 export function MissionDetail({ missionSlug }: { missionSlug: string }) {
   const [detail, setDetail] = React.useState<MissionDetailT | null>(null);
@@ -56,7 +72,7 @@ export function MissionDetail({ missionSlug }: { missionSlug: string }) {
         });
         if (!cancelled) setDetail(detail);
       } catch (err) {
-        if (!cancelled) setError((err as Error).message);
+        if (!cancelled) setError(apiErrorMessage(err, 'This project could not be loaded.'));
       }
     })();
     return () => {
@@ -77,7 +93,7 @@ export function MissionDetail({ missionSlug }: { missionSlug: string }) {
       });
       setDetail(detail);
     } catch (err) {
-      setError((err as Error).message);
+      setError(apiErrorMessage(err, 'This project could not be loaded.'));
     }
   }, [missionSlug]);
 
@@ -99,10 +115,7 @@ export function MissionDetail({ missionSlug }: { missionSlug: string }) {
   return (
     <div className="space-y-6">
       <MissionNextActionPanel missionId={detail.mission.id} />
-      <MissionBlockersPanel missionSlug={missionSlug} />
-      <OracleCouncilCard detail={detail} onWritten={handleWritten} />
-      <MissionReleasePanel missionId={detail.mission.id} />
-      <MissionWorkItemsPanel missionId={detail.mission.id} />
+
       <header className="glass-panel rounded-2xl p-6">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
@@ -110,6 +123,16 @@ export function MissionDetail({ missionSlug }: { missionSlug: string }) {
             <p className="mt-1 text-small text-muted-foreground">
               Mission ID: <code className="text-caption">{detail.mission.id}</code>
             </p>
+            {/* UX review C1: the CF reference from the public brief stays
+                visible on the mission it became. */}
+            {detail.mission.sourceLeadId ? (
+              <p className="mt-1 text-small text-brand-700">
+                From brief{' '}
+                <span className="font-mono">
+                  {friendlyLeadReference(detail.mission.sourceLeadId)}
+                </span>
+              </p>
+            ) : null}
           </div>
           <MissionStatusBadge status={detail.mission.status} />
         </div>
@@ -138,9 +161,42 @@ export function MissionDetail({ missionSlug }: { missionSlug: string }) {
         </div>
       </header>
 
+      {/* 2026-09-01 UX pass, direct user request: build should be one click
+          away, always — not something you unlock by first getting through
+          the 5-gate approval flow. This is a quick, unlinked sketch (no
+          mission-record tie-in); the formal hand-off that carries this
+          mission's approved authority boundary into a mission-linked
+          blueprint is still MissionBuildPanel, now in the Governance tab,
+          and still only available once Governance clears — that's a
+          different, stricter action and stays gated on purpose. */}
+      <section className="glass-highlight rounded-2xl p-6">
+        <p className="text-eyebrow">Build it</p>
+        <h2 className="text-h3">Sketch this as a visual workflow</h2>
+        <p className="mt-1 text-body">
+          Opens the drag-and-drop canvas with this mission&rsquo;s need pre-filled — review, edit,
+          and draft it into a runnable workflow. Nothing saves or runs until you choose to.
+        </p>
+        <Button asChild className="glass-cta mt-4">
+          {/* .slice(0, 4800) matches brief-conversion-card.tsx: mission.intake
+              is zod-validated up to 5000 chars, which once URL-encoded can
+              exceed 6500 and risk a 414/URI-too-long on some proxies. */}
+          <Link href={`/forge?draft=${encodeURIComponent(detail.mission.intake.slice(0, 4800))}`}>
+            Open the visual builder
+          </Link>
+        </Button>
+      </section>
+
+      <MissionBlockersPanel missionSlug={missionSlug} />
+
       <Tabs defaultValue="overview" className="space-y-4">
         <TabsList className="glass-chip flex flex-wrap gap-1 rounded-full p-1">
           <TabsTrigger value="overview">Overview</TabsTrigger>
+          {/* Everything gate/Oracle/audit/cost-tracking related lives here now,
+              one click away instead of the default view — real user
+              feedback: none of it is needed to just describe and build
+              something, and having it all up front made the page
+              unreadable. */}
+          <TabsTrigger value="governance">Governance</TabsTrigger>
           <TabsTrigger value="handoffs">Handoffs</TabsTrigger>
           <TabsTrigger value="gates">Gates</TabsTrigger>
           <TabsTrigger value="objections">Objections</TabsTrigger>
@@ -151,32 +207,53 @@ export function MissionDetail({ missionSlug }: { missionSlug: string }) {
         </TabsList>
 
         <TabsContent value="overview">
-          <div className="grid gap-4 md:grid-cols-2">
-            <section className="glass-card rounded-2xl p-6">
-              <h2 className="text-h3">Intake</h2>
-              <p className="mt-2 whitespace-pre-wrap text-body">{detail.mission.intake}</p>
-            </section>
-            <section className="glass-card rounded-2xl p-6">
-              <h2 className="text-h3">Last audit events</h2>
-              <ul className="mt-2 space-y-2 text-body">
-                {detail.audits.slice(0, 5).map((a) => (
-                  <li key={a.id}>
-                    <span className="text-caption text-muted-foreground">
-                      {new Date(a.at).toLocaleString()} —{' '}
-                    </span>
-                    <span className="text-foreground">{a.event}</span>
-                  </li>
-                ))}
-              </ul>
-            </section>
-            <section className="glass-card rounded-2xl p-6 md:col-span-2">
-              <h2 className="text-h3">Gate panel</h2>
-              <div className="mt-3 grid gap-3 md:grid-cols-5">
-                {detail.gates.map((g) => (
-                  <GateCard key={g.gateIndex} gate={g} />
-                ))}
-              </div>
-            </section>
+          <section className="glass-card rounded-2xl p-6">
+            <h2 className="text-h3">Last audit events</h2>
+            <ul className="mt-2 space-y-2 text-body">
+              {detail.audits.slice(0, 5).map((a) => (
+                <li key={a.id}>
+                  <span className="text-caption text-muted-foreground">
+                    {new Date(a.at).toLocaleString()} —{' '}
+                  </span>
+                  <span className="text-foreground">{a.event}</span>
+                </li>
+              ))}
+            </ul>
+          </section>
+        </TabsContent>
+
+        <TabsContent value="governance">
+          <div className="space-y-4">
+            <div className="grid gap-4 md:grid-cols-2">
+              <section className="glass-card rounded-2xl p-6">
+                <h2 className="text-h3">Intake</h2>
+                <p className="mt-2 whitespace-pre-wrap text-body">{detail.mission.intake}</p>
+              </section>
+              <section className="glass-card rounded-2xl p-6 md:col-span-2">
+                <h2 className="text-h3">Gate panel</h2>
+                <div className="mt-3 grid gap-3 md:grid-cols-5">
+                  {detail.gates.map((g) => (
+                    <GateCard
+                      key={g.gateIndex}
+                      gate={g}
+                      approval={detail.approvals.find((a) => a.gateIndex === g.gateIndex) ?? null}
+                      isCurrent={g.gateIndex === detail.mission.currentStageIndex}
+                    />
+                  ))}
+                </div>
+              </section>
+            </div>
+            <OracleCouncilCard detail={detail} onWritten={handleWritten} />
+            <MissionBuildPanel
+              missionId={detail.mission.id}
+              currentStageIndex={detail.mission.currentStageIndex}
+            />
+            <MissionReleasePanel missionId={detail.mission.id} />
+            <MissionWorkItemsPanel missionId={detail.mission.id} />
+            <div className="grid gap-4 md:grid-cols-2">
+              <MissionAutonomyCard missionSlug={missionSlug} />
+              <MissionCostCard missionSlug={missionSlug} />
+            </div>
           </div>
         </TabsContent>
 
@@ -192,12 +269,24 @@ export function MissionDetail({ missionSlug }: { missionSlug: string }) {
         <TabsContent value="gates">
           <div className="space-y-4">
             {detail.gates.map((g) => (
-              <MissionGatePanel
-                key={g.gateIndex}
-                missionId={detail.mission.id}
-                gateState={g}
-                onWritten={handleWritten}
-              />
+              <div key={g.gateIndex} className="space-y-3">
+                {/* R7: QA review only makes sense ahead of a decision still
+                    to be made. `g.state === 'Awaiting'` isn't enough on its
+                    own — every gate the mission hasn't reached yet also
+                    defaults to 'Awaiting' (no approval row exists for it
+                    yet), so that check alone fired a QA-review request, and
+                    an alarming "couldn't run" notice, under gates with no
+                    artefact at all. Only the mission's actual current gate
+                    has a real handoff for the reviewer to look at. */}
+                {g.state === 'Awaiting' && g.gateIndex === detail.mission.currentStageIndex && (
+                  <QAReviewCard missionId={detail.mission.id} gateIndex={g.gateIndex} />
+                )}
+                <MissionGatePanel
+                  missionId={detail.mission.id}
+                  gateState={g}
+                  onWritten={handleWritten}
+                />
+              </div>
             ))}
           </div>
         </TabsContent>
@@ -250,7 +339,7 @@ export function MissionDetail({ missionSlug }: { missionSlug: string }) {
             <div className="flex flex-wrap gap-3">
               <a
                 className="glass-cta inline-flex items-center rounded-full px-4 py-2 text-body"
-                href={`/api/forge/missions/${detail.mission.id}/export?format=json`}
+                href={apiHref(`/api/forge/missions/${detail.mission.id}/export?format=json`)}
                 target="_blank"
                 rel="noreferrer"
               >
@@ -258,13 +347,14 @@ export function MissionDetail({ missionSlug }: { missionSlug: string }) {
               </a>
               <a
                 className="glass-outline-cta inline-flex items-center rounded-full px-4 py-2 text-body"
-                href={`/api/forge/missions/${detail.mission.id}/export?format=csv`}
+                href={apiHref(`/api/forge/missions/${detail.mission.id}/export?format=csv`)}
                 target="_blank"
                 rel="noreferrer"
               >
                 Download CSV
               </a>
             </div>
+            <AssurancePackCard missionId={detail.mission.id} />
             <GapListCard />
           </section>
         </TabsContent>
@@ -273,15 +363,25 @@ export function MissionDetail({ missionSlug }: { missionSlug: string }) {
   );
 }
 
+// R5 (mission pipeline rebuild): read the "current stage" label from
+// GATE_DEFS instead of a hand-duplicated array — the array previously said
+// 'SoftwareBuild' here regardless of what GATE_DEFS itself called the gate,
+// so the two could silently drift. Single source of truth now.
 function stageLabelForIndex(idx: number): string {
-  return (
-    (['Discovery', 'Readiness', 'Workflow', 'Governance', 'SoftwareBuild'] as const)[
-      Math.min(idx, 4)
-    ] ?? 'Draft'
-  );
+  return GATE_DEFS[Math.min(idx, GATE_DEFS.length - 1)]?.name ?? 'Draft';
 }
 
-function GateCard({ gate }: { gate: GateStateT }) {
+function GateCard({
+  gate,
+  approval,
+  isCurrent,
+}: {
+  gate: GateStateT;
+  // UX review H1: the latest approval on this gate — who decided and when,
+  // stamped on the rail itself instead of buried in the approvals list.
+  approval: ApprovalItemT | null;
+  isCurrent: boolean;
+}) {
   const tone =
     gate.state === 'Approved'
       ? 'bg-emerald-500/15 text-emerald-800'
@@ -290,11 +390,41 @@ function GateCard({ gate }: { gate: GateStateT }) {
         : gate.state === 'Returned'
           ? 'bg-amber-500/15 text-amber-800'
           : 'glass-chip';
+  // UX review H3: state must not rely on color alone — ✓ approved,
+  // ● current, ○ not reached, ↩ returned, ✕ refused.
+  const icon =
+    gate.state === 'Approved'
+      ? '✓'
+      : gate.state === 'Refused'
+        ? '✕'
+        : gate.state === 'Returned'
+          ? '↩'
+          : isCurrent
+            ? '●'
+            : '○';
+  // R5: show the gate's actual title (GATE_DEFS[i].name — e.g. "Prototype
+  // spec approved") rather than the raw internal stage identifier. This was
+  // previously rendering gate.stage verbatim for all 5 cards, which is how
+  // "SoftwareBuild" ended up on-screen with no honest gate-5 label at all.
+  const def = GATE_DEFS[gate.gateIndex];
   return (
-    <div className={`rounded-2xl p-4 ${tone}`}>
-      <p className="text-caption uppercase tracking-wide">Gate {gate.gateIndex}</p>
-      <p className="text-h4">{gate.stage}</p>
-      <p className="mt-1 text-small">State: {gate.state}</p>
+    <div className={`rounded-2xl p-4 ${tone} ${isCurrent ? 'ring-2 ring-brand-500/50' : ''}`}>
+      <p className="text-caption uppercase tracking-wide">
+        <span aria-hidden="true">{icon}</span> Gate {gate.gateIndex}
+      </p>
+      <p className="text-h4">{def?.name ?? gate.stage}</p>
+      <p className="mt-1 text-small">
+        {gate.state === 'Awaiting' && isCurrent ? 'Current — awaiting decision' : gate.state}
+      </p>
+      {approval ? (
+        <p className="mt-1 text-caption text-muted-foreground">
+          {approval.approverName ?? 'Approver'} ·{' '}
+          {new Date(approval.at).toLocaleDateString(undefined, {
+            day: 'numeric',
+            month: 'short',
+          })}
+        </p>
+      ) : null}
     </div>
   );
 }

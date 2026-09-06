@@ -1,11 +1,11 @@
-// @polsia:user-owned — layout for /admin/* inside the (dashboard) route group.
-// Pass-through: the page itself gates with requireAdmin() at render time, so
-// non-admins never see the table body. We deliberately do NOT nest the
-// dashboard-shell layout here — the admin area runs without the in-shell sign
-// out / sidebar to keep the leads view focused on the data.
+// @polsia:user-owned — /admin/* now sits inside the same AppShell as every
+// other signed-in route (brief, Step 3: admin lives under the avatar menu,
+// not in a separate chrome). Pages still gate themselves with
+// requireAdminOnPage() at render time, so non-admins never see the body.
 
 import type { ReactNode } from 'react';
+import { AppShell } from '@/components/custom/app/app-shell';
 
 export default function AdminLayout({ children }: { children: ReactNode }) {
-  return <>{children}</>;
+  return <AppShell>{children}</AppShell>;
 }

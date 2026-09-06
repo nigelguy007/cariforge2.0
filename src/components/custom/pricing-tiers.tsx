@@ -6,7 +6,7 @@
 
 'use client';
 
-import { ArrowRight } from 'lucide-react';
+import { AlertCircle, ArrowRight } from 'lucide-react';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { GlassCard, GlassChip } from '@/components/custom/glass';
@@ -113,9 +113,20 @@ export function PricingTiers() {
 
   if (loadError) {
     return (
-      <div className="rounded-lg border border-brand-700/30 bg-card p-6 text-card-foreground shadow-sm">
-        <p className="text-small text-destructive">{loadError}</p>
-      </div>
+      <GlassCard
+        role="alert"
+        tone="surface"
+        padding="md"
+        className="border border-destructive/40 bg-destructive/5 text-sm text-destructive"
+      >
+        <div className="flex items-start gap-3">
+          <AlertCircle aria-hidden className="mt-0.5 size-4 shrink-0" />
+          <div className="flex flex-col gap-2">
+            <p className="font-semibold">Could not load the pricing tiers.</p>
+            <p className="text-xs text-destructive/90">{loadError}</p>
+          </div>
+        </div>
+      </GlassCard>
     );
   }
 

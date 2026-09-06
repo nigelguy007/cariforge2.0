@@ -4,7 +4,9 @@
 import * as React from 'react';
 import { toast } from 'sonner';
 import { apiFetch } from '@/lib/api-client';
+import { apiErrorMessage } from '@/lib/api-error-message';
 import { ReleaseRead, type ReleaseReadT } from '@/lib/contracts/forge';
+import { DECISION_UI, RELEASE_STATUS_UI, stageUiForIndex } from '@/lib/ui-terms';
 
 export function MissionReleasePanel({ missionId }: { missionId: string }) {
   const [release, setRelease] = React.useState<ReleaseReadT | null>(null);
@@ -16,7 +18,7 @@ export function MissionReleasePanel({ missionId }: { missionId: string }) {
       const r = await apiFetch(`/api/forge/missions/${missionId}/release`, { schema: ReleaseRead });
       setRelease(r);
     } catch (err) {
-      setError((err as Error).message);
+      setError(apiErrorMessage(err, 'The release could not be loaded.'));
     }
   }, [missionId]);
 
@@ -35,7 +37,7 @@ export function MissionReleasePanel({ missionId }: { missionId: string }) {
       setRelease(r);
       toast.success('Release readout recorded');
     } catch (err) {
-      toast.error((err as Error).message ?? 'Could not record release readout');
+      toast.error(apiErrorMessage(err, 'Could not record release readout'));
     } finally {
       setRecording(false);
     }
@@ -61,7 +63,9 @@ export function MissionReleasePanel({ missionId }: { missionId: string }) {
     <section className={`glass-card rounded-2xl p-6 ring-1 ${tone}`}>
       <header>
         <p className="text-caption uppercase tracking-wide text-brand-700">Release readout</p>
-        <h3 className="text-h3">{release.releaseStatus}</h3>
+        <h3 className="text-h3">
+          {RELEASE_STATUS_UI[release.releaseStatus] ?? release.releaseStatus}
+        </h3>
         <p className="mt-2 text-body">{release.summary}</p>
       </header>
       <dl className="mt-4 grid gap-3 text-body md:grid-cols-2">
@@ -85,7 +89,7 @@ export function MissionReleasePanel({ missionId }: { missionId: string }) {
           <dt className="text-caption text-muted-foreground">Last approval</dt>
           <dd>
             {release.lastApproval
-              ? `${release.lastApproval.decision} @ gate ${release.lastApproval.gateIndex}`
+              ? `${DECISION_UI[release.lastApproval.decision]} — ${stageUiForIndex(release.lastApproval.gateIndex).title}`
               : '—'}
           </dd>
         </div>

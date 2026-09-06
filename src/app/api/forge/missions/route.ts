@@ -7,6 +7,7 @@ import { NextResponse } from 'next/server';
 import type { z } from 'zod';
 import { createMission, listMissionsForUser } from '@/lib/business/forge/service';
 import { MissionCreate, MissionList } from '@/lib/contracts/forge';
+import { prisma } from '@/lib/db';
 import { requireAuth, type SessionUser } from '@/lib/require-auth';
 
 export const dynamic = 'force-dynamic';
@@ -42,6 +43,22 @@ export async function POST(req: Request) {
   if (!parsed.success) {
     return NextResponse.json(fieldErrorBody(parsed.error), { status: 400 });
   }
+  // UX review C1: a brief may only be converted by the person who submitted
+  // it — the lead's email must match the session user's email. Without this
+  // check any signed-in user could attach someone else's brief by guessing
+  // its id.
+  if (parsed.data.sourceLeadId) {
+    const lead = await prisma.lead.findUnique({
+      where: { id: parsed.data.sourceLeadId },
+      select: { email: true },
+    });
+    if (!lead || !lead.email || lead.email.toLowerCase() !== user.email.toLowerCase()) {
+      return NextResponse.json(
+        { errors: { sourceLeadId: 'That brief does not belong to this account.' } },
+        { status: 403 },
+      );
+    }
+  }
   try {
     const detail = await createMission({
       userId: user.id,
@@ -50,6 +67,7 @@ export async function POST(req: Request) {
       normalizedNeed: parsed.data.normalizedNeed,
       intakeStructured: parsed.data.intakeStructured as Record<string, unknown> | undefined,
       domainTags: parsed.data.domainTags,
+      sourceLeadId: parsed.data.sourceLeadId,
     });
     return NextResponse.json(detail, { status: 201 });
   } catch (err) {

@@ -178,14 +178,23 @@ export const SAMPLE_BRIEF: SampleBrief = {
         'The logging/oversight control matrix, the role/escalation diagram, the per-regime SLAs, the four must-not-happen clauses, and the DPO sign-off.',
       output:
         'A per-claim review queue at /claims/queue with a human-in-the-loop approve / request-info / refer-to-SIU workflow. Every officer action is recorded with the model input hash, the model version, the recommendation, the two-step typed assertion, and the disposition timestamp. The audit trail is persisted as the ClaimsAuditTrail prisma model with append-only semantics — the officer who took the action cannot amend the row after it is written, and the row is anchored in the immutable per-case hash chain. The build ships the following surface: GET /api/claims/queue (claims officer inbox), POST /api/claims/[id]/review (the two-step assertion + advance), POST /api/claims/[id]/refer-siu (SIU referral gate), and the ClaimsAuditTrail prisma model with inputHash, modelVersion, recommendation, reviewerId, assertionReason, disposition, createdAt. Runtime checks enforced: no auto-deny, no auto-pay, no skip-the-human on flagged, no third-party data enrichment. The named CRO retains a stop-the-line escalation in the audit-trail dashboard.',
+      // COPY ACCURACY (2026-09-03, rebuild-brief review, same evidence as
+      // agents.ts's ai-build entry): "a runnable Software Build" overclaimed
+      // against GATE_DEFS[4]'s own documented output (a spec, not code).
+      // NOTE: the `output` field above this one still describes concrete
+      // generated API surface (endpoint paths, Prisma field names) as
+      // though it were shipped working code — left untouched here. Deciding
+      // how much implementation detail an illustrative worked example
+      // should claim is a real editorial call, not a word-swap, and
+      // deserves its own pass rather than a rushed edit alongside this one.
       downstreamHandoff:
-        'The hand-off is the case file receipt itself: a runnable Software Build with the audit-trail model, the named review queue at /claims/queue, and an exportable per-case JSON bundle ready for the buyer’s compliance officer to replay.',
+        'The hand-off is the case file receipt itself: the approved Blueprint and Runbook with the audit-trail model, the named review queue design at /claims/queue, and an exportable per-case JSON bundle ready for the buyer’s compliance officer to replay.',
       supervisor: {
         name: 'J. Vargas',
         role: 'Group Chief Information Officer',
         decision: 'Approve',
         typedReason:
-          'The Software Build matches the Governance Check control matrix one-to-one, the four must-not-happen clauses are enforced as runtime checks, and the two-step assertion (Risk carry-forward) is wired in. The ClaimsAuditTrail prisma model is append-only with the immutable hash chain. Final approve — the case is released to the buyer’s claims team as a runnable repo with the audit-trail receipt attached.',
+          'The Software Build spec matches the Governance Check control matrix one-to-one, the four must-not-happen clauses are enforced as runtime checks, and the two-step assertion (Risk carry-forward) is wired in. The ClaimsAuditTrail prisma model is append-only with the immutable hash chain. Final approve — the case is released to the buyer’s claims team as an approved build spec with the audit-trail receipt attached.',
         signedAt: '2026-05-21T16:55:00Z',
       },
     },

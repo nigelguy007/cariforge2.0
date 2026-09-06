@@ -1,0 +1,1486 @@
+/* @polsia:user-owned — standalone stylesheet for the / homepage only.
+   Every class is namespaced cq-* so nothing here can collide with the rest
+   of the app's Tailwind-based classes, and the file is imported only by
+   src/app/(setup)/page.tsx, so Next's per-route CSS chunking means it only
+   loads on /.
+
+   DESIGN DIRECTION (2026-09-03, explicit user request): "change the design
+   of the website to look like https://cosmoq.framer.website ... and retain
+   the cariforge colours". This replaces the previous "Vesper" treatment
+   (vesper-home.css) — a single locked, non-scrolling viewport with a hero
+   and three stats. The reference is a long, scrolling, multi-section
+   marketing page, so the page structure changed alongside the styling;
+   keeping the old one-viewport lock would have made a cosmoq-like result
+   impossible regardless of colour.
+
+   What was actually measured off the reference (read from live computed
+   styles in a browser, not eyeballed from a screenshot):
+     - field         : rgb(0,0,0) — pure black, with a faint starfield
+     - h1            : 82px / weight 500 / line-height 1.2 / -2.46px tracking
+     - h2            : 56px / weight 400 / line-height 1.2 / -1.12px tracking
+     - body          : 18px
+     - content width : ~1010px inside a 1568px viewport
+   The single most important of these is the WEIGHT: the reference's display
+   type is large and LIGHT (400-500), with heavy negative tracking. Setting
+   it bold is the one change that would stop this reading as the reference,
+   which is why the app-wide scale in globals.css (--text-display at weight
+   720) is deliberately NOT reused on this route.
+
+   COLOUR — the constraint that shaped everything else. The reference's
+   signature is a two-tone amber-to-blue gradient (its orbs, its card glows,
+   its CTA border ring). CariForge's brand seed is --brand-h: 169, vivid
+   aquamarine, and the instruction was to RETAIN it. Introducing the
+   reference's amber would have meant introducing a second, foreign brand
+   colour. So the two-tone gradient here is built from CariForge's own hue
+   ramped along the wheel instead: aquamarine (169) -> indigo (169+96=265).
+   It gives the orbs and glows the same two-tone depth the reference gets
+   from amber-to-blue, while every stop remains a CariForge colour.
+   --brand-h is read live (never hardcoded to 169 here) so a future
+   brand-seed change still recolours this route with the rest of the site.
+
+   This route forces dark regardless of the app's light/dark toggle, exactly
+   as the previous treatment did — the reference is dark-only, so there is no
+   light presentation to match. (The rest of the app already defaults new
+   visitors to dark anyway; see providers.tsx.) site-nav.tsx's `pathname ===
+   '/'` check suppresses the global SiteNav/SiteFooter on this one route, so
+   the page's own header and footer below don't fight them. */
+
+html,
+body {
+  /* biome-ignore lint/complexity/noImportantStyles: deliberate defensive rule, not an accident — guarantees no unstyled white flash regardless of load order, before any other rule (including the var()-based one below) has a chance to apply. Carried over from vesper-home.css, where the same guarantee was a spec requirement. */
+  background: oklch(0.09 0.022 var(--brand-h, 169)) !important;
+  color: #f2f5f4;
+}
+
+.cq-root {
+  /* === FIELD ===============================================================
+     Near-black. The reference is pure rgb(0,0,0); this keeps a trace of
+     chroma on the brand hue (L 0.09 / C 0.022) so the field still reads as
+     CariForge's aquamarine-cast black rather than a neutral void — the
+     retain-the-colours half of the instruction. Visually it is black. */
+  --cq-bg: oklch(0.09 0.022 var(--brand-h, 169));
+
+  --cq-text: #f2f5f4;
+  --cq-muted: oklch(0.72 0.014 var(--brand-h, 169));
+  --cq-dim: oklch(0.58 0.014 var(--brand-h, 169));
+
+  --cq-line: oklch(1 0 0 / 0.1);
+  --cq-line-soft: oklch(1 0 0 / 0.06);
+  --cq-line-strong: oklch(1 0 0 / 0.18);
+
+  /* === THE TWO-TONE ACCENT =================================================
+     CariForge aquamarine -> indigo. Used for every orb, glow, ring and
+     gradient on the page; nothing else carries colour, which is what keeps
+     a near-black page from looking merely grey. */
+  --cq-accent: oklch(0.74 0.15 var(--brand-h, 169));
+  --cq-accent-deep: oklch(0.55 0.17 calc(var(--brand-h, 169) + 96));
+  --cq-accent-soft: oklch(0.74 0.15 var(--brand-h, 169) / 0.16);
+
+  /* THE SUN. Warm amber, and the one colour on this page deliberately NOT
+     derived from --brand-h (2026-09-03, explicit direction: "make the
+     colours a bit brighter with the colour of the sun similar to the
+     reference site"). The first pass here avoided the reference's amber on
+     the grounds that it was a foreign brand colour; that call is overridden
+     — a warm sun over turquoise water is what a Caribbean sunrise actually
+     looks like, so the warm core and the sea-coloured atmosphere around it
+     are doing different jobs rather than competing. It is scoped to the
+     sunrise alone: nothing else on the page uses it, so the brand hue still
+     owns every button, chip, orb and card glow. */
+  --cq-sun: oklch(0.88 0.16 72);
+  --cq-sun-core: oklch(0.98 0.06 88);
+
+  --cq-grad: linear-gradient(135deg, var(--cq-accent) 0%, var(--cq-accent-deep) 100%);
+  --cq-grad-ring: linear-gradient(
+    135deg,
+    var(--cq-accent) 0%,
+    oklch(0.6 0.12 calc(var(--brand-h, 169) + 40)) 45%,
+    var(--cq-accent-deep) 100%
+  );
+
+  /* === TYPE ================================================================
+     Sizes clamp down for narrow viewports; the desktop ceiling of each is
+     the measured reference value (82px display, 56px section heading). */
+  --cq-display: clamp(2.6rem, 6.4vw, 5.125rem);
+  --cq-h2: clamp(1.95rem, 4.1vw, 3.5rem);
+  --cq-h3: clamp(1.35rem, 2vw, 1.75rem);
+  --cq-body: 1.125rem;
+
+  /* === RHYTHM ============================================================== */
+  --cq-container: 1060px;
+  --cq-gutter: clamp(1.25rem, 5vw, 2rem);
+  --cq-section: clamp(4.5rem, 10vw, 8.5rem);
+
+  --cq-radius-lg: 24px;
+  --cq-radius: 18px;
+
+  --cq-ease: cubic-bezier(0.16, 1, 0.3, 1);
+
+  position: relative;
+  min-height: 100vh;
+  background: var(--cq-bg);
+  color: var(--cq-text);
+  font-family: var(--cq-font-inter), "Inter", ui-sans-serif, system-ui, sans-serif;
+  font-size: var(--cq-body);
+  line-height: 1.6;
+  overflow-x: clip;
+  letter-spacing: -0.011em;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* === STARFIELD ==============================================================
+   The reference has a faint field of stars behind the hero. Built from
+   layered radial-gradients rather than an image: no extra network request,
+   no CSP consideration, and it scales to any viewport. Fades out below the
+   hero so the content sections sit on clean black. */
+.cq-stars {
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 190vh;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.65;
+  background-image:
+    radial-gradient(1.4px 1.4px at 12% 8%, oklch(1 0 0 / 0.55) 0%, transparent 100%),
+    radial-gradient(1.2px 1.2px at 78% 14%, oklch(1 0 0 / 0.4) 0%, transparent 100%),
+    radial-gradient(1.6px 1.6px at 34% 26%, oklch(1 0 0 / 0.5) 0%, transparent 100%),
+    radial-gradient(1.1px 1.1px at 62% 34%, oklch(1 0 0 / 0.35) 0%, transparent 100%),
+    radial-gradient(1.5px 1.5px at 88% 48%, oklch(1 0 0 / 0.42) 0%, transparent 100%),
+    radial-gradient(1.2px 1.2px at 20% 52%, oklch(1 0 0 / 0.3) 0%, transparent 100%),
+    radial-gradient(1.3px 1.3px at 50% 66%, oklch(1 0 0 / 0.34) 0%, transparent 100%),
+    radial-gradient(1.1px 1.1px at 8% 74%, oklch(1 0 0 / 0.26) 0%, transparent 100%),
+    radial-gradient(1.4px 1.4px at 70% 82%, oklch(1 0 0 / 0.3) 0%, transparent 100%);
+  background-repeat: no-repeat;
+  -webkit-mask-image: linear-gradient(180deg, #000 0%, #000 42%, transparent 88%);
+  mask-image: linear-gradient(180deg, #000 0%, #000 42%, transparent 88%);
+}
+
+/* === SUNRISE ================================================================
+   The reference's defining hero image, and the thing the first pass here
+   missed: a SUNRISE OVER A PLANET'S EDGE. A bright band sits on a curved
+   horizon, vertical light curtains rise off it like an aurora, and the
+   planet itself is a dark disc with a lit rim cutting across the bottom of
+   the hero. The first pass had only a soft centred bloom, which read as a
+   vague glow rather than a sunrise — the curve and the curtains are what
+   make it legible as one.
+
+   COLOUR (explicit user direction, 2026-09-03): "look at the colours behind
+   like a sun rising — give me the colours of the caribbean sea for this".
+   So the sunrise keeps the reference's STRUCTURE but not its amber; the ramp
+   below runs through actual Caribbean-sea water colours, brightest at the
+   horizon and deepening outward, the way that sea reads from shallow sand
+   flats out to open water:
+
+     shallow turquoise   oklch(0.95 0.07 185)  — the bright core
+     vivid aquamarine    oklch(0.80 0.15 178)
+     CariForge brand     oklch(0.72 0.16 169)  — --brand-h, unchanged
+     sea green / teal    oklch(0.58 0.15 200)
+     deep ocean blue     oklch(0.42 0.16 240)  — the outer falloff
+
+   The brand hue sits in the middle of that ramp rather than beside it, so
+   "retain the CariForge colours" and "Caribbean sea" are the same
+   instruction here, not competing ones. Every stop is read live off
+   --brand-h with a fixed offset, so re-seeding the brand still moves the
+   whole sunrise together. */
+.cq-sunrise {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: min(1700px, 170vw);
+  height: 940px;
+  transform: translateX(-50%);
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+}
+
+/* The horizon bloom — a very wide, short ellipse sitting ON the planet rim.
+   Wide-and-short is what reads as a sun low on a horizon; a circular glow
+   reads as a lamp. */
+.cq-sunrise::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 560px;
+  width: 132%;
+  /* Shorter than it first was (660px). The sea glow is atmosphere around a
+     sun sitting ON the horizon, so it has to hug the horizon; when it rose
+     too high it washed out the lede text sitting above it. */
+  height: 500px;
+  transform: translate(-50%, -50%);
+  /* The CENTRE is deliberately the dimmest part of this gradient, which is
+     the opposite of how it started. The warm sun (.cq-sun) paints on top of
+     this, and a near-opaque turquoise core underneath it turned the amber to
+     a desaturated white — two bright layers cancelling into nothing. Pulling
+     the middle back lets the sun own the core and leaves the sea colours
+     doing what they should: flanking it and cooling outward. */
+  background: radial-gradient(
+    ellipse 50% 50% at 50% 50%,
+    oklch(0.9 0.12 calc(var(--brand-h, 169) + 18) / 0.3) 0%,
+    oklch(0.87 0.16 calc(var(--brand-h, 169) + 12) / 0.6) 20%,
+    oklch(0.79 0.18 var(--brand-h, 169) / 0.62) 34%,
+    oklch(0.63 0.18 calc(var(--brand-h, 169) + 31) / 0.44) 52%,
+    oklch(0.47 0.19 calc(var(--brand-h, 169) + 71) / 0.26) 68%,
+    transparent 85%
+  );
+  filter: blur(46px);
+}
+
+/* The sun itself. A tight, warm bloom sitting ON the horizon, painted over
+   the sea-coloured atmosphere above — the reference puts a warm core at the
+   centre of its glow and lets it cool outward, and that contrast is most of
+   why its hero reads as a sunrise rather than as backlighting. Kept small
+   and low so it stays a sun and never becomes a wash. */
+.cq-sun {
+  position: absolute;
+  left: 50%;
+  top: 570px;
+  width: 68%;
+  height: 330px;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  background: radial-gradient(
+    ellipse 50% 50% at 50% 50%,
+    var(--cq-sun-core) 0%,
+    oklch(0.95 0.13 82 / 0.98) 14%,
+    var(--cq-sun) 30%,
+    oklch(0.82 0.17 60 / 0.62) 46%,
+    oklch(0.74 0.15 52 / 0.28) 62%,
+    transparent 78%
+  );
+  filter: blur(38px);
+}
+
+/* The light curtains. Fine vertical banding, masked to an ellipse around the
+   horizon so it only shows where the bloom is bright, then blurred just
+   enough to stop it reading as a hard pinstripe. */
+.cq-sunrise::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    90deg,
+    transparent 0 22px,
+    oklch(0.92 0.09 calc(var(--brand-h, 169) + 14) / 0.2) 22px 24px,
+    transparent 24px 54px,
+    oklch(0.74 0.14 calc(var(--brand-h, 169) + 34) / 0.13) 54px 55px,
+    transparent 55px 88px
+  );
+  -webkit-mask-image: radial-gradient(ellipse 56% 40% at 50% 66%, #000 0%, transparent 76%);
+  mask-image: radial-gradient(ellipse 56% 40% at 50% 66%, #000 0%, transparent 76%);
+  filter: blur(1.5px);
+}
+
+/* The planet. A disc far wider than the viewport, positioned so only its top
+   arc crosses the hero — that arc is the horizon. Filled with the page's own
+   field colour so it reads as an unlit body, with a lit rim along the top
+   edge and a bloom hugging it.
+
+   It is a CHILD of .cq-sunrise, not of .cq-root, and offset in px rather
+   than %. First pass had it as a sibling with `top: 62%`, which resolves
+   against .cq-root — i.e. 62% of the ENTIRE page height — so the horizon
+   was rendered somewhere around the pricing section instead of in the hero,
+   and the hero just showed a vague blur. Percentages against a
+   whole-page-height ancestor are the trap here; the fixed 940px sunrise box
+   makes px offsets predictable, and its overflow:hidden trims the disc to
+   the hero. */
+.cq-sunrise .cq-planet {
+  position: absolute;
+  top: 585px;
+  left: 50%;
+  /* Deliberately enormous. At 2600px the visible arc was steep enough to
+     read as a chevron meeting in the middle rather than a horizon; the
+     curve only looks like a planet's edge when the disc is several times
+     the viewport and just the shallowest slice of its top shows. */
+  width: min(7000px, 620vw);
+  aspect-ratio: 1;
+  transform: translateX(-50%);
+  border-radius: 50%;
+  background: var(--cq-bg);
+  border-top: 1.5px solid oklch(0.99 0.04 calc(var(--brand-h, 169) + 18) / 0.98);
+  /* Three stacked glows off the rim: a tight warm one (the sun striking the
+     horizon), then the turquoise and deep-ocean falloff. Warm first so it
+     sits closest to the edge, which is what makes the rim read as lit by
+     the sun rather than merely outlined. */
+  box-shadow:
+    0 -3px 30px -2px oklch(0.92 0.13 78 / 0.75),
+    0 -10px 70px -10px oklch(0.85 0.16 calc(var(--brand-h, 169) + 8) / 0.72),
+    0 -34px 200px -34px oklch(0.64 0.18 calc(var(--brand-h, 169) + 44) / 0.6);
+  pointer-events: none;
+}
+
+.cq-page {
+  position: relative;
+  z-index: 1;
+}
+
+/* === LAYOUT ================================================================= */
+.cq-container {
+  width: 100%;
+  max-width: var(--cq-container);
+  margin-inline: auto;
+  padding-inline: var(--cq-gutter);
+}
+
+.cq-section {
+  padding-block: var(--cq-section);
+}
+
+/* === HEADER / PILL NAV ======================================================
+   The reference's nav is a floating, centred, fully-rounded translucent
+   pill — logo far left, pill centre, CTA far right — that stays fixed over
+   the scrolling page. Three-column grid so the pill is optically centred on
+   the viewport regardless of how wide the logo or CTA get. */
+.cq-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 60;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.05rem var(--cq-gutter);
+}
+/* Scrim. Caught in review at 1568px: because the nav is a FIXED, translucent
+   pill over a scrolling page, every section heading that scrolled under it
+   read straight through the glass — "Brief in. Governed workflow out." and
+   "Bring us something you'd need to defend." were both legible through the
+   nav links, which is illegible in the way that actually matters (two
+   competing texts on top of each other). The reference has the same
+   structure and a milder version of the same artefact; that's not a reason
+   to ship it. A short top-down fade of the page's own field, sitting behind
+   the header's children but above page content, dissolves whatever passes
+   underneath instead. z-index -1 stays inside the header's own stacking
+   context (z-index: 60 on a positioned element creates one), so it can
+   never paint over the page proper. */
+.cq-header::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 -1.75rem 0;
+  z-index: -1;
+  pointer-events: none;
+  background: linear-gradient(
+    180deg,
+    var(--cq-bg) 0%,
+    oklch(0.09 0.022 var(--brand-h, 169) / 0.92) 46%,
+    transparent 100%
+  );
+}
+
+.cq-logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  justify-self: start;
+  color: var(--cq-text);
+  text-decoration: none;
+  font-size: 1.05rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+.cq-logo-mark {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 9px;
+  background: var(--cq-grad);
+  color: oklch(0.14 0.03 var(--brand-h, 169));
+}
+
+.cq-nav {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.4rem 0.5rem;
+  border: 1px solid var(--cq-line);
+  border-radius: 999px;
+  /* Alpha raised from 0.66 and blur from 14px as the second half of the
+     bleed-through fix documented on .cq-header::before above — the scrim
+     handles content approaching the header, this stops anything still
+     showing through the pill itself. */
+  background: oklch(0.16 0.02 var(--brand-h, 169) / 0.88);
+  backdrop-filter: blur(20px) saturate(140%);
+  -webkit-backdrop-filter: blur(20px) saturate(140%);
+}
+.cq-nav-link {
+  padding: 0.42rem 0.85rem;
+  border-radius: 999px;
+  color: var(--cq-muted);
+  font-size: 0.9rem;
+  text-decoration: none;
+  white-space: nowrap;
+  transition:
+    color 180ms var(--cq-ease),
+    background-color 180ms var(--cq-ease);
+}
+.cq-nav-link:hover {
+  color: var(--cq-text);
+  background: oklch(1 0 0 / 0.07);
+}
+
+.cq-header-end {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  justify-self: end;
+}
+.cq-header-link {
+  color: var(--cq-muted);
+  font-size: 0.9rem;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: color 180ms var(--cq-ease);
+}
+.cq-header-link:hover {
+  color: var(--cq-text);
+}
+/* Sign-out is a <button>, not a <Link> — reset its chrome to read identically
+   to the .cq-header-link it replaces when signed in. */
+.cq-header-btn {
+  border: none;
+  background: none;
+  padding: 0;
+  margin: 0;
+  font: inherit;
+  cursor: pointer;
+}
+
+/* === BUTTONS ================================================================
+   .cq-btn-primary is the reference's signature control: a near-black pill
+   whose BORDER is a two-tone gradient, with a soft bloom of the same
+   gradient sitting behind it. Built with the standard two-background
+   padding-box/border-box trick so it stays a single element — the fill
+   paints inside the padding box, the gradient paints in the border box, and
+   the 1px transparent border is the only place the gradient shows. */
+.cq-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  padding: 0.72rem 1.4rem;
+  border-radius: 999px;
+  font-size: 0.94rem;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  text-decoration: none;
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    transform 200ms var(--cq-ease),
+    box-shadow 200ms var(--cq-ease),
+    background-color 200ms var(--cq-ease);
+}
+
+.cq-btn-primary {
+  position: relative;
+  isolation: isolate;
+  border: 1px solid transparent;
+  color: var(--cq-text);
+  background:
+    linear-gradient(oklch(0.14 0.024 var(--brand-h, 169)), oklch(0.14 0.024 var(--brand-h, 169)))
+    padding-box,
+    var(--cq-grad-ring) border-box;
+}
+/* The bloom. Sits behind the button (z-index -1 inside the button's own
+   isolation context, so it can never paint over page content) and is the
+   reason the ring reads as "glowing" rather than merely "outlined". */
+.cq-btn-primary::before {
+  content: "";
+  position: absolute;
+  inset: -3px;
+  z-index: -1;
+  border-radius: inherit;
+  background: var(--cq-grad-ring);
+  filter: blur(11px);
+  opacity: 0.5;
+  transition: opacity 220ms var(--cq-ease);
+}
+.cq-btn-primary:hover {
+  transform: translateY(-1px);
+}
+.cq-btn-primary:hover::before {
+  opacity: 0.78;
+}
+
+.cq-btn-ghost {
+  border: 1px solid var(--cq-line);
+  color: var(--cq-text);
+  background: oklch(1 0 0 / 0.03);
+}
+.cq-btn-ghost:hover {
+  background: oklch(1 0 0 / 0.08);
+  border-color: var(--cq-line-strong);
+}
+
+.cq-btn-sm {
+  padding: 0.55rem 1.05rem;
+  font-size: 0.88rem;
+}
+
+/* === BADGE ==================================================================
+   The small rounded pill the reference sits directly above its H1. */
+.cq-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.45rem 0.95rem;
+  border: 1px solid var(--cq-line);
+  border-radius: 999px;
+  background: oklch(0.17 0.022 var(--brand-h, 169) / 0.7);
+  color: var(--cq-muted);
+  font-size: 0.85rem;
+  letter-spacing: -0.005em;
+}
+.cq-badge svg {
+  color: var(--cq-accent);
+}
+
+/* === HERO ===================================================================
+   Centred, with very generous space above (the fixed header floats over it)
+   and a display heading that is the page's whole first impression. */
+.cq-hero {
+  padding-top: clamp(8rem, 16vh, 11rem);
+  padding-bottom: clamp(3rem, 6vw, 5rem);
+  text-align: center;
+}
+
+.cq-display {
+  margin: 1.5rem auto 0;
+  max-width: 15ch;
+  font-size: var(--cq-display);
+  /* The measured reference values. Weight 500 and -0.03em tracking are the
+     defining characteristics — see the file header. */
+  font-weight: 500;
+  line-height: 1.2;
+  letter-spacing: -0.03em;
+  color: #fff;
+  text-wrap: balance;
+}
+
+.cq-lede {
+  margin: 1.6rem auto 0;
+  max-width: 46ch;
+  color: var(--cq-muted);
+  font-size: var(--cq-body);
+  line-height: 1.55;
+  text-wrap: balance;
+  /* The hero lede sits directly over the brightest part of the sunrise. At
+     full glow strength its muted grey lost most of its contrast against the
+     band — caught in review, and exactly the class of legibility problem
+     this site has been bitten by before. A soft dark halo restores contrast
+     without darkening the artwork or forcing the text to pure white. */
+  text-shadow: 0 1px 18px oklch(0.09 0.03 var(--brand-h, 169) / 0.85);
+}
+.cq-hero .cq-lede {
+  color: oklch(0.86 0.012 var(--brand-h, 169));
+}
+
+.cq-hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  margin-top: 2.25rem;
+}
+
+/* === SHOWCASE PANEL =========================================================
+   The reference anchors its hero with a large rounded product panel. This
+   one frames a schematic of the real Forge Canvas rather than a screenshot —
+   an illustration of the actual product surface, drawn in CSS, so it needs
+   no image asset and cannot go stale against the real UI the way a captured
+   screenshot would. */
+.cq-showcase {
+  position: relative;
+  margin-top: clamp(2.5rem, 5vw, 4rem);
+  border: 1px solid var(--cq-line);
+  border-radius: var(--cq-radius-lg);
+  background: linear-gradient(
+    180deg,
+    oklch(0.15 0.026 var(--brand-h, 169)) 0%,
+    oklch(0.11 0.022 var(--brand-h, 169)) 100%
+  );
+  box-shadow: 0 40px 120px -40px oklch(0 0 0 / 0.9);
+  overflow: hidden;
+}
+.cq-showcase::after {
+  /* Two-tone wash bleeding up from the bottom-right, the same treatment the
+     reference gives its own panels. */
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(
+    62% 78% at 88% 108%,
+    oklch(0.55 0.15 calc(var(--brand-h, 169) + 96) / 0.34) 0%,
+    oklch(0.7 0.13 var(--brand-h, 169) / 0.12) 42%,
+    transparent 72%
+  );
+}
+
+.cq-showcase-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.85rem 1.1rem;
+  border-bottom: 1px solid var(--cq-line-soft);
+}
+.cq-showcase-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  background: oklch(1 0 0 / 0.16);
+}
+.cq-showcase-title {
+  margin-left: 0.4rem;
+  color: var(--cq-dim);
+  font-size: 0.85rem;
+}
+
+.cq-showcase-body {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: 190px 1fr;
+  min-height: 340px;
+}
+.cq-showcase-rail {
+  padding: 1.1rem;
+  border-right: 1px solid var(--cq-line-soft);
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.cq-rail-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.6rem;
+  border-radius: 10px;
+  color: var(--cq-dim);
+  font-size: 0.85rem;
+}
+.cq-rail-item[data-active="true"] {
+  background: oklch(1 0 0 / 0.06);
+  color: var(--cq-text);
+}
+.cq-rail-swatch {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--cq-accent);
+}
+
+.cq-showcase-canvas {
+  position: relative;
+  padding: 1.6rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  /* Faint grid, the way a node canvas reads. */
+  background-image:
+    linear-gradient(oklch(1 0 0 / 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, oklch(1 0 0 / 0.035) 1px, transparent 1px);
+  background-size: 30px 30px;
+}
+.cq-node {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  width: min(280px, 100%);
+  padding: 0.7rem 0.9rem;
+  border: 1px solid var(--cq-line);
+  border-radius: 12px;
+  background: oklch(0.18 0.026 var(--brand-h, 169) / 0.92);
+  font-size: 0.875rem;
+  color: var(--cq-text);
+}
+.cq-node-badge {
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 7px;
+  background: var(--cq-accent-soft);
+  color: var(--cq-accent);
+  font-size: 0.7rem;
+  font-weight: 600;
+}
+.cq-node[data-tone="approval"] {
+  border-color: oklch(0.74 0.15 var(--brand-h, 169) / 0.45);
+  box-shadow: 0 0 0 3px oklch(0.74 0.15 var(--brand-h, 169) / 0.1);
+}
+.cq-node-meta {
+  margin-left: auto;
+  color: var(--cq-dim);
+  font-size: 0.75rem;
+}
+.cq-edge {
+  width: 1px;
+  height: 26px;
+  background: linear-gradient(180deg, var(--cq-line-strong), oklch(1 0 0 / 0.05));
+}
+
+/* === STAT ROW ===============================================================
+   Replaces the reference's greyed partner-logo strip. CariForge has no
+   partner logos to show, and inventing some would be fabrication — these are
+   the product's three real, already-published facts instead, in the same
+   structural slot. */
+.cq-stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1px;
+  margin-top: clamp(3rem, 6vw, 4.5rem);
+  border: 1px solid var(--cq-line-soft);
+  border-radius: var(--cq-radius);
+  background: var(--cq-line-soft);
+  overflow: hidden;
+}
+.cq-stat {
+  padding: 1.4rem 1.5rem;
+  background: var(--cq-bg);
+}
+.cq-stat-value {
+  font-size: 1.75rem;
+  font-weight: 500;
+  letter-spacing: -0.025em;
+  color: #fff;
+}
+.cq-stat-label {
+  margin-top: 0.3rem;
+  color: var(--cq-dim);
+  font-size: 0.9rem;
+  line-height: 1.45;
+}
+
+/* === SECTION HEADER =========================================================
+   The reference's most repeated structural device: a small icon + uppercase
+   tracked eyebrow, a hairline rule running the full content width beneath
+   it, then an asymmetric row — a large light heading on the left, a short
+   muted paragraph on the right. */
+.cq-eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  color: var(--cq-dim);
+  font-size: 0.78rem;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+.cq-eyebrow svg {
+  color: var(--cq-accent);
+}
+.cq-rule {
+  height: 1px;
+  margin-top: 0.9rem;
+  background: linear-gradient(90deg, var(--cq-line) 0%, var(--cq-line-soft) 100%);
+}
+
+.cq-section-head {
+  display: grid;
+  grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr);
+  align-items: end;
+  gap: 1.5rem 3rem;
+  margin-top: 2rem;
+}
+.cq-h2 {
+  font-size: var(--cq-h2);
+  font-weight: 400;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+  color: #fff;
+  text-wrap: balance;
+}
+.cq-section-note {
+  color: var(--cq-muted);
+  font-size: 1rem;
+  line-height: 1.5;
+  padding-bottom: 0.35rem;
+}
+
+/* === FEATURE CARDS ==========================================================
+   The reference's distinctive card: a tall panel whose upper half is a
+   two-tone gradient artwork area, with a SEPARATE inset card sitting at the
+   bottom holding the title and description — a card inside a card, with its
+   own border and lighter fill. That nesting is what gives the reference its
+   depth; a single flat panel does not read the same way. */
+.cq-cards {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1.5rem;
+  margin-top: 2.75rem;
+}
+.cq-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  min-height: 390px;
+  padding: 1.15rem;
+  border: 1px solid var(--cq-line-soft);
+  border-radius: var(--cq-radius-lg);
+  background: oklch(0.115 0.022 var(--brand-h, 169));
+  overflow: hidden;
+}
+/* The artwork glow. Positioned upper-centre and blurred hard, so the card's
+   top half is colour and its bottom half falls back to near-black behind
+   the inner panel. */
+.cq-card::before {
+  content: "";
+  position: absolute;
+  top: -22%;
+  left: 50%;
+  width: 118%;
+  height: 66%;
+  transform: translateX(-50%);
+  pointer-events: none;
+  background: radial-gradient(
+    closest-side,
+    oklch(0.74 0.15 var(--brand-h, 169) / 0.5) 0%,
+    oklch(0.55 0.17 calc(var(--brand-h, 169) + 96) / 0.34) 52%,
+    transparent 76%
+  );
+  filter: blur(34px);
+}
+/* Mirrored on the second card so the pair isn't a copy-paste of the same
+   glow — the reference varies its artwork card to card. */
+.cq-card:nth-child(even)::before {
+  background: radial-gradient(
+    closest-side,
+    oklch(0.55 0.17 calc(var(--brand-h, 169) + 96) / 0.46) 0%,
+    oklch(0.74 0.15 var(--brand-h, 169) / 0.32) 52%,
+    transparent 76%
+  );
+}
+
+/* A faint constellation of connecting lines over the artwork area, echoing
+   the reference's own line-work, and on-theme for a workflow product. */
+.cq-card-art {
+  position: absolute;
+  inset: 0 0 34% 0;
+  width: 100%;
+  height: 66%;
+  pointer-events: none;
+  opacity: 0.5;
+}
+
+.cq-card-inner {
+  position: relative;
+  padding: 1.15rem 1.25rem 1.3rem;
+  border: 1px solid var(--cq-line);
+  border-radius: var(--cq-radius);
+  background: oklch(0.14 0.024 var(--brand-h, 169) / 0.82);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+.cq-card-title {
+  font-size: var(--cq-h3);
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  color: #fff;
+}
+.cq-card-text {
+  margin-top: 0.5rem;
+  color: var(--cq-muted);
+  font-size: 0.975rem;
+  line-height: 1.55;
+}
+
+/* === SPLIT / ORB ============================================================
+   The reference pairs a large, light, multi-line statement with a big
+   gradient sphere. The sphere is the clearest place the two-tone accent
+   does its work, so it is built from the same gradient as everything else. */
+.cq-split {
+  display: grid;
+  grid-template-columns: minmax(0, 1.25fr) minmax(0, 0.75fr);
+  align-items: center;
+  gap: clamp(2rem, 5vw, 4.5rem);
+}
+.cq-statement {
+  font-size: clamp(1.5rem, 3vw, 2.4rem);
+  font-weight: 400;
+  line-height: 1.32;
+  letter-spacing: -0.024em;
+  color: #fff;
+  text-wrap: balance;
+}
+
+.cq-orb-wrap {
+  display: grid;
+  place-items: center;
+}
+.cq-orb {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: min(300px, 74vw);
+  aspect-ratio: 1;
+  border-radius: 999px;
+  background: linear-gradient(
+    150deg,
+    var(--cq-accent) 0%,
+    oklch(0.4 0.08 calc(var(--brand-h, 169) + 50)) 46%,
+    var(--cq-accent-deep) 100%
+  );
+  /* Inner shadow rounds it into a sphere rather than a flat disc; the outer
+     bloom is what makes it glow against the black field. */
+  box-shadow:
+    inset 0 0 70px 12px oklch(0 0 0 / 0.5),
+    0 0 110px -12px oklch(0.6 0.15 var(--brand-h, 169) / 0.4);
+}
+.cq-orb::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  box-shadow: inset 0 1px 0 oklch(1 0 0 / 0.28);
+}
+.cq-orb-label {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  gap: 0.5rem;
+  color: #fff;
+  font-size: 1.05rem;
+  font-weight: 500;
+  letter-spacing: -0.015em;
+  text-shadow: 0 2px 14px oklch(0 0 0 / 0.5);
+}
+
+/* === CAPABILITY ROWS ========================================================
+   The reference's feature section is a set of wide panels, each with copy on
+   the left and a cluster of labelled pills on the right. */
+.cq-rows {
+  display: grid;
+  gap: 1.25rem;
+  margin-top: 2.75rem;
+}
+.cq-row {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  align-items: center;
+  gap: clamp(1.5rem, 4vw, 3rem);
+  padding: clamp(1.5rem, 3vw, 2.25rem);
+  border: 1px solid var(--cq-line-soft);
+  border-radius: var(--cq-radius-lg);
+  background: oklch(0.115 0.022 var(--brand-h, 169));
+  overflow: hidden;
+}
+.cq-row::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(
+    54% 90% at 92% 50%,
+    oklch(0.55 0.17 calc(var(--brand-h, 169) + 96) / 0.24) 0%,
+    oklch(0.74 0.15 var(--brand-h, 169) / 0.08) 46%,
+    transparent 74%
+  );
+}
+.cq-row > * {
+  position: relative;
+  z-index: 1;
+}
+.cq-row-title {
+  font-size: var(--cq-h3);
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  color: #fff;
+}
+.cq-row-text {
+  margin-top: 0.6rem;
+  color: var(--cq-muted);
+  font-size: 1rem;
+  line-height: 1.55;
+}
+.cq-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin-top: 1.35rem;
+}
+.cq-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.5rem 0.85rem;
+  border: 1px solid var(--cq-line);
+  border-radius: 10px;
+  background: oklch(0.17 0.024 var(--brand-h, 169) / 0.8);
+  color: var(--cq-text);
+  font-size: 0.875rem;
+}
+.cq-pill svg {
+  color: var(--cq-accent);
+}
+.cq-row-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin-top: 1.5rem;
+  color: var(--cq-text);
+  font-size: 0.94rem;
+  font-weight: 500;
+  text-decoration: none;
+  padding: 0.55rem 1.05rem;
+  border: 1px solid var(--cq-line);
+  border-radius: 999px;
+  background: oklch(1 0 0 / 0.03);
+  transition: background-color 180ms var(--cq-ease);
+}
+.cq-row-link:hover {
+  background: oklch(1 0 0 / 0.09);
+}
+.cq-row-link span {
+  color: var(--cq-accent);
+}
+
+/* The stage ladder that fills the right half of a capability row. */
+.cq-ladder {
+  display: grid;
+  gap: 0.55rem;
+}
+.cq-ladder-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.7rem 0.9rem;
+  border: 1px solid var(--cq-line-soft);
+  border-radius: 12px;
+  background: oklch(0.155 0.024 var(--brand-h, 169) / 0.75);
+  font-size: 0.9rem;
+}
+.cq-ladder-num {
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 8px;
+  background: var(--cq-accent-soft);
+  color: var(--cq-accent);
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+.cq-ladder-tag {
+  margin-left: auto;
+  color: var(--cq-dim);
+  font-size: 0.78rem;
+}
+
+/* === STEP PANELS ============================================================
+   The reference's "3 Steps to Kickstart": three tall panels, each with copy
+   on the left, a numbered chip, and a piece of mock UI on the right. Added
+   in the second pass — the first pass compressed this into three lines
+   inside a capability row, which is why the page read as much thinner than
+   the reference even though the section existed in some form. */
+.cq-steps {
+  display: grid;
+  gap: 1.25rem;
+  margin-top: 2.75rem;
+}
+.cq-step {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  align-items: center;
+  gap: clamp(1.5rem, 4vw, 3rem);
+  padding: clamp(1.5rem, 3vw, 2.25rem);
+  border: 1px solid var(--cq-line-soft);
+  border-radius: var(--cq-radius-lg);
+  background: oklch(0.115 0.022 var(--brand-h, 169));
+  overflow: hidden;
+}
+.cq-step::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(
+    50% 88% at 88% 46%,
+    oklch(0.72 0.16 var(--brand-h, 169) / 0.2) 0%,
+    oklch(0.5 0.16 calc(var(--brand-h, 169) + 66) / 0.14) 44%,
+    transparent 74%
+  );
+}
+.cq-step > * {
+  position: relative;
+  z-index: 1;
+}
+.cq-step-num {
+  display: inline-grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  margin-bottom: 0.9rem;
+  border-radius: 10px;
+  background: var(--cq-accent-soft);
+  border: 1px solid oklch(0.74 0.15 var(--brand-h, 169) / 0.4);
+  color: var(--cq-accent);
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+/* === SECURITY ===============================================================
+   The reference's "Multi-Layer Security" pairs the heading with a stack of
+   translucent layered planes. Here the layers are labelled with the real
+   guarantees rather than being pure decoration. */
+.cq-layers {
+  position: relative;
+  display: grid;
+  gap: 0.6rem;
+  padding: 1.4rem;
+  border: 1px solid var(--cq-line-soft);
+  border-radius: var(--cq-radius-lg);
+  background: oklch(0.12 0.024 var(--brand-h, 169));
+  overflow: hidden;
+}
+.cq-layers::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(
+    70% 60% at 50% 0%,
+    oklch(0.76 0.16 var(--brand-h, 169) / 0.22) 0%,
+    oklch(0.5 0.16 calc(var(--brand-h, 169) + 66) / 0.12) 46%,
+    transparent 76%
+  );
+}
+.cq-layer {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  padding: 0.8rem 1rem;
+  border: 1px solid var(--cq-line);
+  border-radius: 12px;
+  background: oklch(0.17 0.026 var(--brand-h, 169) / 0.86);
+  font-size: 0.9rem;
+}
+.cq-layer svg {
+  color: var(--cq-accent);
+  flex: none;
+}
+
+/* === PLANS ==================================================================
+   Three engagement tiers. The middle one is raised the way the reference
+   raises its own middle plan — a brighter border and the gradient ring
+   treatment, so the eye lands there first. */
+.cq-plans {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1.25rem;
+  margin-top: 2.75rem;
+  align-items: start;
+}
+.cq-plan {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  padding: 1.6rem 1.5rem;
+  border: 1px solid var(--cq-line-soft);
+  border-radius: var(--cq-radius-lg);
+  background: oklch(0.115 0.022 var(--brand-h, 169));
+  overflow: hidden;
+}
+.cq-plan[data-featured="true"] {
+  border-color: oklch(0.74 0.15 var(--brand-h, 169) / 0.45);
+  background: oklch(0.135 0.03 var(--brand-h, 169));
+}
+.cq-plan[data-featured="true"]::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(
+    80% 55% at 50% 0%,
+    oklch(0.74 0.15 var(--brand-h, 169) / 0.2) 0%,
+    transparent 72%
+  );
+}
+.cq-plan > * {
+  position: relative;
+  z-index: 1;
+}
+.cq-plan-name {
+  font-size: 1.2rem;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  color: #fff;
+}
+.cq-plan-tag {
+  align-self: flex-start;
+  padding: 0.28rem 0.6rem;
+  border: 1px solid oklch(0.74 0.15 var(--brand-h, 169) / 0.4);
+  border-radius: 999px;
+  background: var(--cq-accent-soft);
+  color: var(--cq-accent);
+  font-size: 0.72rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.cq-plan-text {
+  color: var(--cq-muted);
+  font-size: 0.94rem;
+  line-height: 1.55;
+}
+.cq-plan .cq-btn {
+  margin-top: auto;
+}
+
+/* === CLOSING CTA ============================================================ */
+.cq-cta {
+  position: relative;
+  padding: clamp(3rem, 7vw, 5rem) clamp(1.5rem, 5vw, 4rem);
+  border: 1px solid var(--cq-line);
+  border-radius: var(--cq-radius-lg);
+  background: oklch(0.115 0.022 var(--brand-h, 169));
+  text-align: center;
+  overflow: hidden;
+}
+.cq-cta::before {
+  content: "";
+  position: absolute;
+  bottom: -55%;
+  left: 50%;
+  width: 78%;
+  height: 130%;
+  transform: translateX(-50%);
+  pointer-events: none;
+  background: radial-gradient(
+    closest-side,
+    oklch(0.74 0.15 var(--brand-h, 169) / 0.3) 0%,
+    oklch(0.55 0.17 calc(var(--brand-h, 169) + 96) / 0.2) 48%,
+    transparent 74%
+  );
+  filter: blur(30px);
+}
+.cq-cta > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* === GIANT WORDMARK ==========================================================
+   The reference's other big set-piece: a massive, glowing, semi-transparent
+   brand name sitting above the footer — outlined letters with a warm-to-cool
+   glow bleeding through them, rather than a flat filled logo. Two layers
+   make this work: a big blurred aquamarine->indigo glow SHAPE sitting
+   behind the text (::before), and the text itself rendered with a
+   transparent fill + a thin gradient stroke via -webkit-text-stroke, so the
+   glow shows THROUGH the letterforms instead of the letters just sitting on
+   top of a glow. -webkit-text-stroke has no unprefixed standard equivalent
+   yet, but every evergreen engine (Chromium, WebKit, Firefox 132+) supports
+   the -webkit- form; the @supports fallback below gives non-supporting
+   engines a plain, still-legible translucent fill instead of invisible
+   text. */
+.cq-wordmark-wrap {
+  position: relative;
+  display: grid;
+  place-items: center;
+  padding-block: clamp(2rem, 6vw, 5rem);
+  overflow: hidden;
+}
+.cq-wordmark-wrap::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(
+      60% 140% at 30% 50%,
+      oklch(0.74 0.15 var(--brand-h, 169) / 0.32) 0%,
+      transparent 65%
+    ),
+    radial-gradient(
+      55% 130% at 72% 50%,
+      oklch(0.55 0.17 calc(var(--brand-h, 169) + 96) / 0.32) 0%,
+      transparent 65%
+    );
+  filter: blur(50px);
+}
+.cq-wordmark {
+  position: relative;
+  font-size: clamp(3.5rem, 14vw, 11rem);
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  line-height: 1;
+  white-space: nowrap;
+  /* Fallback for engines without -webkit-text-stroke: a plain, dim,
+     translucent fill — still fully legible, just without the glow-through-
+     the-letterforms effect. */
+  color: oklch(1 0 0 / 0.14);
+}
+@supports (-webkit-text-stroke: 1px black) {
+  .cq-wordmark {
+    color: transparent;
+    -webkit-text-stroke: 1.5px oklch(1 0 0 / 0.5);
+  }
+}
+
+/* === FOOTER ================================================================= */
+.cq-footer {
+  border-top: 1px solid var(--cq-line-soft);
+  padding-block: clamp(2.5rem, 5vw, 3.5rem);
+}
+.cq-footer-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) repeat(2, minmax(0, 1fr));
+  gap: 2rem;
+}
+.cq-footer-tagline {
+  margin-top: 0.85rem;
+  max-width: 34ch;
+  color: var(--cq-dim);
+  font-size: 0.92rem;
+  line-height: 1.55;
+}
+.cq-footer-title {
+  color: var(--cq-text);
+  font-size: 0.85rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+.cq-footer-links {
+  display: grid;
+  gap: 0.55rem;
+  margin-top: 0.9rem;
+}
+.cq-footer-links a {
+  color: var(--cq-dim);
+  font-size: 0.9rem;
+  text-decoration: none;
+  transition: color 180ms var(--cq-ease);
+}
+.cq-footer-links a:hover {
+  color: var(--cq-text);
+}
+/* Real user feedback (2026-09-04): "no log out of the system" — the footer's
+   Governance column had a hardcoded "Log in" link with no signed-in state at
+   all. .cq-footer-link-btn is a <button> styled to match .cq-footer-links a
+   exactly, used only when signed in (CqFooterAuthLink in cq-header.tsx). */
+.cq-footer-link-btn {
+  display: block;
+  width: 100%;
+  border: none;
+  background: none;
+  padding: 0;
+  margin: 0;
+  text-align: left;
+  font: inherit;
+  cursor: pointer;
+  color: var(--cq-dim);
+  font-size: 0.9rem;
+  transition: color 180ms var(--cq-ease);
+}
+.cq-footer-link-btn:hover {
+  color: var(--cq-text);
+}
+.cq-footer-base {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem 1.5rem;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 2.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--cq-line-soft);
+  color: var(--cq-dim);
+  font-size: 0.85rem;
+}
+
+/* === MOTION =================================================================
+   One entrance treatment, applied with a per-element delay via --cq-d. Kept
+   deliberately small: the reference's own motion is a short fade-and-rise,
+   not a choreographed sequence. */
+@media (prefers-reduced-motion: no-preference) {
+  .cq-rise {
+    animation: cq-rise 0.85s var(--cq-ease) both;
+    animation-delay: var(--cq-d, 0s);
+  }
+}
+@keyframes cq-rise {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* === RESPONSIVE =============================================================
+   The nav pill is the first thing to go: the reference's centred pill has no
+   room on a phone, so the links are dropped there rather than collapsed into
+   a burger menu — every nav destination is also reachable from the footer
+   below, so nothing becomes unreachable, and it needs no JS state and has no
+   focus trap to get wrong. */
+@media (max-width: 900px) {
+  .cq-header {
+    grid-template-columns: 1fr auto;
+    gap: 0.6rem;
+  }
+  .cq-nav {
+    display: none;
+  }
+  .cq-section-head {
+    grid-template-columns: minmax(0, 1fr);
+    align-items: start;
+  }
+  .cq-cards {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .cq-split {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .cq-orb-wrap {
+    order: -1;
+  }
+  .cq-row,
+  .cq-step {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .cq-plans {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .cq-showcase-body {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .cq-showcase-rail {
+    display: none;
+  }
+  .cq-footer-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 620px) {
+  .cq-stats {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  /* Real user feedback (2026-09-04): "on the homepage there is a log in at
+     the bottom but don't see it at the top all I see is submit a brief."
+     This rule used to hide .cq-header-link below 620px on the theory that
+     it's "also reachable from the footer" — but the footer's own version of
+     this link was a static "Log in" that never even reflected being signed
+     in (see CqFooterAuthLink), so on a phone there was no way to reach
+     login/sign-out from either place. Removed; both items comfortably fit
+     next to the compact "Submit a brief" pill at this width. */
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cq-btn,
+  .cq-nav-link,
+  .cq-row-link,
+  .cq-footer-links a {
+    transition: none;
+  }
+}

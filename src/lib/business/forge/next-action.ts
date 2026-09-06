@@ -30,8 +30,22 @@ export function nextActionFor(input: NextActionInput): NextActionViewT {
   if (input.status === 'Completed') {
     return { kind: 'Complete', title: 'Mission complete — nothing left to do.' };
   }
-  if (input.status === 'WalkedAway' || input.status === 'Rejected') {
-    return { kind: 'Complete', title: 'Mission is closed without release.' };
+  if (input.status === 'Rejected') {
+    // User-specified flow (2026-09-05): a refused gate — including an
+    // Elder's "no" on gate 0/4 — ends the project with an apology and
+    // advice to rethink, not a generic "complete" message.
+    return {
+      kind: 'Closed',
+      status: 'Rejected',
+      title: 'This project was not approved and has been closed.',
+    };
+  }
+  if (input.status === 'WalkedAway') {
+    return {
+      kind: 'Closed',
+      status: 'WalkedAway',
+      title: 'This project was stopped before completion.',
+    };
   }
   if (input.status === 'Paused') {
     return { kind: 'Resume', title: 'Mission is paused — resume to continue work.' };
@@ -89,13 +103,35 @@ export function nextActionFor(input: NextActionInput): NextActionViewT {
   }
 
   const gateToActOn = pickNextGate(input.status, input.gates, input.approvals);
-  if (gateToActOn) {
+  if (gateToActOn?.state === 'Returned') {
+    // Real dead end found live (2026-09-05): a Returned gate used to fall
+    // straight through to the generic 'Idle' branch below — "Nothing
+    // needs you right now" with no button — because pickNextGate only
+    // ever matched gates still in 'Awaiting'. The reviewer's own written
+    // feedback was recorded on the Return approval the whole time; it
+    // was just never surfaced as the next action.
+    const latestReturn = [...input.approvals]
+      .filter((a) => a.gateIndex === gateToActOn.gateIndex && a.decision === 'Return')
+      .sort((a, b) => b.at.localeCompare(a.at))[0];
+    const def = GATE_DEFS[gateToActOn.gateIndex];
+    return {
+      kind: 'ReviseStage',
+      gateIndex: gateToActOn.gateIndex,
+      stage: gateToActOn.stage,
+      title: `Add more information to ${def?.name ?? `gate ${gateToActOn.gateIndex}`}`,
+      rationale:
+        latestReturn?.reasonText?.trim() ||
+        'Reviewers asked for more information before this step can move forward.',
+    };
+  }
+  if (gateToActOn?.state === 'Awaiting') {
+    const def = GATE_DEFS[gateToActOn.gateIndex];
     return {
       kind: 'ApproveGate',
       gateIndex: gateToActOn.gateIndex,
       stage: gateToActOn.stage,
-      title: `Decide gate ${gateToActOn.gateIndex} — ${gateToActOn.name}`,
-      rationale: gateToActOn.purpose,
+      title: `Decide gate ${gateToActOn.gateIndex} — ${def?.name ?? `Gate ${gateToActOn.gateIndex}`}`,
+      rationale: def?.purpose ?? 'No purpose recorded.',
     };
   }
 
@@ -112,9 +148,13 @@ export function nextActionBlockers(input: NextActionInput): readonly string[] {
   if (outstandingToolActions.length > 0) {
     out.push(`${outstandingToolActions.length} tool-action decision(s) pending.`);
   }
-  const pausedGates = input.gates.filter((g) => g.state === 'Returned' || g.state === 'Refused');
-  if (pausedGates.length > 0) {
-    out.push(`${pausedGates.length} gate(s) in non-Awaiting state (Returned or Refused).`);
+  // 'Returned' is deliberately excluded here: nextActionFor now surfaces
+  // it directly as the 'ReviseStage' next action itself (2026-09-05), so
+  // listing it a second time as a "blocker" alongside that would just
+  // repeat the same fact in a more confusing shape.
+  const refusedGates = input.gates.filter((g) => g.state === 'Refused');
+  if (refusedGates.length > 0) {
+    out.push(`${refusedGates.length} gate(s) refused.`);
   }
   return out;
 }
@@ -127,38 +167,39 @@ function pickNextGate(
   status: MissionStatus,
   gates: readonly GateStateT[],
   approvals: readonly ApprovalItemT[],
-): { gateIndex: number; stage: StageName; name: string; purpose: string } | null {
+): GateStateT | null {
   // AwaitingApproval means a fresh handoff just landed — the next gate is the
   // one matching currentStageIndex (or that gate's index for that handoff).
-  // For In<X> statuses, the next gate is the gate bound to stage X.
+  // For In<X> statuses, the next gate is the gate bound to stage X: a
+  // mission whose status is "InDiscovery" is actively WORKING Discovery,
+  // so the gate awaiting a decision is Discovery's own gate (0) — not the
+  // next stage's, which hasn't started.
+  //
+  // FIXED 2026-09-04: this map used to point one stage AHEAD of the
+  // status (InDiscovery -> Readiness's gate, etc.) — found by walking a
+  // real mission end-to-end: right after transitions/start (status
+  // InDiscovery, gate 0 still Awaiting, zero handoffs submitted), this
+  // panel told a real user to "Decide gate 1 — Ready for workflow," a
+  // stage that hadn't even started. Only InBuild -> SoftwareBuild was
+  // already correct (nothing further to be off into).
+  //
+  // Returns the full gate row (not just an Awaiting one) since the
+  // caller now needs to tell 'Awaiting' (needs a decision) apart from
+  // 'Returned' (needs to be reworked and resubmitted) itself.
   if (status === 'AwaitingApproval') {
     const latest = approvals[0];
     const g = latest ? gates.find((gate) => gate.gateIndex === latest.gateIndex) : gates[0];
-    if (!g) return null;
-    if (g.state === 'Awaiting') return toGateShape(g);
-    return null;
+    return g?.state === 'Awaiting' ? g : null;
   }
   const stageMap: Partial<Record<MissionStatus, StageName>> = {
     Draft: 'Discovery',
-    InDiscovery: 'Readiness',
-    InReadiness: 'Workflow',
-    InWorkflow: 'Governance',
-    InGovernance: 'SoftwareBuild',
+    InDiscovery: 'Discovery',
+    InReadiness: 'Readiness',
+    InWorkflow: 'Workflow',
+    InGovernance: 'Governance',
     InBuild: 'SoftwareBuild',
   };
   const targetStage = stageMap[status];
   if (!targetStage) return null;
-  const gate = gates.find((g) => g.stage === targetStage && g.state === 'Awaiting');
-  if (!gate) return null;
-  return toGateShape(gate);
-}
-
-function toGateShape(g: GateStateT) {
-  const def = GATE_DEFS[g.gateIndex];
-  return {
-    gateIndex: g.gateIndex,
-    stage: g.stage,
-    name: def?.name ?? `Gate ${g.gateIndex}`,
-    purpose: def?.purpose ?? 'No purpose recorded.',
-  };
+  return gates.find((g) => g.stage === targetStage) ?? null;
 }

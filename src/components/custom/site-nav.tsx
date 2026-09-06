@@ -6,6 +6,7 @@ import { ChevronDown, Menu } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import * as React from 'react';
+import { BrandMark } from '@/components/custom/brand-mark';
 import { ThemeToggle } from '@/components/custom/theme-toggle';
 import { Button } from '@/components/ui/button';
 import {
@@ -20,6 +21,7 @@ import {
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 // Session seam. better-auth is installed — read the session reactively so
 // `requiresAuth: true` nav items (e.g. the admin Leads link) appear after sign-in.
+import { isAppRoute } from '@/lib/app-routes';
 import { useSession } from '@/lib/auth-client';
 import { type NavGroup, type NavItem, navItems } from '@/lib/nav';
 import { siteName } from '@/lib/site';
@@ -33,7 +35,12 @@ function useIsAuthenticated(): boolean {
 
 function visibleItems(group: NavGroup, isAuthenticated: boolean): NavItem[] {
   return navItems
-    .filter((item) => item.group === group && (!item.requiresAuth || isAuthenticated))
+    .filter(
+      (item) =>
+        item.group === group &&
+        (!item.requiresAuth || isAuthenticated) &&
+        (!item.hideWhenAuth || !isAuthenticated),
+    )
     .sort(
       (a, b) =>
         (a.order ?? Number.MAX_SAFE_INTEGER) - (b.order ?? Number.MAX_SAFE_INTEGER) ||
@@ -111,199 +118,255 @@ export function SiteNav() {
   const isSlotActive = (slot: NavSlot) =>
     slot.type === 'link' ? isActive(slot.item.href) : slot.items.some((i) => isActive(i.href));
 
-  return (
-    <header className="sticky top-0 z-40 w-full glass-nav">
-      <nav
-        aria-label="Primary"
-        className="mx-auto flex h-14 max-w-screen-xl items-center gap-2 px-4"
-      >
-        <Link
-          href="/"
-          className="mr-2 shrink-0 truncate font-display text-base font-semibold tracking-tight text-white"
-        >
-          <span className="font-display tracking-tight">{siteName}</span>
-        </Link>
+  // / owns its own complete header/nav (src/app/(setup)/page.tsx +
+  // cosmoq-home/cq-header.tsx) — a fixed, floating pill nav this global nav
+  // would double up with, so it opts out entirely on that one route.
+  // (Until 2026-09-03 that page was also locked to a single non-scrolling
+  // viewport, which this bail additionally protected; it is now a normal
+  // scrolling page, but it still renders its own header, so the bail stands
+  // for the original doubling-up reason.) All hooks above still run
+  // unconditionally (rules of hooks); only the render bails.
+  // Signed-in app routes render their own AppShell (Projects / Approvals /
+  // Evidence + avatar menu), so the marketing nav steps aside there too.
+  if (pathname === '/' || isAppRoute(pathname)) return null;
 
-        {/* Desktop (md+): inline slots — direct links + `menu` dropdowns */}
-        <div className="hidden items-center gap-1 md:flex">
-          {inline.map((slot) =>
-            slot.type === 'link' ? (
-              <Button
-                key={slot.item.href}
-                asChild
-                variant="ghost"
-                size="sm"
-                className={cn(
-                  'text-white/90 hover:text-white hover:bg-white/10',
-                  isActive(slot.item.href) && 'bg-white/15 text-white',
-                )}
-              >
-                <Link
-                  href={slot.item.href}
-                  aria-current={isActive(slot.item.href) ? 'page' : undefined}
+  return (
+    <>
+      {/* Keyboard-only skip link — hidden until focused, jumps past the nav
+          straight to #main-content. Targets the <main id="main-content"> on
+          the pages that opt in; harmless no-op on pages that don't yet. */}
+      <a
+        href="#main-content"
+        className="-translate-y-full sr-only fixed top-2 left-2 z-50 rounded-md bg-primary px-4 py-2 font-medium text-primary-foreground text-small focus:not-sr-only focus:translate-y-0 focus-visible:outline-2 focus-visible:outline-ring focus-visible:outline-offset-2"
+      >
+        Skip to content
+      </a>
+      <header className="sticky top-0 z-40 w-full glass-nav">
+        <nav
+          aria-label="Primary"
+          className="mx-auto flex h-14 max-w-screen-xl items-center gap-2 px-4"
+        >
+          <Link
+            href="/"
+            className="mr-2 flex shrink-0 items-center gap-2 truncate font-display text-base font-semibold tracking-tight text-foreground"
+          >
+            <BrandMark size={22} className="shrink-0 rounded-md" />
+            <span className="font-display tracking-tight">{siteName}</span>
+          </Link>
+
+          {/* Desktop (md+): inline slots — direct links + `menu` dropdowns */}
+          <div className="hidden items-center gap-1 md:flex">
+            {inline.map((slot) =>
+              slot.type === 'link' ? (
+                <Button
+                  key={slot.item.href}
+                  asChild
+                  variant="ghost"
+                  size="sm"
+                  className={cn(
+                    'text-foreground/80 hover:bg-accent hover:text-foreground',
+                    isActive(slot.item.href) && 'bg-accent text-foreground',
+                  )}
                 >
-                  {slot.item.label}
-                </Link>
-              </Button>
-            ) : (
-              <DropdownMenu key={`menu:${slot.label}`}>
+                  <Link
+                    href={slot.item.href}
+                    aria-current={isActive(slot.item.href) ? 'page' : undefined}
+                  >
+                    {slot.item.label}
+                  </Link>
+                </Button>
+              ) : (
+                <DropdownMenu key={`menu:${slot.label}`}>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className={cn(
+                        'text-foreground/80 hover:bg-accent hover:text-foreground',
+                        isSlotActive(slot) && 'bg-accent text-foreground',
+                      )}
+                    >
+                      {slot.label}
+                      <ChevronDown className="ml-1 size-4 opacity-60" aria-hidden />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="start">
+                    {slot.items.map((item) => (
+                      <DropdownMenuItem key={item.href} asChild>
+                        <Link
+                          href={item.href}
+                          aria-current={isActive(item.href) ? 'page' : undefined}
+                        >
+                          {item.label}
+                        </Link>
+                      </DropdownMenuItem>
+                    ))}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              ),
+            )}
+
+            {/* Overflow: everything past the cap collapses here so the bar can't grow wide */}
+            {overflow.length > 0 && (
+              <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button
                     variant="ghost"
                     size="sm"
                     className={cn(
-                      'text-white/90 hover:text-white hover:bg-white/10',
-                      isSlotActive(slot) && 'bg-white/15 text-white',
+                      'text-foreground/80 hover:bg-accent hover:text-foreground',
+                      overflow.some(isSlotActive) && 'bg-accent text-foreground',
                     )}
                   >
-                    {slot.label}
+                    More
                     <ChevronDown className="ml-1 size-4 opacity-60" aria-hidden />
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="start">
-                  {slot.items.map((item) => (
-                    <DropdownMenuItem key={item.href} asChild>
-                      <Link
-                        href={item.href}
-                        aria-current={isActive(item.href) ? 'page' : undefined}
+                <DropdownMenuContent align="end">
+                  {overflow.map((slot, index) => {
+                    // Separate a menu group from its neighbours, but not plain links.
+                    const fenced =
+                      index > 0 && (slot.type === 'menu' || overflow[index - 1]?.type === 'menu');
+                    return (
+                      <React.Fragment
+                        key={slot.type === 'link' ? slot.item.href : `menu:${slot.label}`}
                       >
-                        {item.label}
-                      </Link>
-                    </DropdownMenuItem>
-                  ))}
+                        {fenced && <DropdownMenuSeparator />}
+                        {slot.type === 'link' ? (
+                          <DropdownMenuItem asChild>
+                            <Link
+                              href={slot.item.href}
+                              aria-current={isActive(slot.item.href) ? 'page' : undefined}
+                            >
+                              {slot.item.label}
+                            </Link>
+                          </DropdownMenuItem>
+                        ) : (
+                          <DropdownMenuGroup>
+                            <DropdownMenuLabel>{slot.label}</DropdownMenuLabel>
+                            {slot.items.map((item) => (
+                              <DropdownMenuItem key={item.href} asChild>
+                                <Link
+                                  href={item.href}
+                                  aria-current={isActive(item.href) ? 'page' : undefined}
+                                >
+                                  {item.label}
+                                </Link>
+                              </DropdownMenuItem>
+                            ))}
+                          </DropdownMenuGroup>
+                        )}
+                      </React.Fragment>
+                    );
+                  })}
                 </DropdownMenuContent>
               </DropdownMenu>
-            ),
-          )}
+            )}
+          </div>
 
-          {/* Overflow: everything past the cap collapses here so the bar can't grow wide */}
-          {overflow.length > 0 && (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className={cn(
-                    'text-white/90 hover:text-white hover:bg-white/10',
-                    overflow.some(isSlotActive) && 'bg-white/15 text-white',
-                  )}
-                >
-                  More
-                  <ChevronDown className="ml-1 size-4 opacity-60" aria-hidden />
+          {/* Right cluster: ml-auto pushes it right at every breakpoint */}
+          <div className="ml-auto flex items-center gap-1">
+            {/* Desktop secondary buttons */}
+            <div className="hidden items-center gap-1 md:flex">
+              {secondary.map((item) => (
+                <Button key={item.href} asChild variant="secondary" size="sm">
+                  <Link href={item.href} aria-current={isActive(item.href) ? 'page' : undefined}>
+                    {item.label}
+                  </Link>
                 </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                {overflow.map((slot, index) => {
-                  // Separate a menu group from its neighbours, but not plain links.
-                  const fenced =
-                    index > 0 && (slot.type === 'menu' || overflow[index - 1]?.type === 'menu');
-                  return (
-                    <React.Fragment
-                      key={slot.type === 'link' ? slot.item.href : `menu:${slot.label}`}
-                    >
-                      {fenced && <DropdownMenuSeparator />}
-                      {slot.type === 'link' ? (
-                        <DropdownMenuItem asChild>
+              ))}
+            </div>
+
+            {/* Always visible */}
+            <ThemeToggle className="text-foreground hover:bg-accent hover:text-foreground" />
+
+            {/* Mobile (below md): burger + drawer — only when there's something to collapse */}
+            {collapsedCount > 0 && (
+              <Sheet open={open} onOpenChange={setOpen}>
+                <SheetTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="text-foreground hover:bg-accent hover:text-foreground md:hidden"
+                  >
+                    <Menu />
+                    <span className="sr-only">Open menu</span>
+                  </Button>
+                </SheetTrigger>
+                <SheetContent
+                  side="right"
+                  aria-describedby={undefined}
+                  // The mobile drawer used to force a hardcoded dark surface
+                  // here regardless of theme, back when the desktop nav bar
+                  // was also a deliberately-dark, theme-independent band —
+                  // now that .glass-nav itself flips with light/dark (see
+                  // custom-style.css), the drawer can use shadcn's ordinary
+                  // Sheet background/border/text tokens instead of an
+                  // override, and gets the correct look in both themes.
+                  className="flex flex-col"
+                >
+                  <SheetHeader>
+                    <SheetTitle className="flex items-center gap-2 text-left">
+                      <BrandMark size={22} className="shrink-0 rounded-md" />
+                      {siteName}
+                    </SheetTitle>
+                  </SheetHeader>
+                  <nav aria-label="Mobile" className="mt-6 flex flex-col gap-1 overflow-y-auto">
+                    {/* All slots, no overflow; a `menu` slot becomes a labeled section. */}
+                    {slots.map((slot) =>
+                      slot.type === 'link' ? (
+                        <Button
+                          key={slot.item.href}
+                          asChild
+                          variant="ghost"
+                          className={cn(
+                            'w-full justify-start hover:bg-accent',
+                            isActive(slot.item.href) && 'bg-accent',
+                          )}
+                        >
                           <Link
                             href={slot.item.href}
                             aria-current={isActive(slot.item.href) ? 'page' : undefined}
+                            onClick={() => setOpen(false)}
                           >
                             {slot.item.label}
                           </Link>
-                        </DropdownMenuItem>
+                        </Button>
                       ) : (
-                        <DropdownMenuGroup>
-                          <DropdownMenuLabel>{slot.label}</DropdownMenuLabel>
+                        <div key={`menu:${slot.label}`} className="flex flex-col gap-1">
+                          <p className="px-3 pt-2 text-xs font-medium text-muted-foreground">
+                            {slot.label}
+                          </p>
                           {slot.items.map((item) => (
-                            <DropdownMenuItem key={item.href} asChild>
+                            <Button
+                              key={item.href}
+                              asChild
+                              variant="ghost"
+                              className={cn(
+                                'w-full justify-start pl-6 hover:bg-accent',
+                                isActive(item.href) && 'bg-accent',
+                              )}
+                            >
                               <Link
                                 href={item.href}
                                 aria-current={isActive(item.href) ? 'page' : undefined}
+                                onClick={() => setOpen(false)}
                               >
                                 {item.label}
                               </Link>
-                            </DropdownMenuItem>
+                            </Button>
                           ))}
-                        </DropdownMenuGroup>
-                      )}
-                    </React.Fragment>
-                  );
-                })}
-              </DropdownMenuContent>
-            </DropdownMenu>
-          )}
-        </div>
-
-        {/* Right cluster: ml-auto pushes it right at every breakpoint */}
-        <div className="ml-auto flex items-center gap-1">
-          {/* Desktop secondary buttons */}
-          <div className="hidden items-center gap-1 md:flex">
-            {secondary.map((item) => (
-              <Button key={item.href} asChild variant="secondary" size="sm">
-                <Link href={item.href} aria-current={isActive(item.href) ? 'page' : undefined}>
-                  {item.label}
-                </Link>
-              </Button>
-            ))}
-          </div>
-
-          {/* Always visible */}
-          <ThemeToggle className="text-white hover:bg-white/10 hover:text-white" />
-
-          {/* Mobile (below md): burger + drawer — only when there's something to collapse */}
-          {collapsedCount > 0 && (
-            <Sheet open={open} onOpenChange={setOpen}>
-              <SheetTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="text-white hover:bg-white/10 hover:text-white md:hidden"
-                >
-                  <Menu />
-                  <span className="sr-only">Open menu</span>
-                </Button>
-              </SheetTrigger>
-              <SheetContent
-                side="right"
-                aria-describedby={undefined}
-                className="flex flex-col border-l border-white/20 text-white"
-              >
-                <SheetHeader>
-                  <SheetTitle className="text-left text-white">{siteName}</SheetTitle>
-                </SheetHeader>
-                <nav aria-label="Mobile" className="mt-6 flex flex-col gap-1 overflow-y-auto">
-                  {/* All slots, no overflow; a `menu` slot becomes a labeled section. */}
-                  {slots.map((slot) =>
-                    slot.type === 'link' ? (
-                      <Button
-                        key={slot.item.href}
-                        asChild
-                        variant="ghost"
-                        className={cn(
-                          'w-full justify-start text-white hover:bg-white/10 hover:text-white',
-                          isActive(slot.item.href) && 'bg-white/15 text-white',
-                        )}
-                      >
-                        <Link
-                          href={slot.item.href}
-                          aria-current={isActive(slot.item.href) ? 'page' : undefined}
-                          onClick={() => setOpen(false)}
-                        >
-                          {slot.item.label}
-                        </Link>
-                      </Button>
-                    ) : (
-                      <div key={`menu:${slot.label}`} className="flex flex-col gap-1">
-                        <p className="px-3 pt-2 text-xs font-medium text-white/70">{slot.label}</p>
-                        {slot.items.map((item) => (
+                        </div>
+                      ),
+                    )}
+                    {secondary.length > 0 && (
+                      <div className="mt-2 flex flex-col gap-1 border-t border-border pt-4">
+                        {secondary.map((item) => (
                           <Button
                             key={item.href}
                             asChild
-                            variant="ghost"
-                            className={cn(
-                              'w-full justify-start pl-6 text-white hover:bg-white/10 hover:text-white',
-                              isActive(item.href) && 'bg-white/15 text-white',
-                            )}
+                            variant="secondary"
+                            className="w-full justify-start"
                           >
                             <Link
                               href={item.href}
@@ -315,45 +378,32 @@ export function SiteNav() {
                           </Button>
                         ))}
                       </div>
-                    ),
-                  )}
-                  {secondary.length > 0 && (
-                    <div className="mt-2 flex flex-col gap-1 border-t border-white/20 pt-4">
-                      {secondary.map((item) => (
-                        <Button
-                          key={item.href}
-                          asChild
-                          variant="secondary"
-                          className="w-full justify-start"
-                        >
-                          <Link
-                            href={item.href}
-                            aria-current={isActive(item.href) ? 'page' : undefined}
-                            onClick={() => setOpen(false)}
-                          >
-                            {item.label}
-                          </Link>
-                        </Button>
-                      ))}
-                    </div>
-                  )}
-                </nav>
-              </SheetContent>
-            </Sheet>
-          )}
-        </div>
-      </nav>
-    </header>
+                    )}
+                  </nav>
+                </SheetContent>
+              </Sheet>
+            )}
+          </div>
+        </nav>
+      </header>
+    </>
   );
 }
 
 export function SiteFooter() {
   const isAuthenticated = useIsAuthenticated();
   const footer = visibleItems('footer', isAuthenticated);
-  if (footer.length === 0) return null;
+  const pathname = usePathname();
+  // Same reason as SiteNav above: / owns its own complete footer (the
+  // three-stat bar), so the global footer opts out on that one route.
+  if (footer.length === 0 || pathname === '/' || isAppRoute(pathname)) return null;
 
   return (
-    <footer className="border-t border-white/20">
+    // The footer sits directly on the page background (no translucent
+    // .glass-nav-style surface of its own), so it always used ordinary
+    // theme tokens — nothing changed here when the nav bar above stopped
+    // hardcoding white text for its own separate surface.
+    <footer className="border-t border-border">
       <nav
         aria-label="Footer"
         className="mx-auto flex max-w-screen-xl flex-wrap items-center gap-1 px-4 py-6 text-sm"
@@ -364,7 +414,7 @@ export function SiteFooter() {
             asChild
             variant="link"
             size="sm"
-            className="text-white/80 hover:text-white"
+            className="text-muted-foreground hover:text-foreground"
           >
             <Link href={item.href}>{item.label}</Link>
           </Button>

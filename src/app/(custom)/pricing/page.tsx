@@ -7,9 +7,10 @@
 
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { GlassPanel, GlassSectionHeader } from '@/components/custom/glass';
+import { GlassCard, GlassPanel, GlassSectionHeader } from '@/components/custom/glass';
 import { JsonLd } from '@/components/custom/json-ld';
 import { PricingTiers } from '@/components/custom/pricing-tiers';
+import { RoiCalculator } from '@/components/custom/roi-calculator';
 import { organization } from '@/lib/jsonld';
 import { siteName, siteUrl } from '@/lib/site';
 
@@ -69,7 +70,7 @@ const product = {
 
 export default function PricingPage() {
   return (
-    <main className="flex flex-col">
+    <main id="main-content" className="flex flex-col">
       <JsonLd script={organization} />
       <JsonLd script={product} />
       <section className="section-lg relative overflow-hidden hero-aurora">
@@ -82,15 +83,30 @@ export default function PricingPage() {
 
           <PricingTiers />
 
+          {/* ROI/feasibility calculator — Priority-12 item from the Aug
+              2026 handoff doc. Pure arithmetic on visitor-supplied
+              numbers, no AI call, nothing to fabricate — see
+              src/lib/business/roi-calculator.ts. */}
+          <GlassCard tone="panel" padding="lg" className="section-aurora">
+            <GlassSectionHeader
+              eyebrow="Before you commit"
+              title="What's this worth, roughly, to the team doing it today?"
+              lede="A quick, honest estimate — every number below comes directly from what you enter, not an industry benchmark CARI Forge has no basis to claim."
+            />
+            <div className="mt-6">
+              <RoiCalculator />
+            </div>
+          </GlassCard>
+
           <div className="h-px w-full bg-gradient-to-r from-transparent via-brand-700/30 to-transparent" />
 
           <GlassPanel tone="surface" padding="lg" backdrop="soft">
             <p className="text-small">
               Every tier above begins as an inquiry, not a transaction. There is no payment flow on
-              this page yet — the pilot is closed and run by hand, and a real human from CARI Forge
-              will reply within 48 hours during working weeks.{' '}
-              <Link href="/#how-it-works" className="link-brand">
-                Leave a one-line brief
+              this page yet, and a real human from CARI Forge will reply within 48 hours during
+              working weeks.{' '}
+              <Link href="/how-it-works#front-door" className="link-brand">
+                Tell us what you want to build
               </Link>{' '}
               or read{' '}
               <Link href="/faq" className="link-brand">

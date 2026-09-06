@@ -5,6 +5,7 @@ import { useState } from 'react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { apiFetch } from '@/lib/api-client';
+import { apiErrorMessage } from '@/lib/api-error-message';
 import {
   MissionDetail,
   type MissionDetailT,
@@ -45,11 +46,11 @@ export function MissionPauseResume({
         body: JSON.stringify(PauseRequest.parse({ reasonCode: 'Other', reasonText })),
         schema: MissionDetail,
       });
-      toast.success('Mission paused');
+      toast.success('Project paused');
       setReasonText('');
       onWritten();
     } catch (err) {
-      toast.error((err as Error).message ?? 'Could not pause');
+      toast.error(apiErrorMessage(err, 'Could not pause'));
     }
   };
   const onResume = async () => {
@@ -63,11 +64,11 @@ export function MissionPauseResume({
         body: JSON.stringify(ResumeRequest.parse({ reasonCode: 'Other', reasonText })),
         schema: MissionDetail,
       });
-      toast.success('Mission resumed');
+      toast.success('Project resumed');
       setReasonText('');
       onWritten();
     } catch (err) {
-      toast.error((err as Error).message ?? 'Could not resume');
+      toast.error(apiErrorMessage(err, 'Could not resume'));
     }
   };
 

@@ -46,7 +46,7 @@ export default function FaqPage() {
 
           <FaqAccordion />
 
-          <p className="text-small text-white/70">
+          <p className="text-small text-muted-foreground">
             Still want to talk to a named human before submitting?{' '}
             <a
               href="mailto:cari-forge@polsia.app?subject=CARI%20Forge%20pilot%20enquiry"

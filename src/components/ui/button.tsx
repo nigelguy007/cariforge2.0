@@ -9,12 +9,27 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default: 'bg-primary text-primary-foreground shadow hover:bg-primary/90',
+        // 2026-09-03 (signed-in-app cosmoq pass): "all the buttons" turned
+        // out to mean these — the actual authenticated app (dashboard,
+        // Forge Canvas, Missions, Approvals, Admin) uses this component
+        // directly everywhere (25 files), never the marketing-only
+        // GlassCta/.glass-cta wrapper, so a fix scoped to that would have
+        // been invisible here. Each variant below carries an always-present
+        // marker class (dark-liquid-btn / dark-liquid-outline / etc.) whose
+        // actual styling lives ENTIRELY under `.dark` selectors in
+        // custom-style.css — no unscoped rule exists for them at all, so
+        // light mode's already-tuned look (near-black CTA, Apple-style) is
+        // completely untouched; the marker is inert there. `destructive` is
+        // deliberately excluded: its higher-contrast warning red is a
+        // safety signal (delete/refuse/rollback actions), not a look to
+        // soften into decoration.
+        default: 'bg-primary text-primary-foreground shadow hover:bg-primary/90 dark-liquid-btn',
         destructive: 'bg-destructive text-destructive-foreground shadow-sm hover:bg-destructive/90',
         outline:
-          'border border-input bg-background shadow-sm hover:bg-accent hover:text-accent-foreground',
-        secondary: 'bg-secondary text-secondary-foreground shadow-sm hover:bg-secondary/80',
-        ghost: 'hover:bg-accent hover:text-accent-foreground',
+          'border border-input bg-background shadow-sm hover:bg-accent hover:text-accent-foreground dark-liquid-outline',
+        secondary:
+          'bg-secondary text-secondary-foreground shadow-sm hover:bg-secondary/80 dark-liquid-outline',
+        ghost: 'hover:bg-accent hover:text-accent-foreground dark-liquid-ghost',
         link: 'text-primary underline-offset-4 hover:underline',
       },
       size: {

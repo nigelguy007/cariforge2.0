@@ -68,21 +68,26 @@ export function blueprintFromHandoffs(args: {
   }));
   const buildStage = args.handoffs.find((h) => h.stage === 'SoftwareBuild' && !h.supersededById);
   if (buildStage) {
+    // Renamed from "Prototype spec" (2026-09-05, direct user correction:
+    // "this is creating the real build so any reference to prototype
+    // needs to be changed" — matches gate 5's renamed GATE_DEFS.name,
+    // "MVP build approved"). Display text only; the underlying `stage`
+    // enum value stays 'SoftwareBuild' (see forge.ts's GATE_DEFS comment).
     blocks.push({
-      heading: `Build outcome — SoftwareBuild v${buildStage.version}`,
+      heading: `MVP build — v${buildStage.version}`,
       body:
         buildStage.payload && Object.keys(buildStage.payload).length > 0
           ? JSON.stringify(buildStage.payload)
-          : 'No build payload recorded.',
+          : 'No MVP-build payload recorded.',
       sourceStage: 'SoftwareBuild',
     });
   }
   const summary =
     blocks.length === 0
       ? 'No handoffs recorded yet.'
-      : `Captured ${blocks.length} stage artifacts. The build outcome is included if a SoftwareBuild handoff was recorded.`;
+      : `Captured ${blocks.length} stage artifacts. The MVP build is included if a SoftwareBuild handoff was recorded.`;
   const reuseSignals: string[] = [];
-  if (buildStage) reuseSignals.push('SoftwareBuild handoff present — artifact is reusable.');
+  if (buildStage) reuseSignals.push('MVP build handoff present — artifact is reusable.');
   if (validStages.length >= 5) reuseSignals.push('All five stages attested.');
   return {
     missionId: args.mission.id,

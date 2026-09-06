@@ -5,6 +5,7 @@ import { useState } from 'react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { apiFetch } from '@/lib/api-client';
+import { apiErrorMessage } from '@/lib/api-error-message';
 import { MissionDetail, type MissionDetailT, ReplayRequest } from '@/lib/contracts/forge';
 
 export function MissionReplayForm({
@@ -38,7 +39,7 @@ export function MissionReplayForm({
       setReasonText('');
       onWritten();
     } catch (err) {
-      toast.error((err as Error).message ?? 'Could not replay');
+      toast.error(apiErrorMessage(err, 'Could not replay'));
     }
   };
 
@@ -53,7 +54,7 @@ export function MissionReplayForm({
         <option value="1">From Readiness (gate 1)</option>
         <option value="2">From Workflow (gate 2)</option>
         <option value="3">From Governance (gate 3)</option>
-        <option value="4">From SoftwareBuild (gate 4)</option>
+        <option value="4">From MVP Build (gate 4)</option>
       </select>
       <input
         className="rounded-md border border-border bg-background px-2 py-1 text-small"

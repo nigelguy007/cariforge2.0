@@ -3,24 +3,54 @@
  * tw-animate-css for motion (animate-in, fade-in, slide-in-from-bottom-N,
  * duration-*). globals.css is framework-owned — edit HERE.
  *
- * CARI Forge — genuine blue/teal (matches cariforge.com). The brand_tokens
- * seed in globals.css sets --brand-h=195 (teal-cyan), --brand-c=0.16,
- * --brand-l=0.5, which derive the full --brand-NN ramp + every framework
- * role. The overrides below paint a CONTINUOUS BLUE/TEAL field with a
- * lighter outcome/value layer on top — not the prior dark navy gap, not a
- * blanket teal glow, not a white-first wash.
+ * CARI Forge — deep-ocean blue identity, applied site-wide per explicit
+ * user request ("give it a deep ocean contrast the entire site .. with a
+ * lighter version in liquid glass effect"). This supersedes an earlier
+ * decision in this same file's history that had deliberately moved AWAY
+ * from an ocean-teal full-page wash toward a light-first, near-white,
+ * green-as-accent-only register (benchmarked against Lindy, Linear,
+ * Relevance AI, Gumloop) — that decision was a direct response to
+ * specific complaints about an earlier, DIFFERENT ocean-teal pass reading
+ * as "not professional." This pass is deliberately different from that
+ * one in the way that seemed to matter: colour genuinely CONTRASTS against
+ * a deep dark field instead of being a single flat saturated wash, and
+ * surfaces are true frosted liquid-glass (translucent + blurred) rather
+ * than either flat colour or flat opaque white. If this reads as "not
+ * professional" again, the fix is almost certainly the same lesson learned
+ * last time — the flatness/blandness of the treatment, not the hue itself.
  *
- * Surface model (light mode = CARI Forge's intended register):
- *   --background   : mid-luminance teal-blue field (the brand-aligned backplane)
- *   --card         : slightly lifted teal-blue panel, reads above the field
- *   --outcome      : clearly LIGHTER near-white teal-tinted panel  (the
- *                    deliverable / value surface; used by highlight cards,
- *                    hero form shells, pricing CTAs)
- *   --primary      : mid-luminance engine teal (CTA surface)
+ * The brand_tokens seed in globals.css sets --brand-h=261 (a vivid
+ * royal/cobalt blue sourced from icolorpalette.com's Caribbean palette
+ * collection — see .impeccable.md; was 222/deep-ocean-blue, then
+ * 188/aquamarine, before that), --brand-c=0.17, --brand-l=0.48, which
+ * derive the full --brand-NN ramp. That ramp is background-agnostic by
+ * formula (brand-50 near-white through brand-900 near-black) and needed
+ * no change on any of these colour passes — only the ROLE tokens below
+ * (background/card/secondary/etc.) and the .glass-* utility classes did.
  *
- * Restrained Liquid Glass depth: a single backdrop-blur step (~14px),
- * hairline borders, soft brand-tinted shadows. No sat >150%, no full-bleed
- * auroras. */
+ * Surface model:
+ *   --background   : light mode — a clearly (not barely) ocean-blue-tinted
+ *                    near-white field; dark mode — a genuinely deep,
+ *                    saturated navy field, not a generic dark-neutral
+ *                    grey with a hint of hue
+ *   --card         : the raw token backing shadcn primitives (Popover,
+ *                    Dialog, etc.) that must stay OPAQUE regardless of
+ *                    theme — deliberately NOT used by .glass-* below
+ *   --outcome      : a step LIGHTER-TINTED-BLUE "value" surface with a
+ *                    visible brand-colored border (the deliverable /
+ *                    highlight surface; hero form shell, pricing CTAs)
+ *   --primary      : the one place full-saturation ocean blue shows up —
+ *                    solid CTA fills, the nav bar, links
+ *
+ * Liquid Glass, for real this time: .glass-card / .glass-panel (the
+ * actual UI-primitive card/panel components used across the whole app,
+ * not just decorative homepage elements) now use var(--glass-bg) +
+ * backdrop-filter blur — a genuinely translucent, blurred "lighter
+ * version" of the surface beneath them — matching .glass-surface, which
+ * already worked this way. Both --glass-bg and --glass-border stay theme-
+ * agnostic by formula (defined once in the brand_tokens seed, not
+ * redeclared per theme), so they read as a pale, frosted, ocean-tinted
+ * glass in both light and dark mode without any extra per-theme rules. */
 
 /* Sora (display) + Manrope (body) — single source of truth: src/lib/fonts.ts.
  * The import runs first to satisfy CSS @import ordering rules; the fallback
@@ -29,69 +59,100 @@
  * round-trip. */
 
 /* === ROLE TOKEN OVERRIDES ====================================================
-   CARI Forge visual system: DEEP CARIBBEAN SEA BLUE/TEAL FIELD with a LIGHTER
-   outcome surface on top. Tuned inside :root so every primitive utility in
-   the codebase (bg-background, text-foreground, border-border, bg-card,
-   text-brand-600/700, ...) already composes against the right tones. */
-:root {
-  /* Brand-aligned backplane. Deep Caribbean Sea blue-teal — a GENUINE deep
-     ocean-teal field (genuinely deep, NOT pale, NOT dark navy). High
-     chroma keeps the hue locked to cariforge.com's blue/teal register so
-     the field reads teal, not grey. White text on this register sits at
-     well above 12:1 contrast, while DARK ink (--foreground) stays kept
-     back for the lighter outcome surfaces only — so flipping the
-     universal --foreground token would break dark ink on cards. Hero /
-     lede / meta on the field use explicit text-white utilities. */
-  --background: oklch(0.3 0.07 var(--brand-h));
-  --foreground: oklch(0.22 0.022 var(--brand-h));
+   Light-first: near-white field, white cards, emerald as accent only.
+   Tuned inside :root so every primitive utility in the codebase
+   (bg-background, text-foreground, border-border, bg-card,
+   text-brand-600/700, ...) already composes against the right tones.
 
-  /* Engine surface (cards, panels). Lifted off the deeper backplane in
-     lightness, slightly lower chroma so cards read as panels above the
-     field without competing for attention. Dark ink on the lighter card
-     contract holds. */
-  --card: oklch(0.74 0.045 var(--brand-h));
+   Selector is `:root:root` (repeated pseudo-class -> specificity (0,2,0)
+   instead of :root's (0,1,0)), not because this file's values happen to
+   need it now, but because it's a real, previously-hit bug: this file is
+   @import'd near the TOP of globals.css, and globals.css's own later
+   "FRAMEWORK-DERIVED" :root block redeclares the same custom properties
+   further down the same stylesheet — two unlayered :root rules of equal
+   specificity resolve by source order, so the later framework block was
+   silently winning every time this file used a plain `:root {}` selector.
+   Keeping the specificity bump here permanently avoids re-hitting that. */
+:root:root {
+  /* Apple-style restraint (current direction, supersedes the "brighter,
+     much brighter" full-wash pass): the field itself pulls back to a
+     near-white Apple grey — #fbfbfd is Apple's own actual page background
+     on apple.com, not an improvisation — with colour reserved for
+     deliberate accent moments (buttons, links, badges) rather than the
+     page field. This is a real reversal of direction from the immediately
+     preceding several passes, on a NEW instruction ("the texture and
+     contrast of apple.com... keeping a caribbean sea colour"), not a
+     retraction of the brightness feedback that drove those passes — see
+     .impeccable.md's Aesthetic Direction section for the full history. */
+  --background: oklch(0.99 0.002 var(--brand-h));
+  --foreground: #1d1d1f;
+
+  /* Cards are crisp near-white, distinguished from the page by a hairline
+     border + soft shadow (standard modern SaaS card pattern), not by being
+     a different color from the field. */
+  --card: oklch(1 0.002 var(--brand-h));
   --card-foreground: var(--foreground);
-  --popover: oklch(0.94 0.022 var(--brand-h));
+  --popover: var(--card);
   --popover-foreground: var(--foreground);
 
-  /* Teal engine — the brand color in its vivid mid-luminance register
-     (CTA fill). Higher chroma than the deeper field so the button "pops". */
-  --primary: oklch(0.52 calc(var(--brand-c) * 1.25) var(--brand-h));
-  --primary-foreground: oklch(0.99 0.008 var(--brand-h));
+  /* Primary CTA fills are now near-black, not the accent colour — matches
+     Apple's actual pattern (solid black/dark-grey buttons; colour shows up
+     in links, badges, and borders instead). NOTE (2026-09-03): this used to
+     also match the homepage hero's own button, but / was rebuilt to the
+     cosmoq reference and its primary CTA is now a near-black pill with a
+     two-tone GRADIENT BORDER (cosmoq-home.css's .cq-btn-primary). The two
+     treatments are deliberately no longer identical — that route is
+     dark-only and self-contained, this token governs the rest of the app —
+     but they agree on the substance: a dark fill, with the colour carried
+     by the edge rather than the fill. */
+  --primary: #1d1d1f;
+  --primary-foreground: #f5f5f7;
 
-  /* Secondary / muted — sub-panels and inactive UI. Tuned LIGHTER than
-     the deep field so a `bg-muted` or `bg-secondary` element lifts off
-     the blue/teal canvas. Dark ink on these lighter sub-surfaces. */
-  --secondary: oklch(0.78 0.04 var(--brand-h));
-  --secondary-foreground: var(--foreground);
-  --muted: oklch(0.76 0.038 var(--brand-h));
-  --muted-foreground: oklch(0.36 0.04 var(--brand-h));
+  /* Secondary / muted — standard light-neutral sub-panels, a hint of brand
+     hue so they don't read as flat grey. */
+  --secondary: oklch(0.96 0.008 var(--brand-h));
+  --secondary-foreground: oklch(0.28 0.02 var(--brand-h));
+  --muted: oklch(0.96 0.006 var(--brand-h));
+  --muted-foreground: oklch(0.45 0.025 var(--brand-h));
 
-  --accent: oklch(0.76 0.06 var(--brand-h));
-  --accent-foreground: var(--foreground);
+  /* Never-shadowed aliases for the nested-surface reset below — see the
+     big comment at the .glass-card/.glass-chip reset rule in @layer
+     components for why these exist. MUST be literal duplicates of
+     --foreground/--muted-foreground above, NOT var() references to them:
+     a custom property's var() references resolve lazily, using whatever
+     is in scope at the element that finally CONSUMES it — not the scope
+     where the alias itself was declared. So `--true-foreground:
+     var(--foreground)` would be just as shadowable as --foreground
+     itself once read from inside a .glass-card. --brand-h is safe to
+     reference live (never locally overridden anywhere). */
+  --true-foreground: #1d1d1f;
+  --true-card-foreground: #1d1d1f;
+  --true-muted-foreground: oklch(0.45 0.025 var(--brand-h));
 
-  --destructive: oklch(0.704 0.191 22.216);
+  --accent: oklch(0.95 0.022 var(--brand-h));
+  --accent-foreground: oklch(0.28 0.02 var(--brand-h));
 
-  /* Brand-tinted hairlines that read on the deep blue/teal field. Tightened
-     alpha for crisp reads on the deeper field; an explicit ring offset (vivid
-     teal) keeps focus-visible bright on the dark register. */
-  --border: oklch(0.62 0.045 var(--brand-h) / 28%);
-  --input: oklch(0.6 0.045 var(--brand-h) / 32%);
-  --ring: oklch(0.62 calc(var(--brand-c) * 1.3) var(--brand-h));
+  --destructive: oklch(0.577 0.245 27.325);
 
-  /* OUTCOME / "lighter value" surface — used by .glass-card tone="highlight"
-     (the hero form shell, pricing CTAs, etc.). A clearly LIGHTER
-     near-white teal-tinted surface that reads as the destination register
-     stacked above the deep blue/teal field. White-on-deep is reserved for
-     hero/body sections; dark ink reads on this lighter surface. */
-  --outcome: oklch(0.94 0.018 var(--brand-h));
-  --outcome-foreground: oklch(0.18 0.022 var(--brand-h));
+  --border: oklch(0.9 0.012 var(--brand-h));
+  --input: oklch(0.9 0.012 var(--brand-h));
+  --ring: oklch(0.58 calc(var(--brand-c) * 1.2) var(--brand-h));
 
-  /* Re-tuned brand steps so existing classNames (text-brand-700 catalogue
-     labels, border-brand-300, bg-brand-500 ranked surfaces) read brightly
-     on the deep blue/teal canvas. brand-700 is the readable teal label
-     (eyebrows, ordinals); brand-600 is lifted to read as a vivid CTA fill
-     at the same hue. */
+  /* OUTCOME / "value" surface — used by .glass-card tone="highlight" (the
+     hero form shell, pricing CTAs, etc.). A light green-tinted panel with a
+     visible brand-colored border, so it still reads as "the destination
+     panel" against an already-light page — the distinction is now tint +
+     border, not a dramatic lightness jump like the old dark-field design
+     needed. */
+  --outcome: oklch(0.97 0.02 var(--brand-h));
+  --outcome-foreground: oklch(0.2 0.02 var(--brand-h));
+
+  /* Brand ramp — background-agnostic by formula (50 near-white through 900
+     near-black), unchanged from the seed derivation. text-brand-600/700 are
+     the readable accent-label steps on a light canvas (eyebrows, links,
+     ordinals); DO NOT use brand-50/100/200/300 for text anymore — those
+     are light tints that only read against a dark field, which no longer
+     exists. They're still fine as border/background tints. */
   --brand-50: oklch(0.97 calc(var(--brand-c) * 0.25) var(--brand-h));
   --brand-100: oklch(0.93 calc(var(--brand-c) * 0.4) var(--brand-h));
   --brand-200: oklch(0.87 calc(var(--brand-c) * 0.6) var(--brand-h));
@@ -99,70 +160,63 @@
   --brand-400: oklch(0.65 var(--brand-c) var(--brand-h));
   --brand-500: oklch(var(--brand-l) var(--brand-c) var(--brand-h));
   --brand-600: oklch(0.5 var(--brand-c) var(--brand-h));
-  /* brand-700 — high-contrast teal label color on the lighter blue canvas
-     ("№ 01", Stage chips, eyebrows). Step LIFTED to keep text-brand-700
-     vivid against either the field OR the destination register. */
   --brand-700: oklch(0.4 var(--brand-c) var(--brand-h));
   --brand-800: oklch(0.32 calc(var(--brand-c) * 0.7) var(--brand-h));
   --brand-900: oklch(0.24 calc(var(--brand-c) * 0.55) var(--brand-h));
 
-  --elevation-1: oklch(0.08 0.03 var(--brand-h) / 0.45);
-  --elevation-2: oklch(0.06 0.03 var(--brand-h) / 0.6);
-  --elevation-3: oklch(0.04 0.03 var(--brand-h) / 0.7);
-  --shadow-brand-color: oklch(var(--brand-l) var(--brand-c) var(--brand-h) / 0.45);
+  --elevation-1: oklch(0.2 0.03 var(--brand-h) / 0.06);
+  --elevation-2: oklch(0.2 0.04 var(--brand-h) / 0.1);
+  --elevation-3: oklch(0.2 0.05 var(--brand-h) / 0.14);
+  --shadow-brand-color: oklch(var(--brand-l) var(--brand-c) var(--brand-h) / 0.22);
 
-  /* Liquid-glass tint tokens — translucent teal reveals over the DEEPER
-     blue/teal field. Border gets the strongest contrast alpha so the
-     hairline reads on the dark field; shadow stays brand-tinted for depth
-     without graying out. Blur and saturation are tuned for visible Liquid
-     Glass (apple.com-level). */
-  --glass-tint: oklch(var(--brand-l) calc(var(--brand-c) * 0.55) var(--brand-h) / 0.18);
-  --glass-tint-strong: oklch(var(--brand-l) calc(var(--brand-c) * 0.75) var(--brand-h) / 0.28);
-  --glass-bg: oklch(0.94 0.02 var(--brand-h) / 0.78);
-  --glass-border: oklch(0.78 0.05 var(--brand-h) / 0.6);
-  --glass-shadow: oklch(0.16 0.04 var(--brand-h) / 0.32);
-  --glass-blur: 18px;
+  /* Liquid-glass tint tokens — now a SUBTLE texture on white cards, not a
+     translucent reveal over a colored field (there's no colored field to
+     reveal anymore). Alpha values dropped by roughly 3x from the
+     dark-field version. */
+  --glass-tint: oklch(var(--brand-l) calc(var(--brand-c) * 0.4) var(--brand-h) / 0.06);
+  --glass-tint-strong: oklch(var(--brand-l) calc(var(--brand-c) * 0.5) var(--brand-h) / 0.12);
+  --glass-bg: oklch(1 0.002 var(--brand-h) / 0.92);
+  --glass-border: oklch(0.88 0.014 var(--brand-h) / 0.9);
+  --glass-shadow: oklch(0.2 0.02 var(--brand-h) / 0.14);
+  --glass-blur: 10px;
+  /* Theme-aware ink for .glass-card/.glass-panel content (2026-09-03,
+     signed-in-app cosmoq pass). Previously .glass-card hardcoded a single
+     dark ink value directly in its @layer components rule below, correct
+     ONLY because --glass-bg was ALWAYS the light near-white fill — even in
+     dark mode, since --glass-bg/--glass-border/--glass-blur were never
+     redeclared inside .dark.dark at all. That's the real reason the
+     signed-in app didn't already look like the reference: dark mode's
+     cards were still light glass. Now that .dark.dark below gives dark
+     mode its OWN dark, translucent --glass-bg, the ink hardcoded here
+     would go dark-on-dark and vanish — exactly the ghost-text bug class
+     this file has hit before. Fixed the same way those were: a theme-aware
+     token, dark in light mode, light in dark mode, with .glass-card
+     referencing the token instead of a literal value. */
+  --glass-ink: oklch(0.22 0.025 var(--brand-h));
+  --glass-ink-muted: oklch(0.42 0.03 var(--brand-h));
 
-  /* Outcome-shell tokens — the LIGHTER near-white teal-tinted surface that
-     .glass-card tone="highlight" composes with. Reads clearly brighter than
-     --background so it stands as the destination register above the field.
-     Opacity raised so dark ink on it always reads at >= 7:1. */
+  /* Outcome-shell tokens — the light green-tinted "value" surface that
+     .glass-card tone="highlight" composes with. */
   --outcome-bg: linear-gradient(
     180deg,
-    oklch(0.97 0.018 var(--brand-h) / 0.96) 0%,
-    oklch(0.92 0.026 var(--brand-h) / 0.94) 100%
+    oklch(0.985 0.014 var(--brand-h) / 0.98) 0%,
+    oklch(0.96 0.026 var(--brand-h) / 0.97) 100%
   );
-  --outcome-border: oklch(0.62 var(--brand-c) var(--brand-h) / 0.55);
+  --outcome-border: oklch(0.62 var(--brand-c) var(--brand-h) / 0.4);
 }
 
 @layer base {
-  /* Layered BLUE/TEAL field backdrop with tone-on-tone teal pushes. The
-     deeper field (--background: oklch 0.30) gets two deliberate tone
-     pulls toward a slightly lighter teal in the upper register so the
-     page reads as a Caribbean Sea wash rather than a flat color. The
-     third bottom radial carries a soft outcome tint that anchors the
-     lighter glass surfaces (cards, highlight panels) to the page.
-     background-attachment:fixed keeps the depth field stable as
-     sections scroll. */
+  /* Flat near-white page field, one restrained radial glow top-left for
+     texture — the standard "colored glow behind a light page" pattern
+     (Stripe/Linear-style), not a full-bleed saturated wash. Low alpha,
+     fades out well before mid-page. */
   body {
     background-color: var(--background);
-    background-image:
-      radial-gradient(
-        1200px 760px at 14% -12%,
-        oklch(0.42 var(--brand-c) var(--brand-h) / 0.55) 0%,
-        oklch(0.36 var(--brand-c) var(--brand-h) / 0.22) 42%,
-        transparent 74%
-      ),
-      radial-gradient(
-        900px 580px at 92% 8%,
-        oklch(0.46 var(--brand-c) var(--brand-h) / 0.4) 0%,
-        transparent 72%
-      ),
-      radial-gradient(
-        1400px 820px at 50% 112%,
-        oklch(0.72 0.04 var(--brand-h) / 0.3) 0%,
-        transparent 80%
-      );
+    background-image: radial-gradient(
+      1400px 900px at 12% -14%,
+      oklch(0.9 calc(var(--brand-c) * 0.55) var(--brand-h) / 0.32) 0%,
+      transparent 62%
+    );
     background-attachment: fixed;
     background-repeat: no-repeat;
     background-size: cover;
@@ -171,117 +225,208 @@
 
 @layer components {
   /* === LIQUID GLASS UTILITIES ================================================
-   * The system is restrained-but-VISIBLE: translucent teal reveal over the
-     deep blue/teal field with a clearly bright top-edge highlight seam
-     (the "Liquid Glass" hallmark), a 1px brand-tinted hairline, a
-     18px+ backdrop blur + 170% saturation step, and a soft two-layer
-     brand-tinted shadow that ties every surface back to CARI Forge's
-     teal engine. Surface opacities kept in the 0.74-0.88 band so the
-     field shows through — the panel "reveals" the field color, the apple
-     cue. */
+   * White cards, a hairline border, a soft two-layer shadow for elevation,
+     and a light backdrop-blur for a touch of texture. Restrained: no full
+     saturation, no colored field to "reveal" — the cards are simply clean
+     white surfaces on a near-white page, distinguished by shadow + border,
+     the way most professional SaaS products build cards. */
 
-  /* .glass-surface — translucent teal-tinted panel, the default card
-     shell. Reads as a brighter layer above the deep field with a visible
-     top-edge highlight seam. */
-  .glass-surface {
+  /* .glass-surface / .glass-card / .glass-panel all share one real bug
+     fixed here: var(--glass-bg)/--glass-border are THEME-AGNOSTIC (defined
+     once in the brand_tokens seed, always a pale translucent tint), but
+     the text rendered inside them normally comes from --card-foreground /
+     --foreground / --muted-foreground, which DO flip per theme. That
+     mismatch is invisible in light mode (pale glass + dark text already
+     matches) but breaks badly in dark mode: near-white --foreground text
+     lands on this same pale glass panel and goes nearly invisible — caught
+     on /pricing, where the card titles were unreadable ghost-text against
+     their own card background. Same root cause, same fix as
+     .glass-highlight below: rescope the text tokens locally to a fixed
+     dark colour that reads correctly against this fixed pale glass in
+     BOTH themes, rather than letting them follow the page-level flip.
+
+     Second bug, same family, caught 2026-09-01 on /admin/telemetry and
+     /admin/missions: the rescope above only reaches elements whose OWN
+     `color` is an explicit `var(--foreground)`/`var(--card-foreground)`/
+     `var(--muted-foreground)` reference (i.e. Tailwind's text-foreground /
+     text-card-foreground / text-muted-foreground utilities) — anything
+     using ONLY a size utility (text-h3, text-h4, text-body — no colour
+     utility at all) never references those custom properties itself, so
+     it just inherits body's ALREADY-COMPUTED page-level colour straight
+     through, bypassing this rescope entirely: near-white heading/stat
+     text on this same near-white glass. `color: var(--foreground)` below
+     closes that gap by giving the card itself a literal inherited colour
+     for any descendant that doesn't opt into its own text-* utility. */
+  .glass-surface,
+  .glass-card,
+  .glass-panel {
+    position: relative;
     background-color: var(--glass-bg);
     border: 1px solid var(--glass-border);
     box-shadow:
-      0 1px 0 oklch(1 0 0 / 0.6) inset,
-      0 24px 56px -22px var(--glass-shadow),
-      0 8px 18px -8px var(--glass-shadow);
-    backdrop-filter: blur(var(--glass-blur)) saturate(170%);
-    -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(170%);
+      0 1px 2px oklch(0.2 0.02 var(--brand-h) / 0.04),
+      0 8px 24px -12px var(--glass-shadow);
+    backdrop-filter: blur(var(--glass-blur)) saturate(120%);
+    -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(120%);
+    /* --glass-ink/--glass-ink-muted (defined in :root:root / .dark.dark
+       above) instead of a literal value — see the token comment for why:
+       dark mode's glass background is no longer the light-mode fill, so the
+       ink has to flip with it. */
+    --foreground: var(--glass-ink);
+    --card-foreground: var(--glass-ink);
+    --muted-foreground: var(--glass-ink-muted);
+    color: var(--foreground);
   }
-
-  /* .glass-card — the default glass card with rounded corners. LIFTED
-     above the deeper Caribbean Sea field: gradient stops are lighter and
-     opacity sits around 0.82 so the card surface is clearly brighter
-     than the page background, the field shows through (visible Liquid
-     Glass reveal), and dark ink (--card-foreground) reads at >= 7:1. */
-  .glass-card {
-    background: linear-gradient(
-      180deg,
-      oklch(0.93 0.026 var(--brand-h) / 0.84) 0%,
-      oklch(0.85 0.036 var(--brand-h) / 0.78) 100%
-    );
-    border: 1px solid var(--glass-border);
-    box-shadow:
-      0 1px 0 oklch(1 0 0 / 0.65) inset,
-      0 24px 56px -22px var(--glass-shadow),
-      0 8px 18px -8px var(--glass-shadow);
-    backdrop-filter: blur(var(--glass-blur)) saturate(170%);
-    -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(170%);
-  }
-
-  /* .glass-panel — broader section-level wrapper; lighter teal-tinted
-     wash, slightly bigger blur step. Same lift as .glass-card so a panel
-     and a card compose together above the deeper field. */
   .glass-panel {
-    background: linear-gradient(
-      180deg,
-      oklch(0.94 0.026 var(--brand-h) / 0.82) 0%,
-      oklch(0.86 0.032 var(--brand-h) / 0.76) 100%
-    );
-    border: 1px solid var(--glass-border);
     box-shadow:
-      0 1px 0 oklch(1 0 0 / 0.7) inset,
-      0 32px 72px -24px var(--glass-shadow);
-    backdrop-filter: blur(calc(var(--glass-blur) + 4px)) saturate(170%);
-    -webkit-backdrop-filter: blur(calc(var(--glass-blur) + 4px)) saturate(170%);
+      0 1px 2px oklch(0.2 0.02 var(--brand-h) / 0.04),
+      0 16px 40px -20px var(--glass-shadow);
   }
 
-  /* .glass-card.tone-highlight / .glass-highlight — the OUTCOME surface.
-     Reads clearly LIGHTER than the blue/teal field. Used by the hero
-     "leave a brief" form shell, pricing CTA shells, and "front-door
-     reminder" panel. Near-white, near-opaque; dark ink + brand labels
-     always read at high contrast. */
+  /* Third bug, opposite direction, caught the same day on Forge Canvas's
+     node palette (a `bg-card` button nested inside the palette's
+     `.glass-panel`) and on the admin telemetry stat tiles (`.glass-chip`
+     nested inside a `.glass-card` section): the rescope two rules up is
+     tuned for content sitting DIRECTLY on the glass card's own pale
+     background. A nested surface with its OWN, different background
+     (`.glass-chip`'s `var(--secondary)`, or plain `bg-card`/`bg-secondary`/
+     `bg-muted`/`bg-background` — the last one is what shadcn's default
+     Button `outline` variant uses, caught on the mission header's Pause /
+     Replay / Rollback buttons) still inherits that rescoping via ordinary
+     custom-property inheritance, because CSS has no concept of "only my
+     direct content" — so a nested `bg-background` button's inherited
+     `color` (or `.glass-chip`'s own explicit `color: var(--foreground)`,
+     further down this file) resolves using the ANCESTOR .glass-card's
+     dark-for-pale-glass override even though its OWN background is dark:
+     dark text on a dark surface. Reset back to the TRUE (un-rescoped,
+     theme-correct) tokens for exactly these nested surfaces, using the
+     never-shadowed --true-* aliases declared in :root:root / .dark.dark —
+     a plain var(--foreground) reference here would just re-inherit the
+     very override being undone. */
+  .glass-card :where(.glass-chip, .bg-card, .bg-secondary, .bg-muted, .bg-background),
+  .glass-panel :where(.glass-chip, .bg-card, .bg-secondary, .bg-muted, .bg-background) {
+    --foreground: var(--true-foreground);
+    --card-foreground: var(--true-card-foreground);
+    --muted-foreground: var(--true-muted-foreground);
+    /* Also set `color` explicitly, not just the custom properties above:
+       an element with NO color utility of its own (e.g. shadcn's default
+       Button — caught on the mission header's Pause/Replay/Rollback
+       buttons, which have no text-* class) doesn't reference
+       var(--foreground) at all; it plain-inherits the LITERAL colour
+       already resolved on .glass-card/.glass-panel itself (dark, from
+       that rule's own `color: var(--foreground)` two rules up). Resetting
+       the custom property here is inert for such an element — nothing of
+       its own reads it. This line is that "own reference" for anything
+       nested here that would otherwise silently inherit the wrong
+       literal colour. */
+    color: var(--foreground);
+  }
+
+  /* .glass-card.tone-highlight / .glass-highlight — the OUTCOME surface: a
+     light green-tinted panel with a visible brand-colored border. Used by
+     the hero "leave a brief" form shell, pricing CTA shells, and
+     "front-door reminder" panel — reads as the destination panel via tint
+     + border against the already-light page. */
   .glass-highlight {
     background: var(--outcome-bg);
     border: 1px solid var(--outcome-border);
     color: var(--outcome-foreground);
     box-shadow:
-      0 1px 0 oklch(1 0 0 / 0.8) inset,
-      0 28px 64px -22px var(--glass-shadow),
-      0 10px 22px -8px var(--glass-tint-strong);
-    backdrop-filter: blur(var(--glass-blur)) saturate(160%);
-    -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(160%);
+      0 1px 2px oklch(0.2 0.02 var(--brand-h) / 0.04),
+      0 16px 40px -20px var(--glass-tint-strong);
+
+    /* This card is meant to keep the SAME light green-tinted look in both
+       light and dark mode (that's the whole point — a consistent
+       "destination panel" regardless of theme), but its content
+       (GlassHero's sideTitle/sideLede, BriefIntakeForm's labels, the "how
+       The Oracles work" lede) uses the ordinary text-foreground /
+       text-card-foreground / text-muted-foreground utilities, which
+       correctly flip between themes for the REST of the page. Rescoping
+       those three tokens locally means every such utility already used
+       inside this card — now or added later — resolves correctly in both
+       themes without hunting down each call site. (This is the same fix
+       applied to the dark-field design; kept because the underlying reason
+       — this card intentionally not flipping with the rest of the page —
+       is still true here.) */
+    --foreground: var(--outcome-foreground);
+    --card-foreground: var(--outcome-foreground);
+    --muted-foreground: oklch(0.42 0.03 var(--brand-h));
   }
 
-  /* .glass-chip — translucent pill for stance badges and eyebrows.
-     Brand-tinted ink reads on the lighter teal canvas. LIGHTER than the
-     field so chips read as destination labels. */
+  /* .glass-chip — pill for stance badges and eyebrows. Light tint, brand
+     hairline. */
   .glass-chip {
-    background: linear-gradient(
-      180deg,
-      oklch(0.94 0.026 var(--brand-h) / 0.82) 0%,
-      oklch(0.86 0.036 var(--brand-h) / 0.74) 100%
-    );
-    border: 1px solid oklch(0.62 0.05 var(--brand-h) / 0.5);
-    box-shadow:
-      0 1px 0 oklch(1 0 0 / 0.55) inset,
-      0 4px 12px -4px var(--glass-shadow);
-    backdrop-filter: blur(12px) saturate(160%);
-    -webkit-backdrop-filter: blur(12px) saturate(160%);
+    background: var(--secondary);
+    border: 1px solid oklch(0.7 calc(var(--brand-c) * 0.6) var(--brand-h) / 0.35);
     color: var(--foreground);
   }
 
-  /* .glass-nav — translucent sticky top bar, layered DEEPER than the field
-     so it reads as a true glass overlay (glass-on-glass), NOT as a flat
-     navy strip. Slight lighten so the brand-300 hairline + the
-     white-on-deep nav text still read. */
-  .glass-nav {
-    background: linear-gradient(
-      180deg,
-      oklch(0.26 0.06 var(--brand-h) / 0.7) 0%,
-      oklch(0.22 0.05 var(--brand-h) / 0.72) 100%
+  /* .glass-inset — a nested "result" sub-panel, MEANT to sit inside a
+     .glass-card/.glass-panel (2026-09-03, real user report: the "Discovery's
+     read" verdict box on the front-door brief form was a flat, hardcoded
+     `bg-muted/30` div — a different code path entirely from the .glass-card
+     treatment fixed everywhere else, so it never picked up the dark-glass
+     look and stood out as a plain grey box). Deliberately NOT another
+     .glass-card: nesting one backdrop-filtered glass surface inside another
+     compounds blur cost for no visual gain, and .glass-card's own corner
+     glow would double up oddly at this smaller size. Uses a RELATIVE
+     darken/lighten (black-at-low-alpha vs white-at-low-alpha) rather than a
+     new theme-flip token — a nested panel just needs to read as "a distinct
+     region of its parent," one step darker on a light parent, one step
+     lighter on a dark one, which composes correctly in both themes without
+     inventing another --true-*-style pair. Text inside inherits the
+     parent .glass-card's already-theme-aware --foreground/--muted-foreground
+     — no rescope needed here, this isn't fighting an inherited override the
+     way the --true-* mechanism exists to undo. */
+  .glass-inset {
+    position: relative;
+    overflow: hidden;
+    border-radius: calc(var(--radius) - 2px);
+    border: 1px solid oklch(0.6 calc(var(--brand-c) * 0.5) var(--brand-h) / 0.22);
+    background: oklch(0.2 0.02 var(--brand-h) / 0.05);
+  }
+  .dark .glass-inset {
+    background: oklch(1 0 0 / 0.035);
+    border-color: oklch(0.65 calc(var(--brand-c) * 0.55) var(--brand-h) / 0.28);
+  }
+  .dark .glass-inset::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 55%;
+    height: 55%;
+    z-index: -1;
+    pointer-events: none;
+    border-radius: 9999px;
+    background: radial-gradient(
+      closest-side,
+      oklch(0.72 0.15 var(--brand-h) / 0.14) 0%,
+      transparent 78%
     );
-    border-bottom: 1px solid oklch(0.78 0.05 var(--brand-h) / 0.32);
-    box-shadow:
-      0 1px 0 oklch(1 0 0 / 0.12) inset,
-      0 10px 28px -10px var(--glass-shadow);
-    backdrop-filter: blur(calc(var(--glass-blur) + 8px)) saturate(170%);
-    -webkit-backdrop-filter: blur(calc(var(--glass-blur) + 8px)) saturate(170%);
+    filter: blur(20px);
+  }
+
+  /* .glass-nav — was the ONE deliberately-dark surface (a solid
+     deep-emerald bar, brand colour concentrated at the top of every
+     screen); flipped to a translucent frosted bar per the Apple
+     direction — Apple's own nav is a light (or, in dark mode, dark)
+     blurred material sitting over the page content, not an opaque
+     colour-branded band. Uses --border (theme-aware) for the hairline
+     and a translucent near-page-colour fill rather than a hardcoded
+     tint, so it now participates in the light/dark flip instead of
+     opting out of it — site-nav.tsx's text-white assumptions changed
+     alongside this to ordinary theme tokens (text-foreground etc). */
+  .glass-nav {
+    background: oklch(1 0.003 var(--brand-h) / 0.72);
+    border-bottom: 1px solid var(--border);
+    box-shadow: 0 8px 20px -12px oklch(0.2 0.02 var(--brand-h) / 0.12);
+    backdrop-filter: blur(calc(var(--glass-blur) + 6px)) saturate(140%);
+    -webkit-backdrop-filter: blur(calc(var(--glass-blur) + 6px)) saturate(140%);
+  }
+  .dark .glass-nav {
+    background: oklch(0.17 0.012 var(--brand-h) / 0.75);
+    box-shadow: 0 8px 20px -12px oklch(0 0 0 / 0.4);
   }
 
   /* .glass-divider — brand-tinted soft line, center bright, edges transparent. */
@@ -291,56 +436,27 @@
     background: linear-gradient(
       90deg,
       transparent 0%,
-      oklch(var(--brand-l) var(--brand-c) var(--brand-h) / 0.55) 50%,
+      oklch(var(--brand-l) var(--brand-c) var(--brand-h) / 0.4) 50%,
       transparent 100%
     );
   }
 
-  /* .glow-text — teal text glow for hero display headlines. Alpha toned
-     down so the headline doesn't bleed on the lighter backplane. */
+  /* .glow-text — kept as a utility (some callers may still opt in) but no
+     longer applied by default anywhere; a colored text-shadow glow behind
+     dark ink on a light page reads muddy rather than luminous, unlike its
+     original job (a light glow behind light text on a dark hero field). */
   .glow-text {
     text-shadow:
-      0 0 40px oklch(var(--brand-l) var(--brand-c) var(--brand-h) / 0.3),
-      0 0 10px oklch(var(--brand-l) calc(var(--brand-c) * 0.7) var(--brand-h) / 0.4);
-  }
-
-  /* .glass-cta — solid vivid teal primary CTA. Foreground reads as
-     near-white for the highest-contrast element on the page. */
-  .glass-cta {
-    background: linear-gradient(
-      180deg,
-      oklch(0.56 var(--brand-c) var(--brand-h)) 0%,
-      oklch(0.4 var(--brand-c) var(--brand-h)) 100%
-    );
-    border: 1px solid oklch(0.3 var(--brand-c) var(--brand-h) / 0.65);
-    color: oklch(0.99 0.008 var(--brand-h));
-    box-shadow:
-      0 1px 0 oklch(1 0 0 / 0.35) inset,
-      0 14px 36px -12px oklch(var(--brand-l) var(--brand-c) var(--brand-h) / 0.4),
-      0 4px 12px -4px var(--glass-shadow);
-  }
-
-  /* .glass-outline-cta — translucent teal glass with brand hairline. */
-  .glass-outline-cta {
-    background: linear-gradient(
-      180deg,
-      oklch(0.88 0.034 var(--brand-h) / 0.62) 0%,
-      oklch(0.78 0.038 var(--brand-h) / 0.5) 100%
-    );
-    border: 1px solid oklch(0.46 var(--brand-c) var(--brand-h) / 0.6);
-    color: var(--brand-700);
-    box-shadow:
-      0 1px 0 oklch(1 0 0 / 0.55) inset,
-      0 10px 28px -12px var(--glass-shadow);
-    backdrop-filter: blur(14px) saturate(180%);
-    -webkit-backdrop-filter: blur(14px) saturate(180%);
+      0 0 40px oklch(var(--brand-l) var(--brand-c) var(--brand-h) / 0.16),
+      0 0 10px oklch(var(--brand-l) calc(var(--brand-c) * 0.7) var(--brand-h) / 0.22);
   }
 
   /* === BACKGROUNDS / DEPTH =================================================== */
 
-  /* .hero-aurora — restrained TEAL engine push (top-left). A single
-     radial on the lighter blue field; chroma re-tuned so it pushes
-     lighter teal, not a heavy dark teal aurora. */
+  /* .hero-aurora — a single soft emerald glow, top-left. Deliberately
+     restrained: this plus the body's own top-left radial are the only two
+     places a colored glow shows up on a hero section — not a full-bleed
+     wash. */
   .hero-aurora {
     position: relative;
     isolation: isolate;
@@ -355,18 +471,28 @@
     height: 560px;
     top: -140px;
     left: -160px;
-    filter: blur(80px);
+    filter: blur(90px);
     background: radial-gradient(
       closest-side,
-      oklch(0.86 calc(var(--brand-c) * 1.4) var(--brand-h) / 0.55) 0%,
-      oklch(0.72 calc(var(--brand-c) * 0.8) var(--brand-h) / 0.18) 50%,
-      transparent 75%
+      oklch(0.86 calc(var(--brand-c) * 0.9) var(--brand-h) / 0.3) 0%,
+      transparent 72%
     );
+    /* Real user report (iOS, real device): heading text over this glow
+       rendered as a pale, washed-out ghost in several screenshots — not
+       reproducible here (computed color/background verified correct in
+       both themes; Chromium mobile emulation renders it correctly). The
+       leading candidate is a known WebKit bug class: a blurred, negative-
+       z-index pseudo-element inside an `isolation: isolate` context can
+       leave a stale/incorrectly-composited tile over the content above it
+       until a repaint is triggered. This forces the blur onto its own GPU
+       layer up front — the standard mitigation — rather than leaving
+       Safari to decide compositing on its own. Flagged as a hedge, not a
+       confirmed fix: please reload and re-check on the actual device. */
+    transform: translateZ(0);
+    will-change: transform;
   }
 
-  /* .section-aurora — softer per-section variant. A single teal radial
-     pinned top-right of the section; not full-bleed. Chroma re-tuned for
-     the lighter register. */
+  /* .section-aurora — softer per-section variant, top-right. */
   .section-aurora {
     position: relative;
     isolation: isolate;
@@ -383,11 +509,13 @@
     right: -100px;
     background: radial-gradient(
       closest-side,
-      oklch(0.88 var(--brand-c) var(--brand-h) / 0.4) 0%,
-      oklch(0.78 calc(var(--brand-c) * 0.5) var(--brand-h) / 0.12) 60%,
-      transparent 80%
+      oklch(0.88 calc(var(--brand-c) * 0.7) var(--brand-h) / 0.22) 0%,
+      transparent 75%
     );
-    filter: blur(72px);
+    filter: blur(80px);
+    /* Same WebKit stale-composited-tile hedge as .hero-aurora::before above. */
+    transform: translateZ(0);
+    will-change: transform;
   }
 
   /* === MOTION =================================================================
@@ -409,21 +537,20 @@
     .lift-soft:hover {
       transform: translateY(-2px);
       box-shadow:
-        0 1px 0 oklch(1 0 0 / 0.5) inset,
-        0 32px 64px -22px var(--glass-shadow),
-        0 8px 18px -8px var(--glass-tint-strong);
+        0 2px 4px oklch(0.2 0.02 var(--brand-h) / 0.05),
+        0 20px 44px -20px var(--glass-shadow);
     }
   }
 
   /* === ANCHOR + LINK TREATMENT =============================================== */
 
-  /* Brand link — vivid teal on the blue/teal canvas, drawn from
-     brand-700. */
+  /* Brand link — vivid emerald, drawn from brand-700 for solid contrast on
+     a light canvas. */
   .link-brand {
     color: var(--brand-700);
     font-weight: 600;
     text-underline-offset: 4px;
-    text-decoration-color: oklch(var(--brand-l) var(--brand-c) var(--brand-h) / 0.55);
+    text-decoration-color: oklch(var(--brand-l) var(--brand-c) var(--brand-h) / 0.5);
     transition: text-decoration-color 200ms;
   }
   .link-brand:hover {
@@ -431,27 +558,396 @@
   }
 }
 
-/* === DARK-MODE OVERRIDES =====================================================
-   Light mode is the brand-aligned BLUE/TEAL field. The .dark class deepens
-   the register so a theme-toggle still has audible difference, while
-   preserving the same teal brand accent and a lighter outcome surface
-   (still clearly brighter than --background). */
-.dark {
-  --background: oklch(0.2 0.04 var(--brand-h));
-  --foreground: oklch(0.94 0.012 var(--brand-h));
-  --card: oklch(0.27 0.044 var(--brand-h));
-  --border: oklch(1 0 0 / 16%);
-  --outcome: oklch(0.45 0.06 var(--brand-h));
+/* Real, user-reported bug, root cause #2 (specificity doubling alone —
+   the first fix attempted — did NOT actually solve this): Tailwind v4
+   declares cascade-layer order as `theme, base, components, properties,
+   utilities`. `.glass-cta`/`.glass-outline-cta` lived inside
+   `@layer components` above; the shadcn Button default variant's
+   `bg-primary text-primary-foreground hover:bg-primary/90` are Tailwind
+   utilities, in `@layer utilities`. CSS layers take priority BEFORE
+   specificity is ever consulted — a later-declared layer always wins
+   over an earlier one, full stop, regardless of how specific the
+   earlier layer's selector is. `.glass-cta.glass-cta` at (0,2,0) inside
+   `components` still lost to `.bg-primary`/`.text-primary-foreground`
+   at (0,1,0) inside `utilities`, on both the background-color AND text
+   color — confirmed by injecting the real button markup into a live
+   page and reading its actual computed style, not just re-reading the
+   source CSS (which only proves the rule exists, not that it wins).
+   Fix: these rules now live directly in `@layer utilities` themselves,
+   where the (0,2,0)/(0,3,0) specificity bump actually does its job
+   against same-layer utilities, including on :hover (added explicitly
+   below — hover:bg-primary/90 is also a utilities-layer, same-specificity
+   class; without an explicit :hover rule here the winner between two
+   equal-specificity same-layer rules would depend on unpredictable
+   build-order, not a chosen behavior). */
+@layer utilities {
+  .glass-cta.glass-cta {
+    background: linear-gradient(
+      180deg,
+      oklch(0.58 var(--brand-c) var(--brand-h)) 0%,
+      oklch(0.48 var(--brand-c) var(--brand-h)) 100%
+    );
+    border: 1px solid oklch(0.4 var(--brand-c) var(--brand-h) / 0.5);
+    color: oklch(0.99 0.008 var(--brand-h));
+    box-shadow:
+      0 1px 0 oklch(1 0 0 / 0.18) inset,
+      0 10px 26px -12px oklch(var(--brand-l) var(--brand-c) var(--brand-h) / 0.35);
+  }
+  .glass-cta.glass-cta:hover {
+    background: linear-gradient(
+      180deg,
+      oklch(0.64 var(--brand-c) var(--brand-h)) 0%,
+      oklch(0.54 var(--brand-c) var(--brand-h)) 100%
+    );
+    color: oklch(0.99 0.008 var(--brand-h));
+  }
+  .glass-outline-cta.glass-outline-cta {
+    background: var(--secondary);
+    border: 1px solid oklch(0.55 calc(var(--brand-c) * 0.8) var(--brand-h) / 0.5);
+    color: var(--brand-700);
+  }
+
+  /* === DARK-MODE LIQUID-GLASS BUTTONS (2026-09-03, signed-in-app cosmoq
+     pass) ========================================================
+     Upgrades .glass-cta/.glass-outline-cta specifically in dark mode to
+     the reference's signature control: a near-black pill whose BORDER is a
+     two-tone gradient ring, with a soft blurred bloom of the same gradient
+     sitting behind it — the exact technique already proven on the homepage
+     (.cq-btn-primary in cosmoq-home.css), reused here rather than
+     reinvented so the two treatments stay visually consistent. Same
+     aquamarine -> indigo ramp as the card glow above. Selector specificity:
+     `.dark .glass-cta.glass-cta` is (0,3,0), inside the SAME @layer
+     utilities as the base `.glass-cta.glass-cta` rule at (0,2,0) above —
+     same layer, so ordinary specificity decides, which is why this doesn't
+     need to relitigate the CSS-layer-order bug documented at the top of
+     this @layer utilities block; it wins on specificity alone. Left mode
+     unaffected — none of this touches :root:root's button rules. */
+  .dark .glass-cta.glass-cta {
+    position: relative;
+    isolation: isolate;
+    background: linear-gradient(oklch(0.14 0.024 var(--brand-h)), oklch(0.14 0.024 var(--brand-h)))
+      padding-box;
+    border: 1px solid transparent;
+    background-image:
+      linear-gradient(oklch(0.14 0.024 var(--brand-h)), oklch(0.14 0.024 var(--brand-h))),
+      linear-gradient(
+        135deg,
+        oklch(0.74 0.15 var(--brand-h)) 0%,
+        oklch(0.6 0.12 calc(var(--brand-h) + 40)) 45%,
+        oklch(0.55 0.17 calc(var(--brand-h) + 96)) 100%
+      );
+    background-origin: border-box;
+    background-clip: padding-box, border-box;
+    color: oklch(0.98 0.006 var(--brand-h));
+    box-shadow: none;
+  }
+  .dark .glass-cta.glass-cta::before {
+    content: "";
+    position: absolute;
+    inset: -3px;
+    z-index: -1;
+    border-radius: inherit;
+    background: linear-gradient(
+      135deg,
+      oklch(0.74 0.15 var(--brand-h)) 0%,
+      oklch(0.6 0.12 calc(var(--brand-h) + 40)) 45%,
+      oklch(0.55 0.17 calc(var(--brand-h) + 96)) 100%
+    );
+    filter: blur(11px);
+    opacity: 0.5;
+    transition: opacity 220ms var(--ease-out-expo, cubic-bezier(0.16, 1, 0.3, 1));
+  }
+  .dark .glass-cta.glass-cta:hover {
+    background-image:
+      linear-gradient(oklch(0.18 0.028 var(--brand-h)), oklch(0.18 0.028 var(--brand-h))),
+      linear-gradient(
+        135deg,
+        oklch(0.74 0.15 var(--brand-h)) 0%,
+        oklch(0.6 0.12 calc(var(--brand-h) + 40)) 45%,
+        oklch(0.55 0.17 calc(var(--brand-h) + 96)) 100%
+      );
+    color: oklch(0.98 0.006 var(--brand-h));
+  }
+  .dark .glass-cta.glass-cta:hover::before {
+    opacity: 0.78;
+  }
+
+  /* Secondary/ghost button: a translucent frosted pill with a hairline
+     border, matching .cq-btn-ghost — no gradient ring (that's reserved for
+     the primary action, same restraint principle as the homepage). */
+  .dark .glass-outline-cta.glass-outline-cta {
+    background: oklch(1 0 0 / 0.04);
+    border: 1px solid oklch(1 0 0 / 0.14);
+    color: var(--foreground);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
+  .dark .glass-outline-cta.glass-outline-cta:hover {
+    background: oklch(1 0 0 / 0.09);
+    border-color: oklch(1 0 0 / 0.22);
+  }
+
+  /* === SIGNED-IN APP BUTTONS (2026-09-03) =====================================
+     The marker classes button.tsx's cva variants now always carry
+     (dark-liquid-btn / dark-liquid-outline / dark-liquid-ghost) — inert in
+     light mode since no unscoped rule for them exists at all, fully styled
+     here under `.dark`. Same technique as .glass-cta above (gradient-ring
+     border + blurred bloom for the primary action; a lighter frosted pill
+     for outline/secondary/ghost). Selector is `.dark .X.X` (the marker
+     class doubled) — the exact same specificity trick .glass-cta.glass-cta
+     uses above and for the same reason: within @layer utilities, Tailwind's
+     own generated classes (bg-primary, hover:bg-primary/90, text-primary-
+     foreground) are simple one-class-or-one-class+pseudo selectors, so a
+     doubled selector reliably outranks them on SPECIFICITY alone — no
+     !important needed, and no dependency on which order Tailwind happens to
+     emit its utilities in, which a same-specificity rule (e.g. a single
+     `.dark-liquid-btn:hover` against `hover:bg-primary/90`, both (0,2,0))
+     would have been. Font size/weight set explicitly and identically across
+     all three — "the fonts be the same size" — rather than left to each
+     call site's surrounding text context. */
+  .dark .dark-liquid-btn.dark-liquid-btn {
+    position: relative;
+    isolation: isolate;
+    border: 1px solid transparent;
+    border-radius: 999px;
+    font-size: 0.94rem;
+    font-weight: 500;
+    background-image:
+      linear-gradient(oklch(0.14 0.024 var(--brand-h)), oklch(0.14 0.024 var(--brand-h))),
+      linear-gradient(
+        135deg,
+        oklch(0.74 0.15 var(--brand-h)) 0%,
+        oklch(0.6 0.12 calc(var(--brand-h) + 40)) 45%,
+        oklch(0.55 0.17 calc(var(--brand-h) + 96)) 100%
+      );
+    background-origin: border-box;
+    background-clip: padding-box, border-box;
+    color: oklch(0.98 0.006 var(--brand-h));
+    box-shadow: none;
+  }
+  .dark .dark-liquid-btn.dark-liquid-btn::before {
+    content: "";
+    position: absolute;
+    inset: -3px;
+    z-index: -1;
+    border-radius: inherit;
+    background: linear-gradient(
+      135deg,
+      oklch(0.74 0.15 var(--brand-h)) 0%,
+      oklch(0.6 0.12 calc(var(--brand-h) + 40)) 45%,
+      oklch(0.55 0.17 calc(var(--brand-h) + 96)) 100%
+    );
+    filter: blur(11px);
+    opacity: 0.5;
+    transition: opacity 220ms var(--ease-out-expo, cubic-bezier(0.16, 1, 0.3, 1));
+  }
+  .dark .dark-liquid-btn.dark-liquid-btn:hover::before {
+    opacity: 0.78;
+  }
+  .dark .dark-liquid-btn.dark-liquid-btn:hover {
+    color: oklch(0.98 0.006 var(--brand-h));
+  }
+
+  .dark .dark-liquid-outline.dark-liquid-outline,
+  .dark .dark-liquid-ghost.dark-liquid-ghost {
+    border-radius: 999px;
+    font-size: 0.94rem;
+    font-weight: 500;
+    background: oklch(1 0 0 / 0.04);
+    border: 1px solid oklch(1 0 0 / 0.14);
+    color: var(--foreground);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
+  /* .dark-liquid-ghost starts with no visible surface at all in shadcn's
+     'ghost' variant (only a hover background) — give it the same resting
+     frosted-pill look as outline/secondary rather than leaving it
+     invisible until hovered, so "all the buttons" reads as one family. */
+  .dark .dark-liquid-outline.dark-liquid-outline:hover,
+  .dark .dark-liquid-ghost.dark-liquid-ghost:hover {
+    background: oklch(1 0 0 / 0.09);
+    border-color: oklch(1 0 0 / 0.22);
+    color: var(--foreground);
+  }
 }
 
+/* === DARK-MODE OVERRIDES =====================================================
+   Apple-style dark surface (current direction, supersedes the "bright
+   aquamarine" dark theme this held one pass ago): a genuinely dark,
+   neutral-grey field — close to macOS's own dark-mode chrome — with the
+   Caribbean-sea accent reserved for links/badges/borders, the same
+   restraint principle as the light mode above, not a dark-mode-shaped
+   version of the earlier colour wash. --primary INVERTS to a light pill
+   here (near-white fill, near-black text) rather than staying near-black
+   like light mode's — a near-black button would have no contrast against
+   this now-near-black background; Apple's own dark-mode buttons follow
+   the same inversion.
+   Selector is `.dark.dark` (repeated class -> specificity (0,2,0)) for the
+   same reason the :root block above became `:root:root` — globals.css's
+   later framework-derived .dark{} block redeclares the same properties
+   and would otherwise win by source order alone. */
+.dark.dark {
+  /* Deepened + more saturated than the previous dark palette (2026-08-29):
+     the prior L0.17/C0.012 background was a subtle neutral-grey dark mode
+     — real, but nowhere near the reference's own near-black, visibly
+     colour-cast canvas (#030014 sampled at OKLCH L0.096 C0.056). This
+     block now reads at a comparable weight, with the hue following
+     --brand-h (aquamarine) as everywhere else. */
+  --background: oklch(0.1 0.045 var(--brand-h));
+  --foreground: oklch(0.96 0.006 var(--brand-h));
+  --card: oklch(0.16 0.05 var(--brand-h));
+  --card-foreground: var(--foreground);
+  --popover: var(--card);
+  --popover-foreground: var(--foreground);
+  --primary: #f5f5f7;
+  --primary-foreground: #1d1d1f;
+  --secondary: oklch(0.2 0.045 var(--brand-h));
+  --secondary-foreground: var(--foreground);
+  --muted: oklch(0.2 0.045 var(--brand-h));
+  --muted-foreground: oklch(0.68 0.02 var(--brand-h));
+
+  /* Dark-mode literal duplicates of the --true-* aliases declared in
+     :root:root above — see that comment for why these must be literal,
+     not var(--foreground)/var(--muted-foreground) references. */
+  --true-foreground: oklch(0.96 0.006 var(--brand-h));
+  --true-card-foreground: oklch(0.96 0.006 var(--brand-h));
+  --true-muted-foreground: oklch(0.68 0.02 var(--brand-h));
+
+  --accent: oklch(0.22 0.06 var(--brand-h));
+  --accent-foreground: var(--foreground);
+  --border: oklch(1 0 0 / 12%);
+  --input: oklch(1 0 0 / 14%);
+
+  /* Dark-mode glass — the actual fix for the signed-in app (2026-09-03):
+     never existed before. --glass-bg/--glass-border/--glass-blur were
+     declared ONLY in :root:root and never redeclared here, so every
+     .glass-card/.glass-panel across the entire signed-in app (dashboard,
+     Forge Canvas, Missions, Approvals, Admin — they all share these three
+     classes, that's the point of centralising them) was still rendering
+     the LIGHT near-white 92%-opaque fill even with .dark active. That's
+     the real reason dark mode didn't look like the reference: the cards
+     were never actually dark. Now genuinely dark and translucent — a
+     near-black aquamarine-tinted fill, brighter/more saturated border,
+     stronger blur for a frosted rather than merely-tinted read. */
+  --glass-bg: oklch(0.16 0.03 var(--brand-h) / 0.62);
+  --glass-border: oklch(0.6 calc(var(--brand-c) * 0.5) var(--brand-h) / 0.28);
+  --glass-blur: 16px;
+  /* Light ink for the now-dark glass fill — see the --glass-ink token
+     comment in :root:root for why this has to flip alongside --glass-bg. */
+  --glass-ink: oklch(0.96 0.006 var(--brand-h));
+  --glass-ink-muted: oklch(0.7 0.02 var(--brand-h));
+  /* Outcome stays a light green-tinted card even in dark mode — the
+     .glass-highlight rule above rescopes text tokens inside it
+     specifically because this surface does NOT follow the page's dark
+     flip. --outcome itself isn't consumed directly by .glass-highlight
+     (it uses --outcome-bg/--outcome-border/--outcome-foreground, all set
+     once above and left alone here on purpose) — kept for any other
+     caller that reads --outcome directly. */
+  --outcome: oklch(0.3 0.05 var(--brand-h));
+}
+
+/* Dark-mode card treatment (2026-09-03, signed-in-app cosmoq pass — see the
+   --glass-bg token comment in .dark.dark above for why this used to be a
+   near-white card and isn't any more). Two parts: the shadow (kept from
+   before — a light page's soft shadow reads wrong on a dark field, needs a
+   stronger dark drop shadow), and a new corner glow.
+
+   The glow is what makes this read as "the reference" rather than just "a
+   dark card": a soft bloom in one corner, built from the SAME aquamarine
+   -> indigo ramp as the homepage sunrise/orb/card glows (brand-h and
+   brand-h+96) — literally "a hint of colours from the home page" per the
+   direct request, not a separately invented palette. On an ::before so it
+   never fights the card's own content for stacking (z-index -1, stacks
+   behind the card's own translucent background and shows through it, the
+   "glow behind frosted glass" look). Deliberately NOT paired with
+   `overflow: hidden` on the shared class — .glass-card/.glass-panel are
+   used everywhere across the signed-in app (dashboard, canvas, missions,
+   approvals, admin) and some of those usages may rely on a badge or
+   decoration overlapping the card's own edge; clipping overflow on a
+   primitive this widely shared, unaudited, is a real risk of its own.
+   Positioned fully INSIDE the card's own box instead (no negative offset)
+   so the only thing that can extend past the edge is the blur filter's own
+   natural softening, which is cosmetic, not a functional clipping risk.
+   Alternates warm-to-cool vs cool-to-warm on odd/even cards the same way
+   the homepage's feature cards do, so a grid of these doesn't read as one
+   glow copy-pasted. */
 .dark .glass-surface,
 .dark .glass-card,
 .dark .glass-panel {
-  background-color: oklch(0.3 0.04 var(--brand-h) / 0.62);
-  border-color: oklch(1 0 0 / 16%);
   box-shadow:
     0 1px 0 oklch(1 0 0 / 0.08) inset,
     0 18px 40px -16px oklch(0 0 0 / 0.55);
+}
+.dark .glass-surface::before,
+.dark .glass-card::before,
+.dark .glass-panel::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 60%;
+  height: 60%;
+  z-index: -1;
+  pointer-events: none;
+  border-radius: 9999px;
+  background: radial-gradient(
+    closest-side,
+    oklch(0.72 0.15 var(--brand-h) / 0.22) 0%,
+    oklch(0.55 0.16 calc(var(--brand-h) + 96) / 0.14) 55%,
+    transparent 78%
+  );
+  filter: blur(24px);
+}
+.dark .glass-card:nth-of-type(even)::before,
+.dark .glass-panel:nth-of-type(even)::before {
+  background: radial-gradient(
+    closest-side,
+    oklch(0.55 0.16 calc(var(--brand-h) + 96) / 0.24) 0%,
+    oklch(0.72 0.15 var(--brand-h) / 0.14) 55%,
+    transparent 78%
+  );
+}
+
+/* .glass-outline-cta's `color: var(--brand-700)` (a fixed L=0.4 tone) was
+   tuned for light mode, where `background: var(--secondary)` used to sit
+   near-white (~0.96 lightness) — plenty of contrast. Brightening dark
+   mode's --secondary to ~0.5 lightness (part of the aquamarine pass
+   above) put a similarly-dark text colour on a similarly-mid-lightness
+   background, which is nearly unreadable — caught on the "Meet The
+   Oracles" outline button on mobile. Same category of bug as the
+   .glass-card fix above: a token that stopped tracking the surface it
+   sits on once that surface got dramatically brighter/darker. */
+.dark .glass-outline-cta {
+  color: var(--foreground);
+}
+
+/* Same root cause as .glass-outline-cta above: .link-brand's `color:
+   var(--brand-700)` (a fixed L=0.4 tone, tuned for a light page) now sits
+   almost exactly on top of dark mode's own --background lightness (also
+   ~0.4 after the aquamarine brightening pass), so any inline brand link
+   in body text would otherwise nearly vanish into the page. brand-300 is
+   a light, still-saturated aqua tint that reads clearly against that
+   background instead. */
+.dark .link-brand {
+  color: var(--brand-300);
+}
+
+/* Same root cause, much wider blast radius: `text-brand-600` / `text-
+   brand-700` (fixed L=0.5/0.4 steps of the background-agnostic-by-formula
+   brand ramp — see the ramp comment above) are used directly as Tailwind
+   utility classes across 20+ components (ordinals, eyebrows, stance
+   labels — anywhere accent text sits straight on the page background,
+   not inside a .glass-* card). All of them assumed a light page
+   background, same as .link-brand did. Rather than hunt down and edit
+   every call site individually, one global override here catches them
+   all: `.dark .text-brand-700` is (0,2,0) specificity, which beats the
+   bare (0,1,0) utility class regardless of source order, the same trick
+   :root:root / .dark.dark use above for the same reason. brand-200 is a
+   light, still-saturated aqua tint that reads clearly against dark
+   mode's own ~0.4-lightness background. */
+.dark .text-brand-600,
+.dark .text-brand-700 {
+  color: var(--brand-200);
 }
 
 /* Reduced-motion: switch off hover transitions for users who request it.
@@ -468,4 +964,719 @@
   .lift-soft:hover {
     transform: none;
   }
+}
+
+/* === SIMPLIFIED WORKSPACE (app routes) =======================================
+   Redesign 2026-09-04 (see the "CariForge simplification brief"): the
+   authenticated app — /missions, /approvals, /evidence, /forge, /admin,
+   /profile — moves to small, quiet surfaces: white 1px-bordered panels on
+   the existing near-white field, no glass/blur/aurora/lift, one accent.
+   Explicit user constraint: KEEP the current CariForge colours. So every
+   token below is derived from the same --brand-h / role tokens the rest of
+   the site already uses — nothing here introduces a new hue. The old
+   tokens and .glass-* classes are untouched for the public/marketing routes.
+
+   Scoped with `.app-shell` (set on the AppShell root) so these sizes never
+   leak into the marketing pages. */
+.app-shell {
+  /* Scopes the .app-halo glow's `z-index: -1` (below) to this element
+     instead of letting it escape to the page-level stacking context —
+     .app-shell has no position/transform of its own to trigger that
+     otherwise, so without this the halo could paint behind .app-shell's
+     own opaque background and disappear entirely. */
+  isolation: isolate;
+  --app-bg: var(--background);
+  --app-surface: var(--card);
+  /* Row-hover background for plain (non-glass) lists — a11y-review fix
+     (2026-09-04): referenced by approvals-queue.tsx/evidence-index.tsx
+     but never defined, so those hover states were a silent no-op. */
+  --app-surface-muted: var(--secondary);
+  --app-border: var(--border);
+  --app-border-strong: oklch(0.82 0.02 var(--brand-h));
+  --app-text: var(--foreground);
+  --app-text-muted: var(--muted-foreground);
+  --app-accent: var(--brand-600);
+  --app-accent-strong: var(--brand-700);
+  --app-accent-soft: var(--brand-50);
+  --app-accent-border: oklch(0.72 calc(var(--brand-c) * 0.8) var(--brand-h) / 0.7);
+  --app-radius: 12px;
+  --app-radius-sm: 8px;
+  /* The single allowed shadow: only the active next-action card uses it. */
+  --app-shadow-action:
+    0 1px 2px oklch(0.2 0.03 var(--brand-h) / 0.06),
+    0 6px 16px -10px oklch(var(--brand-l) var(--brand-c) var(--brand-h) / 0.25);
+  --app-content: 860px;
+  /* 220px -> 200px (2026-09-05, "make the interface a bit thinner ... like
+     the [marketing] reference"): a narrower nav column reads lighter
+     without cramping the label text inside it (PrimaryNav's labels are
+     short: Home, Projects, Templates, Settings). */
+  --app-nav-w: 200px;
+  --app-transition: 160ms ease;
+
+  /* Type scale for the app — noticeably smaller than the marketing scale
+     (text-h1 = 3.05rem there). Brief: H1 34–42px desktop, body 13–15px. */
+  --app-h1: 2.125rem; /* 34px */
+  --app-h2: 1.25rem; /* 20px */
+  --app-h3: 1rem; /* 16px */
+  --app-body: 0.9375rem; /* 15px */
+  --app-small: 0.8125rem; /* 13px */
+  --app-caption: 0.75rem; /* 12px */
+
+  font-size: var(--app-body);
+  line-height: 1.5;
+  color: var(--app-text);
+  background: var(--app-bg);
+  /* Liquid-glass request (2026-09-04): panels need a soft, brand-tinted wash
+     behind them for backdrop-filter to actually read as glass — a flat
+     single-colour background makes blur invisible. Same hue/chroma tokens
+     the rest of the site already uses (--brand-h/--brand-c/--brand-l); no
+     new colour introduced, per the standing "keep CariForge colours" rule. */
+  background-image:
+    radial-gradient(
+      1100px 620px at 12% -12%,
+      oklch(var(--brand-l) var(--brand-c) var(--brand-h) / 0.12),
+      transparent 60%
+    ),
+    radial-gradient(
+      900px 560px at 100% 0%,
+      oklch(var(--brand-l) var(--brand-c) var(--brand-h) / 0.08),
+      transparent 55%
+    );
+  background-attachment: fixed;
+}
+/* Compound selector `.app-shell.dark`, not the descendant form
+   `.dark .app-shell`: the app now carries the `dark` class on its OWN
+   root element permanently (see app-shell.tsx), not on an ancestor, so a
+   descendant combinator here would silently never match. A compound
+   selector's specificity (0,2,0) beats the plain `.app-shell` rule above
+   (0,1,0) regardless of source order, so this still wins either way. */
+.app-shell.dark {
+  --app-border-strong: oklch(1 0 0 / 20%);
+  --app-accent: var(--brand-300);
+  --app-accent-strong: var(--brand-200);
+  --app-accent-soft: oklch(0.22 0.06 var(--brand-h));
+  --app-accent-border: oklch(0.6 calc(var(--brand-c) * 0.6) var(--brand-h) / 0.5);
+  --app-shadow-action: 0 1px 2px oklch(0 0 0 / 0.4), 0 6px 16px -10px oklch(0 0 0 / 0.6);
+  background-image:
+    radial-gradient(
+      1100px 620px at 12% -12%,
+      oklch(var(--brand-l) var(--brand-c) var(--brand-h) / 0.16),
+      transparent 60%
+    ),
+    radial-gradient(
+      900px 560px at 100% 0%,
+      oklch(var(--brand-l) var(--brand-c) var(--brand-h) / 0.1),
+      transparent 55%
+    );
+}
+
+/* .app-halo — the signed-in app's own much-quieter descendant of the
+   marketing page's aurora/horizon glow (see cosmoq-home.css's "aurora"/
+   "horizon" comments). That page is sparse and content-light, so it can
+   carry a multi-layer star field + masked horizon curve; this shell is
+   full of dense, functional UI (forms, lists, buttons) that has to stay
+   readable, so it's cut down to two large, heavily blurred radial glows
+   fixed behind everything. Rendered once, as a single div, by AppShell
+   (app-shell.tsx) — not duplicated per page.
+
+   COLOUR (explicit user request, 2026-09-05): "the colour of the home page
+   need to be replicated across the entire platform ... give it an effect
+   like this halo effect in the caribbean colours" — pointing at cosmoq's
+   own /about and /contact pages as the "halo heaven" reference alongside
+   the home page's sunrise hero. Rather than the flat single-hue glow this
+   used before, each blob now carries the SAME five-stop Caribbean-sea ramp
+   as cosmoq-home.css's .cq-sunrise::before (shallow turquoise -> vivid
+   aquamarine -> CariForge brand hue -> sea green/teal -> deep ocean blue),
+   plus a small warm sun-core accent layered on the primary blob the way
+   .cq-sun sits on top of .cq-sunrise there. Every stop still reads off
+   --brand-h with the same fixed offsets cosmoq-home.css uses, so a future
+   brand-seed change moves this glow too. Alphas are far lower than the
+   marketing page's (that page owns a black hero with no UI to protect;
+   this shell has to stay readable), which is the actual "quieter
+   descendant" relationship — same recipe, turned down.
+
+   Positioned via `z-index: -1` against the `isolation: isolate` on
+   .app-shell above, so it's guaranteed to sit behind the header/content/
+   bottom-nav (all separately positioned/z-indexed) without touching any
+   of their rules. `pointer-events: none` so it never intercepts clicks. */
+.app-shell .app-halo {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  pointer-events: none;
+}
+/* Fourth pass (2026-09-05, live authenticated screenshot: "not what i
+   expected" — the whole viewport reading as one flat, dominant green,
+   and separately: "does not look like the example ... where it is
+   streaming from the heavens"). Two real, distinct problems, not one:
+
+   1. SHAPE: ::before was a giant circle — min(1500px, 130vw) across —
+      anchored so far above the viewport (top:-20vw) that only a narrow
+      slice near its OWN centre was ever actually visible on screen. That
+      slice sat right in the middle of the 5-stop ramp (the brand-hue
+      stop at 42%), so the turquoise/aquamarine end and the deep-ocean end
+      were both pushed off past the visible edge — the exact reason it
+      read as one dominant colour instead of a ramp. Reshaped into a wide,
+      SHORT ellipse instead (cosmoq-home.css's own .cq-sunrise::before is
+      132% wide but only 500px tall, not a giant circle) so the entire
+      ramp fits inside the visible top portion of the page.
+   2. STRUCTURE: nothing here was actually a light RAY — every layer was a
+      soft blurred blob, which cannot read as "streaming from the
+      heavens" no matter how it's coloured. cosmoq-home.css's own
+      .cq-sunrise::after ("light curtains") is a repeating-linear-gradient
+      of fine vertical bands with a much lighter blur than its horizon
+      glow — a genuinely different structural device, added below as
+      .app-halo-rays, a real nested element (app-shell.tsx), not another
+      layer inside these same heavily-blurred pseudo-elements. */
+.app-shell .app-halo::before,
+.app-shell .app-halo::after {
+  content: "";
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(60px);
+}
+/* Primary glow — a wide, SHORT ellipse (not a giant circle) anchored to
+   the top of the viewport, proportioned like cosmoq's own horizon bloom
+   so the full five-stop ramp actually fits in the visible area instead
+   of mostly falling above the fold. `ellipse` (not `circle`) so the
+   gradient itself follows this box's own wide/short aspect ratio rather
+   than being a circle forced into a non-square box. */
+.app-shell .app-halo::before {
+  top: -18vw;
+  left: 50%;
+  translate: -50% 0;
+  width: min(2200px, 170vw);
+  height: min(760px, 58vw);
+  background:
+    radial-gradient(ellipse 40% 55% at 38% 40%, oklch(0.88 0.16 72 / 0.16) 0%, transparent 60%),
+    radial-gradient(
+      ellipse 55% 65% at 50% 45%,
+      oklch(0.95 0.07 185 / 0.24) 0%,
+      oklch(0.8 0.15 178 / 0.26) 24%,
+      oklch(var(--brand-l) var(--brand-c) var(--brand-h) / 0.24) 46%,
+      oklch(0.58 0.15 200 / 0.18) 68%,
+      oklch(0.42 0.16 240 / 0.1) 86%,
+      transparent 100%
+    );
+}
+/* Secondary glow — lower-right corner accent, unchanged shape (a real
+   corner circle reads fine here since it's meant to be a small, fainter
+   depth cue, not the main event). Same ramp run in reverse. */
+.app-shell .app-halo::after {
+  right: -14vw;
+  bottom: -22vw;
+  width: 50vw;
+  height: 50vw;
+  max-width: 620px;
+  max-height: 620px;
+  background: radial-gradient(
+    circle,
+    oklch(0.42 0.16 240 / 0.16) 0%,
+    oklch(0.58 0.15 200 / 0.14) 40%,
+    oklch(var(--brand-l) calc(var(--brand-c) * 0.9) var(--brand-h) / 0.11) 68%,
+    transparent 88%
+  );
+}
+/* The light rays — the actual "streaming from the heavens" device,
+   matching cosmoq-home.css's own .cq-sunrise::after technique: fine
+   vertical bands from a repeating-linear-gradient (90deg = the gradient
+   axis runs left-to-right, so each repeat is a VERTICAL stripe), masked
+   to only show near the primary glow's bright zone so they read as light
+   falling out of that glow rather than hard lines across the whole page.
+   A real nested element (app-shell.tsx), not a third layer inside
+   ::before — that element's own 60px blur (needed for the glow to read
+   as atmosphere, not a flat patch) would smear fine rays into nothing;
+   this gets its own much lighter blur instead, the same way cosmoq's
+   reference keeps its horizon bloom and its light curtains as two
+   separate layers with two different blur amounts. */
+.app-shell .app-halo-rays {
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    90deg,
+    transparent 0 28px,
+    oklch(0.85 0.12 185 / 0.05) 28px 31px,
+    transparent 31px 74px,
+    oklch(0.88 0.14 72 / 0.035) 74px 77px,
+    transparent 77px 128px
+  );
+  -webkit-mask-image: radial-gradient(ellipse 62% 60% at 50% 8%, #000 0%, transparent 78%);
+  mask-image: radial-gradient(ellipse 62% 60% at 50% 8%, #000 0%, transparent 78%);
+  filter: blur(1.5px);
+}
+/* Slow ambient drift, matching the marketing page's own restraint (it
+   only ever animates its glow once, on entrance — no continuous motion).
+   Animates the wrapper's transform, not the pseudo-elements', so the
+   existing `.app-shell *` reduced-motion rule below (which zeroes
+   animation-duration on every descendant element, but NOT on ::before/
+   ::after pseudo-elements, which `*` cannot select) already covers it —
+   no extra reduced-motion rule needed here. */
+@media (prefers-reduced-motion: no-preference) {
+  .app-shell .app-halo {
+    animation: app-halo-drift 48s ease-in-out infinite alternate;
+  }
+}
+@keyframes app-halo-drift {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    transform: translate3d(1.5vw, 2vw, 0);
+  }
+}
+/* Dark mode: the near-black field (see .dark.dark's --background above)
+   needs a visibly stronger core than the near-white light field to read
+   at all — same shape, position and Caribbean-sea ramp, just more
+   saturated alphas (this is also the app's default for new visitors, so
+   it's the presentation most people actually see). Pulled back from the
+   third pass's peak of 0.66-0.68 (2026-09-05: "its too yellow" / "not
+   what i expected", the whole page reading as one dominant flat colour)
+   — the real fix was the ellipse reshape above, not raw alpha, and the
+   fourth pass's 0.4-0.44 peak undercorrected once that shape fix landed:
+   real feedback on the deployed dashboard was "i want to see that
+   different colour effect in the background similar to the [cosmoq
+   marketing hero]" — the ramp was present but too faint to read as the
+   reference's vivid sunrise. Fifth pass sits deliberately BETWEEN those
+   two data points (peak ~0.56, not back to 0.68) — the shape is already
+   right, so this alpha increase doesn't reintroduce the "one dominant
+   flat colour" failure the third pass had.
+
+   The warm sun-corner layer needed a second pass on top of that: a flat
+   0.44-to-transparent patch measured against a LIVE screenshot after the
+   first bump and was still unreadable — the 60px blur on this whole
+   pseudo-element spreads a small single-stop patch into the much larger,
+   more saturated teal ramp behind it before either one ever reaches the
+   screen, so alpha alone couldn't win that fight. Restructured as a
+   multi-stop glow with its own bright, near-white-warm CORE (mirroring
+   cosmoq-home.css's .cq-sun, which has exactly this problem solved
+   already: a hot centre that survives blur, cooling outward) rather than
+   a single translucent tint — that's what actually reads as "a warm
+   light source," not just "a warm-tinted patch of teal."
+
+   Second live-screenshot correction: that near-white 0.95-lightness/hue-82
+   core read as yellow-green, not orange (hue 82 in OKLCH is already past
+   amber toward yellow, and pushing lightness that high desaturates it
+   further before blur even touches it) — AND it now sits close enough to
+   home-view.tsx's real header/subtitle text to wash it out, something the
+   fainter first pass never did. Fixed the hue, but the FOLLOW-UP live
+   screenshot showed the deeper issue: a single centred ramp (this app's
+   own Caribbean-sea recolour of cosmoq-home.css's sunrise) can only ever
+   read as one dominant hue radiating outward — it was never going to
+   produce the reference's actual structure, which a direct look at that
+   reference (not just its earlier verbal description) shows is TWO
+   separate sources — warm on the left, cool on the right, meeting in a
+   bright column at centre — not one ramp. Third pass rebuilds it as
+   exactly that: three gradients instead of one, positioned so the warm
+   and cool sources land near the LEFT and RIGHT viewport edges respectively
+   (the anchors below are box-relative percentages, worked out from this
+   element's own oversized width/position — see the shared, unchanged
+   .app-halo::before geometry above — landing at roughly 15%/85% of the
+   actual viewport). The brand teal isn't dropped, just relocated: it's
+   now the meeting-point glow at centre ("retain the same colours"),
+   rather than the single dominant hue everywhere. */
+.app-shell.dark .app-halo::before {
+  background:
+    radial-gradient(
+      ellipse 30% 42% at 50% 48%,
+      oklch(0.94 0.05 var(--brand-h) / 0.5) 0%,
+      oklch(0.85 0.1 var(--brand-h) / 0.3) 40%,
+      transparent 75%
+    ),
+    radial-gradient(
+      ellipse 46% 62% at 28% 46%,
+      oklch(0.9 0.15 75 / 0.56) 0%,
+      oklch(0.8 0.19 55 / 0.42) 32%,
+      oklch(0.62 0.2 38 / 0.22) 58%,
+      transparent 80%
+    ),
+    radial-gradient(
+      ellipse 46% 62% at 72% 46%,
+      oklch(0.85 0.1 230 / 0.5) 0%,
+      oklch(0.65 0.17 240 / 0.4) 32%,
+      oklch(0.45 0.2 255 / 0.22) 58%,
+      transparent 80%
+    );
+}
+.app-shell.dark .app-halo::after {
+  background: radial-gradient(
+    circle,
+    oklch(0.42 0.16 240 / 0.36) 0%,
+    oklch(0.58 0.15 200 / 0.3) 40%,
+    oklch(var(--brand-l) calc(var(--brand-c) * 0.9) var(--brand-h) / 0.24) 68%,
+    transparent 88%
+  );
+}
+.app-shell.dark .app-halo-rays {
+  background: repeating-linear-gradient(
+    90deg,
+    transparent 0 28px,
+    oklch(0.85 0.12 185 / 0.13) 28px 31px,
+    transparent 31px 74px,
+    oklch(0.88 0.14 72 / 0.09) 74px 77px,
+    transparent 77px 128px
+  );
+}
+/* The header and bottom mobile nav are opaque `bg-[var(--app-surface)]`
+   bars painted OVER .app-halo (both are later siblings in the DOM, so they
+   naturally stack above the fixed, z-index:-1 halo) — meaning the halo's
+   top edge, which is exactly where it's most visible (right behind the
+   logo), was being fully hidden by the header on every single page. Real
+   user report (2026-09-05): "I CANT SEE the halo at home", screenshot
+   showing flat near-black right where the header sits. Fixed the same way
+   cosmoq-home.css's own floating nav handles this (.cq-nav's
+   backdrop-filter blur+saturate over a translucent fill) rather than a
+   flat opaque colour — the header keeps full contrast for its own text/
+   icons (nothing sits ON TOP of the glow inside the header itself), it
+   just stops fully blocking what's happening behind it. */
+.app-shell > header,
+.app-shell > .fixed.bottom-0 {
+  /* 85%, not lower — cosmoq-home.css's own nav pill hit exactly this
+     tradeoff (see its "Alpha raised from 0.66 ... stops anything still
+     showing through the pill itself" comment) and settled at 0.88 after
+     finding lower values let scrolling content bleed through and clash
+     with the nav's own text. This header only ever has the halo's soft
+     colour behind it, not readable content, so it can sit slightly lower
+     than cosmoq's value and still keep full contrast for the logo/menu. */
+  background: color-mix(in oklab, var(--app-surface) 85%, transparent);
+  backdrop-filter: blur(16px) saturate(140%);
+  -webkit-backdrop-filter: blur(16px) saturate(140%);
+}
+
+/* Small set of app-only utilities. Kept as plain classes (not @layer) so
+   they beat the Tailwind utility layer without !important. */
+.app-shell .app-h1 {
+  font-family: var(--font-display);
+  font-size: var(--app-h1);
+  line-height: 1.15;
+  font-weight: 650;
+  letter-spacing: -0.015em;
+  /* Real user report (2026-09-05), two live screenshots: "the white
+     writing on the light background is hard to read" — every page's
+     main heading (Projects, Home's "What do you want to get done?", a
+     mission's own step title) sits in the open canvas right where the
+     halo's ellipse is brightest, so white heading text lost real
+     contrast against it. Same fix cosmoq-home.css's own hero lede uses
+     for the identical problem (its own bright sunrise sitting right
+     behind text) — a soft dark shadow, not dialing back the halo itself,
+     which would undo the last two rounds of work to make it visible at
+     all. Invisible against the app's normal dark panel backgrounds, so
+     this is safe everywhere .app-h1 is used, not just here. Two-layer as of
+  the halo's fifth pass (2026-09-05): a tight, high-alpha contact shadow
+  PLUS the original soft blur. The soft blur alone was tuned against the
+  halo's fourth-pass brightness; the fifth pass's brighter warm corner
+  washed out home-view.tsx's header text again in a live screenshot, and
+  a tight near-black shadow directly behind the glyphs restores contrast
+  independent of how bright any future halo pass gets, rather than this
+  needing to be re-tuned every time the halo's alpha moves. */
+  text-shadow:
+    0 1px 3px oklch(0.09 0.02 var(--brand-h) / 0.85),
+    0 1px 16px oklch(0.09 0.02 var(--brand-h) / 0.7);
+}
+/* Broadened 2026-09-06 (two more real live screenshots, same words as the
+   .app-h1 report above: "white writing on the l[i]ght background... still
+   not visible", circling a mission page's "Saved …" caption and a
+   ProjectStepper step label). Both sit over the halo's warm-left zone the
+   same way .app-h1 already does, but neither is inside a page's <header>
+   (the narrower rule this replaced), and the stepper label doesn't even
+   use the .app-caption/.app-small CLASS — it sets --app-text-muted via a
+   raw Tailwind arbitrary value, so no selector scoped to specific
+   typography classes could ever catch every current and future instance
+   of this same pattern. Rather than keep chasing individual components,
+   this now sits on .app-shell itself: text-shadow is an inherited
+   property, so every descendant gets it by default. Confirmed safe to
+   apply this broadly, not just to the few spots caught live so far: on
+   this app's actual dark panel backgrounds a dark shadow behind light
+   text is imperceptible (nothing to contrast against), and the one
+   "bright surface" component — Button's primary variant, a near-white
+   pill (--primary: #f5f5f7) — pairs it with near-black text
+   (--primary-foreground: #1d1d1f), where a dark shadow behind near-black
+   text is equally invisible. It only ever becomes visible exactly where
+   it needs to: light/muted text sitting over the halo's bright zone. */
+.app-shell {
+  text-shadow:
+    0 1px 2px oklch(0.09 0.02 var(--brand-h) / 0.8),
+    0 1px 12px oklch(0.09 0.02 var(--brand-h) / 0.6);
+}
+.app-shell .app-h2 {
+  font-family: var(--font-display);
+  font-size: var(--app-h2);
+  line-height: 1.3;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+.app-shell .app-h3 {
+  font-size: var(--app-h3);
+  line-height: 1.4;
+  font-weight: 600;
+}
+.app-shell .app-body {
+  font-size: var(--app-body);
+  line-height: 1.55;
+}
+.app-shell .app-small {
+  font-size: var(--app-small);
+  line-height: 1.5;
+}
+.app-shell .app-caption {
+  font-size: var(--app-caption);
+  line-height: 1.45;
+}
+/* Liquid glass: reuses the site's own --glass-bg/--glass-border/--glass-blur
+   tokens (see the .glass-card/.glass-panel rule above — same material,
+   already theme-aware for light/dark) over the brand-tinted wash on
+   .app-shell above, so app panels read as the same frosted glass as the
+   rest of the product. Radius token unchanged — only the material did. */
+.app-shell .app-panel {
+  background-color: var(--glass-bg);
+  backdrop-filter: blur(var(--glass-blur)) saturate(120%);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(120%);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--app-radius);
+  box-shadow:
+    0 1px 2px oklch(0.2 0.02 var(--brand-h) / 0.04),
+    0 8px 24px -12px var(--glass-shadow);
+}
+.app-shell .app-panel-action {
+  background-color: var(--glass-bg);
+  backdrop-filter: blur(var(--glass-blur)) saturate(120%);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(120%);
+  border: 1px solid var(--app-accent-border);
+  border-radius: var(--app-radius);
+  box-shadow: var(--app-shadow-action);
+}
+.app-shell .app-row {
+  border-bottom: 1px solid var(--app-border);
+}
+.app-shell .app-row:last-child {
+  border-bottom: 0;
+}
+.app-shell .app-content {
+  width: 100%;
+  max-width: var(--app-content);
+  margin-inline: auto;
+}
+.app-shell .app-link {
+  color: var(--app-accent);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-color: var(--app-accent-border);
+}
+.app-shell .app-link:hover {
+  color: var(--app-accent-strong);
+}
+/* Disclosure rows (Supporting detail) — native <details> keeps keyboard,
+   aria-expanded and Escape behaviour without a clickable div. */
+.app-shell .app-disclosure > summary {
+  list-style: none;
+  cursor: pointer;
+}
+.app-shell .app-disclosure > summary::-webkit-details-marker {
+  display: none;
+}
+.app-shell .app-disclosure {
+  background-color: var(--glass-bg);
+  backdrop-filter: blur(var(--glass-blur)) saturate(120%);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(120%);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--app-radius);
+  box-shadow: 0 1px 2px oklch(0.2 0.02 var(--brand-h) / 0.04);
+}
+.app-shell .app-disclosure > summary {
+  padding: 0.625rem 0.875rem 0.625rem 2.125rem;
+  position: relative;
+  border-radius: var(--app-radius);
+}
+.app-shell .app-disclosure > summary::before {
+  content: "";
+  position: absolute;
+  left: 0.875rem;
+  top: 50%;
+  width: 0.45rem;
+  height: 0.45rem;
+  border-right: 1.5px solid var(--app-text-muted);
+  border-bottom: 1.5px solid var(--app-text-muted);
+  transform: translateY(-60%) rotate(-45deg);
+  transition: transform var(--app-transition);
+}
+.app-shell .app-disclosure[open] > summary::before {
+  transform: translateY(-70%) rotate(45deg);
+}
+.app-shell .app-disclosure[open] > summary {
+  border-bottom: 1px solid var(--app-border);
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+}
+.app-shell .app-disclosure > :not(summary) {
+  padding: 0.875rem;
+}
+.app-shell .app-detail-body {
+  min-width: 0;
+}
+.app-shell .app-disclosure > summary:focus-visible,
+.app-shell button:focus-visible,
+.app-shell a:focus-visible,
+.app-shell [role="tab"]:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+.app-shell .app-transition {
+  transition:
+    background-color var(--app-transition),
+    border-color var(--app-transition),
+    color var(--app-transition);
+}
+@media (prefers-reduced-motion: reduce) {
+  .app-shell .app-transition,
+  .app-shell * {
+    transition-duration: 0s !important;
+    animation-duration: 0s !important;
+  }
+}
+
+/* Step 11 of the ORIGINAL simplification brief (2026-09-04) retired glass,
+   aurora, blur and hover-lift inside the signed-in app entirely — a flat
+   white-panel look. Superseded 2026-09-05 by an explicit later instruction
+   ("liquid glass effect... keep the current colour black with caribbean
+   colours"): .app-panel/.app-panel-action/.app-disclosure above already
+   got real frosted glass for the NEW simplified components. This rule was
+   the one place still fighting that — it kept flattening the ~29 OLDER
+   mission components (evidence list/form, objections, tool actions,
+   pause/resume, release panel, blockers panel — all still directly
+   reachable by a regular submitter, not just admin) to plain flat panels,
+   so the same Supporting-detail section could show a glass disclosure
+   wrapped around a flat card. Now composes with the same --glass-bg/
+   --glass-border/--glass-blur tokens as .app-panel — one material across
+   the whole app — WITHOUT editing any of those ~29 components themselves.
+   Aurora glows, hover-lift and the tint-only .glass-highlight/.glass-inset
+   surfaces stay suppressed below: those are marketing-page decoration or
+   flourish, not the glass panel material itself, and "small and clean"
+   argues for leaving them out. Unlayered on purpose so it beats the
+   @layer rules above and the `.dark .glass-*` rules (same specificity,
+   later). */
+.app-shell .glass-surface,
+.app-shell .glass-card,
+.app-shell .glass-panel {
+  background-color: var(--glass-bg);
+  backdrop-filter: blur(var(--glass-blur)) saturate(120%);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(120%);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--app-radius);
+  box-shadow:
+    0 1px 2px oklch(0.2 0.02 var(--brand-h) / 0.04),
+    0 8px 24px -12px var(--glass-shadow);
+  --foreground: var(--glass-ink);
+  --card-foreground: var(--glass-ink);
+  --muted-foreground: var(--glass-ink-muted);
+  color: var(--foreground);
+}
+.app-shell .glass-highlight,
+.app-shell .glass-inset {
+  background: var(--app-surface);
+  border: 1px solid var(--app-border);
+  border-radius: var(--app-radius);
+  box-shadow: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  --foreground: var(--true-foreground);
+  --card-foreground: var(--true-card-foreground);
+  --muted-foreground: var(--true-muted-foreground);
+  color: var(--foreground);
+}
+.app-shell .glass-surface::before,
+.app-shell .glass-card::before,
+.app-shell .glass-panel::before,
+.app-shell .glass-inset::before,
+.app-shell .hero-aurora::before,
+.app-shell .hero-aurora::after,
+.app-shell .section-aurora::before,
+.app-shell .section-aurora::after {
+  content: none;
+}
+.app-shell .hero-aurora,
+.app-shell .section-aurora {
+  background: none;
+}
+.app-shell .glass-chip {
+  background: var(--app-surface);
+  border: 1px solid var(--app-border-strong);
+  border-radius: var(--app-radius-sm);
+  color: var(--app-text);
+  box-shadow: none;
+}
+.app-shell .glass-cta,
+.app-shell .glass-outline-cta {
+  box-shadow: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+.app-shell .lift-soft,
+.app-shell .lift-soft:hover {
+  transform: none;
+  box-shadow: none;
+}
+/* Office view CTA — a deliberate, scoped EXCEPTION to the flattening
+   above. Real user request (2026-09-05): "make the office view a liquid
+   glass button" on the plain text "Open Office view →" link. Reusing
+   .glass-cta itself would do nothing (this file flattens it four rules
+   up on purpose, for the rest of the app's "small and clean" signed-in
+   chrome), so this is its own class, reading the same --glass-* tokens
+   .glass-card uses directly — which .dark.dark already makes a genuinely
+   dark, frosted, blurred fill (see that token's own comment) since
+   .app-shell always carries the `dark` class. One button, not a reversal
+   of the app-wide decision to keep the dashboard's other surfaces flat. */
+.app-shell .app-glass-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  min-height: 2.75rem;
+  padding: 0.5rem 1.25rem;
+  border-radius: 999px;
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  backdrop-filter: blur(var(--glass-blur)) saturate(160%);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(160%);
+  box-shadow:
+    0 1px 2px oklch(0.2 0.02 var(--brand-h) / 0.08),
+    0 10px 28px -12px var(--glass-shadow);
+  color: var(--glass-ink);
+  font-weight: 600;
+  font-size: var(--app-small);
+  text-decoration: none;
+  transition:
+    transform var(--app-transition),
+    box-shadow var(--app-transition),
+    background var(--app-transition);
+}
+.app-shell .app-glass-cta:hover {
+  transform: translateY(-1px);
+  background: color-mix(in oklab, var(--glass-bg) 82%, var(--app-accent) 18%);
+  box-shadow:
+    0 1px 2px oklch(0.2 0.02 var(--brand-h) / 0.1),
+    0 16px 36px -14px var(--glass-shadow);
+}
+.app-shell .app-glass-cta:active {
+  transform: translateY(0);
+}
+/* The marketing type scale is far too large for the app. Any reused
+   component that still uses text-h1/text-h2 gets the app scale. */
+.app-shell .text-h1 {
+  font-size: var(--app-h1);
+  line-height: 1.15;
+}
+.app-shell .text-h2 {
+  font-size: var(--app-h2);
+  line-height: 1.3;
+}
+.app-shell .text-h3 {
+  font-size: var(--app-h3);
+  line-height: 1.4;
+}
+.app-shell .text-body {
+  font-size: var(--app-body);
+}
+.app-shell .text-eyebrow {
+  font-size: var(--app-caption);
+  letter-spacing: 0.04em;
+  text-transform: none;
 }

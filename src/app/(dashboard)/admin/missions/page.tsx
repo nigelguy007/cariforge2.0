@@ -15,14 +15,14 @@ export default async function AdminMissionsPage() {
   await requireAdminOnPage();
   return (
     <section className="container-page py-section">
-      <header className="glass-panel rounded-2xl p-6">
-        <p className="text-eyebrow text-brand-700">Admin</p>
-        <h1 className="text-h1 text-foreground">All missions</h1>
-        <p className="mt-2 text-body text-muted-foreground">
+      <header className="app-panel p-6">
+        <p className="app-caption text-[var(--app-text-muted)]">Admin</p>
+        <h1 className="app-h1 mt-1 text-[var(--app-text)]">All missions</h1>
+        <p className="app-body mt-2 text-[var(--app-text-muted)]">
           Every mission recorded by the CARI Forge control plane.
         </p>
       </header>
-      <div className="glass-card mt-8 rounded-2xl p-6">
+      <div className="app-panel mt-8 p-6">
         <AdminMissionList />
       </div>
       <div className="mt-8">

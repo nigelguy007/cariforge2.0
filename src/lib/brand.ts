@@ -7,20 +7,24 @@ export const siteDescription =
 
 // PWA + social-share colors. HEX only (the oklch() tokens in globals.css aren't
 // readable here) — set to match your brand seed.
-// CARI Forge: mid-luminance blue/teal field paired with a vivid teal
-// accent (mirrors --brand-h=195 on the oklch side). The OG/social
-// background is the lighter teal-blue field; the foreground is dark teal
-// ink for highest contrast against the lighter background; the accent in
-// the generated image is the teal engine.
+// CARI Forge: vivid aquamarine accent on a dark field (mirrors
+// --brand-h=169, --brand-c=0.19, --brand-l=0.55 for the accent, and the
+// .dark.dark --background formula for the dark swatches — computed via
+// the standard OKLCH->sRGB conversion at each swatch's own step, not
+// eyeballed; this file had gone stale through the last few brand changes,
+// keep it in sync going forward). Dark mode is now the site's default
+// (see providers.tsx), so the PWA/OG surfaces follow suit: a near-black
+// aquamarine-tinted field with the vivid aquamarine as the accent, near-
+// white ink for highest contrast.
 export const brandVisual = {
-  /** PWA browser-UI / status-bar color — CARI Forge teal engine. */
-  themeColor: '#1f8faf',
-  /** PWA splash + install background — lighter teal-blue field. */
-  backgroundColor: '#bfe1ea',
+  /** PWA browser-UI / status-bar color — CARI Forge aquamarine engine. */
+  themeColor: '#00915e',
+  /** PWA splash + install background — the same near-black dark-mode field. */
+  backgroundColor: '#000602',
   /** Social-share (OG/Twitter) image. */
   og: {
-    background: '#bfe1ea',
-    foreground: '#0e2a36',
+    background: '#001409',
+    foreground: '#eef3f1',
     /** Second line under the site name; '' hides it. */
     tagline: 'Council-reviewed software for regulated buyers.',
   },

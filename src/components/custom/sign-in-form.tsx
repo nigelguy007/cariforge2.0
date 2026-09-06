@@ -27,7 +27,19 @@ export function SignInForm() {
       setError(signInError.message ?? 'Could not sign in. Check your details.');
       return;
     }
-    window.location.assign('/');
+    // Real user feedback (2026-09-04): "I submitted the brief and gave an
+    // email, however when I signed up I cannot see what I submitted and
+    // don't see a dashboard link either." Root cause: this redirected to
+    // the public marketing homepage (`/`), not the dashboard — so a
+    // brand-new signed-in user landed back on the splash page with no
+    // obvious next step, rather than on the page that actually shows their
+    // brief (BriefConversionCard, on /dashboard).
+    // Nav restructure (2026-09-05): /home is now the default landing
+    // destination for a returning sign-in ("What do you want to get done?",
+    // recent projects, Needs you) — /dashboard still redirects to /missions
+    // for old bookmarks, and /missions still shows BriefConversionCard for
+    // an open, unconverted brief.
+    window.location.assign('/home');
   }
 
   return (

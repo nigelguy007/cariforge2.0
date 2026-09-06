@@ -1,16 +1,35 @@
 // @polsia:user-owned
 'use client';
 
-import { LayoutDashboard } from 'lucide-react';
+import { BookOpenText, LayoutDashboard, ListChecks } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
 
+// R2 (mission pipeline rebuild): Missions now lives in this same nav as
+// Overview — the dashboard shell used to have exactly one item and never
+// linked to /missions at all. Both routes share this one DashboardShell.
+//
+// "Pipeline detail" added 2026-09-04: the only nav entry point to
+// /dashboard/pipeline, the new home for the stage/architecture/agent-
+// boundary detail moved off the public /how-it-works page (real user
+// feedback: "this is giving away the app functionality to everyone").
+// Without a nav link this page would only be reachable by URL.
 const navItems = [
   {
     href: '/dashboard',
     label: 'Overview',
     icon: LayoutDashboard,
+  },
+  {
+    href: '/missions',
+    label: 'Projects',
+    icon: ListChecks,
+  },
+  {
+    href: '/dashboard/pipeline',
+    label: 'Pipeline detail',
+    icon: BookOpenText,
   },
 ];
 
@@ -24,7 +43,8 @@ export function DashboardNav() {
     >
       {navItems.map((item) => {
         const Icon = item.icon;
-        const active = pathname === item.href;
+        const active =
+          pathname === item.href || (item.href === '/missions' && pathname.startsWith('/missions'));
 
         return (
           <Link

@@ -51,8 +51,31 @@ export const GATE_REASON_CODES = [
 ] as const;
 export type ReasonCode = (typeof GATE_REASON_CODES)[number];
 
-export const APPROVAL_DECISION_VALUES = ['Approve', 'Return', 'Refuse'] as const;
+// R4 (mission pipeline rebuild): ApproveWithControls is a real stored value
+// (it round-trips through the DB, the audit log, and telemetry), but it is
+// never a raw dropdown choice — MissionGatePanel derives it client-side from
+// "Approve" + non-empty Controls text and sends it as the decision. Keep it
+// out of GATE_DECISION_CHOICES (what the Select renders) but in
+// APPROVAL_DECISION_VALUES (what the schema accepts).
+export const APPROVAL_DECISION_VALUES = [
+  'Approve',
+  'ApproveWithControls',
+  'Return',
+  'Refuse',
+] as const;
 export type ApprovalDecision = (typeof APPROVAL_DECISION_VALUES)[number];
+
+export const GATE_DECISION_CHOICES = APPROVAL_DECISION_VALUES.filter(
+  (d) => d !== 'ApproveWithControls',
+);
+
+// Approve and Approve-with-controls both pass the gate — every place that
+// used to check `decision === 'Approve'` for "did this gate pass" should use
+// this instead, so a control never silently blocks what it was meant to
+// flag conditionally rather than stop.
+export function isApproveDecision(decision: ApprovalDecision): boolean {
+  return decision === 'Approve' || decision === 'ApproveWithControls';
+}
 
 export const TOOL_SCOPE_VALUES = ['Internal', 'External'] as const;
 export type ToolActionScope = (typeof TOOL_SCOPE_VALUES)[number];
@@ -174,10 +197,30 @@ export const GATE_DEFS: readonly GateDef[] = [
   },
   {
     id: 4,
+    // R5 (mission pipeline rebuild, low-effort half): this gate's actual
+    // output (MissionBlueprintView + MissionRunbookView) is a pair of
+    // schema-versioned *specification* documents, not deployable code — the
+    // reference platform's equivalent (Prototype) really does generate a
+    // downloadable multi-file app + test report, so "Build complete" was a
+    // real, checkable mismatch between this name and what crossing it
+    // produces. Deliberately NOT renaming the underlying `stage` enum value
+    // ('SoftwareBuild') here — it's a native Postgres enum threaded through
+    // ~15 business-logic files, prisma/schema/forge.prisma, and db/01-schema.sql;
+    // that's the doc's "Longer term (high effort)" option, scoped separately.
     stage: 'SoftwareBuild',
-    name: 'Build complete',
+    // Renamed from "Prototype spec approved" (2026-09-05, direct user
+    // correction: "this is creating the real build so any reference to
+    // prototype needs to be changed" — "state an mvp will be created").
+    // That name was accurate when this gate only ever produced a
+    // Blueprint + Runbook specification (see this comment block's own
+    // history above) — draftSoftwareBuildFiles (ai-draft.ts) has since
+    // been upgraded to generate a real, production-quality MVP (5-20
+    // working code files) alongside the spec, per the same direct
+    // instruction, so "prototype" badly understated what gets produced.
+    name: 'MVP build approved',
     predecessorStage: 'Governance',
-    purpose: 'Confirm build matches acceptance criteria and is ready to ship.',
+    purpose:
+      'Confirm the generated MVP (real code files, plus the Blueprint + Runbook spec) matches acceptance criteria and is approved to hand off — ready for your team to deploy and expand.',
     allowedReasonCodes: [
       'Approved',
       'InsufficientConfidence',
@@ -255,6 +298,11 @@ export const MissionCreate = z.object({
     .union([z.string().email('That email looks off.'), z.literal('')])
     .optional()
     .transform((v) => (v ? v : undefined)),
+  // UX review C1: when the mission is a conversion of a public brief, the
+  // Lead id travels with it. The route verifies the lead's email matches
+  // the session user before storing — a client can't claim someone else's
+  // brief just by knowing its id.
+  sourceLeadId: z.string().trim().min(1).max(64).optional(),
 });
 
 export const MissionIntakeUpdate = z.object({
@@ -304,6 +352,10 @@ export const HandoffCorrect = z.object({
 
 export const GateDecide = z.object({
   decision: z.enum(APPROVAL_DECISION_VALUES),
+  // R4: free-text controls. Optional at the schema level (Return/Refuse
+  // never carry any); the client is responsible for only sending a non-empty
+  // value alongside decision: 'ApproveWithControls'.
+  controls: z.string().trim().max(4000).optional(),
   reasonCode: z.enum(GATE_REASON_CODES),
   reasonText: z.string().trim().min(1, 'Reason text is required for attribution.'),
   stageHandoffId: z.string(),
@@ -404,6 +456,18 @@ export const MissionListItem = z.object({
   updatedAt: z.string(),
   domainTags: z.array(z.string()),
   elderOracleUserId: z.string().nullable(),
+  // UX review C1: Lead id this mission was converted from (null for
+  // missions started directly). Optional so older cached payloads parse.
+  sourceLeadId: z.string().nullable().optional(),
+  // Real bug found live (2026-09-05): mission.status only ever leaves
+  // 'Draft' once gate 0 is actually DECIDED (see decideGate in service.ts)
+  // — submitting/reviewing a step output never touches it. Approvals
+  // queue and the nav badge filtered on status === 'AwaitingApproval'
+  // alone, so a brand-new project sitting on a real, AI-raised objection
+  // (now the common case, since Oracle review exists) never showed up
+  // anywhere a person would look for it. Optional so older cached
+  // payloads and hand-built test fixtures still parse.
+  hasOpenConcern: z.boolean().optional(),
 });
 
 export const MissionList = z.object({ items: z.array(MissionListItem) });
@@ -432,7 +496,12 @@ export const ApprovalItem = z.object({
   gateIndex: z.number().int(),
   stageHandoffId: z.string(),
   approverUserId: z.string().nullable(),
+  // UX review H1: the gate rail shows who approved and when — the audit
+  // trail the product sells. Enriched server-side from the user table;
+  // optional so pre-enrichment payloads still parse.
+  approverName: z.string().nullable().optional(),
   decision: z.enum(APPROVAL_DECISION_VALUES),
+  controls: z.string().nullable(),
   reasonCode: z.enum(GATE_REASON_CODES),
   reasonText: z.string(),
   supersedesApprovalId: z.string().nullable(),
@@ -651,6 +720,19 @@ export const NextActionView = z.discriminatedUnion('kind', [
     title: z.string(),
     rationale: z.string(),
   }),
+  // The user's own flow (2026-09-05): "If they don't approve then ask
+  // for more info - simple step I add more and then resubmit." A gate
+  // in 'Returned' state used to fall all the way through to 'Idle'
+  // ("Mission is idle — submit a handoff to drive it forward"), with no
+  // button and no visible feedback — the reviewer's own comments were
+  // recorded but never shown as the next action. This carries them.
+  z.object({
+    kind: z.literal('ReviseStage'),
+    gateIndex: z.number().int(),
+    stage: z.enum(StageNameValues),
+    title: z.string(),
+    rationale: z.string(),
+  }),
   z.object({
     kind: z.literal('ResolveObjection'),
     id: z.string(),
@@ -672,6 +754,17 @@ export const NextActionView = z.discriminatedUnion('kind', [
   z.object({ kind: z.literal('ArrangeWorkItem'), itemId: z.string(), title: z.string() }),
   z.object({ kind: z.literal('Released'), title: z.string() }),
   z.object({ kind: z.literal('Complete'), title: z.string() }),
+  // Distinct from 'Complete': the mission ended WITHOUT a release —
+  // either refused at a gate (Rejected) or closed by an admin
+  // (WalkedAway). Carries which one so the client can tell "you were
+  // turned down, here's what to do next" apart from "walked away" apart
+  // from an actual completion, instead of all three sharing one
+  // "project is complete... has been approved" sentence.
+  z.object({
+    kind: z.literal('Closed'),
+    status: z.enum(['Rejected', 'WalkedAway']),
+    title: z.string(),
+  }),
   z.object({ kind: z.literal('Idle'), title: z.string() }),
 ]);
 export type NextActionViewT = z.infer<typeof NextActionView>;
@@ -727,6 +820,59 @@ export const MissionDetail = z.object({
   handoffAttesters: z.array(StageHandoffAttesterItem),
 });
 
+// Response shape for POST /api/forge/missions/:id/build-job (2026-09-06,
+// see business/forge/build-job.ts's own header for the full "why" — this
+// project's Hobby Vercel plan caps a function at 60s, so the SoftwareBuild
+// stage's real ~150s generation is now resumable across several short
+// polls instead of one long synchronous call). Discriminated on `status`
+// so the client never has to guess which fields are present; `detail` is
+// the exact same MissionDetail shape the synchronous /draft endpoint
+// already returns, so the rest of the client's post-draft handling
+// (toast, onWritten, the auto-chain loop) needs no separate code path
+// once a build reaches Done.
+export const BuildJobProgress = z.discriminatedUnion('status', [
+  z.object({ status: z.literal('Planning') }),
+  z.object({
+    status: z.literal('Generating'),
+    progress: z.object({ current: z.number().int(), total: z.number().int() }),
+  }),
+  z.object({ status: z.literal('Finalizing') }),
+  z.object({ status: z.literal('Done'), detail: MissionDetail }),
+  z.object({ status: z.literal('Failed'), error: z.string() }),
+]);
+
+// Response shape for GET /api/forge/missions/:id/deliverables (2026-09-06,
+// real user report: a completed mission's generated files and technical
+// spec existed in the database but nothing in the UI ever rendered them).
+// `roadmap` is null only if generation genuinely failed — the panel that
+// renders this degrades gracefully by hiding that section, same posture as
+// the rest of the AI-backed pipeline.
+export const MissionDeliverableFile = z.object({
+  path: z.string(),
+  content: z.string(),
+});
+export const MissionProductionRoadmap = z.object({
+  summary: z.string(),
+  securitySteps: z.array(z.string()),
+  infrastructureSteps: z.array(z.string()),
+  dataSteps: z.array(z.string()),
+  observabilitySteps: z.array(z.string()),
+  testingSteps: z.array(z.string()),
+  costConsiderations: z.array(z.string()),
+  recommendedOrder: z.array(z.string()),
+});
+export const MissionDeliverables = z.object({
+  missionId: z.string(),
+  summary: z.string(),
+  techStack: z.array(z.string()),
+  architectureOverview: z.string(),
+  dataModel: z.string(),
+  apiSurface: z.array(z.string()),
+  deploymentNotes: z.string(),
+  files: z.array(MissionDeliverableFile),
+  roadmap: MissionProductionRoadmap.nullable(),
+});
+
 // === Helpers =================================================================
 
 export function parseList<T>(schema: z.ZodType<T>, raw: unknown): T {
@@ -741,6 +887,7 @@ export type HandoffCorrectInput = z.infer<typeof HandoffCorrect>;
 export type GateDecideInput = z.infer<typeof GateDecide>;
 export type MissionListItemT = z.infer<typeof MissionListItem>;
 export type MissionDetailT = z.infer<typeof MissionDetail>;
+export type MissionDeliverablesT = z.infer<typeof MissionDeliverables>;
 export type HandoffItemT = z.infer<typeof HandoffItem>;
 export type ApprovalItemT = z.infer<typeof ApprovalItem>;
 export type ObjectionItemT = z.infer<typeof ObjectionItem>;

@@ -22,6 +22,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { apiFetch } from '@/lib/api-client';
+import { apiErrorMessage } from '@/lib/api-error-message';
 import {
   EVIDENCE_KIND_VALUES,
   EvidenceCreate,
@@ -29,6 +30,7 @@ import {
   type MissionDetailT,
 } from '@/lib/contracts/forge';
 import { applyServerErrors } from '@/lib/forms';
+import { humanise } from '@/lib/ui-terms';
 
 export function MissionEvidenceForm({
   detail,
@@ -55,7 +57,7 @@ export function MissionEvidenceForm({
       toast.success('Evidence attached');
       onWritten();
     } catch (err) {
-      const message = (err as Error).message ?? 'Could not attach evidence';
+      const message = apiErrorMessage(err, 'Could not attach evidence');
       const cause = (err as { cause?: { errors?: Record<string, string> } }).cause;
       if (cause?.errors) {
         if (!applyServerErrors(cause, form.setError)) toast.error(message);
@@ -86,7 +88,7 @@ export function MissionEvidenceForm({
                 <SelectContent>
                   {EVIDENCE_KIND_VALUES.map((k) => (
                     <SelectItem key={k} value={k}>
-                      {k}
+                      {humanise(k)}
                     </SelectItem>
                   ))}
                 </SelectContent>

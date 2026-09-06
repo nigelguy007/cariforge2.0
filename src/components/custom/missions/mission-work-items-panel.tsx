@@ -26,6 +26,7 @@ import {
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { apiFetch } from '@/lib/api-client';
+import { apiErrorMessage } from '@/lib/api-error-message';
 import { progressSummary } from '@/lib/business/forge/work-items';
 import {
   GATE_REASON_CODES,
@@ -51,7 +52,7 @@ export function MissionWorkItemsPanel({ missionId }: { missionId: string }) {
       });
       setItems(list.items);
     } catch (err) {
-      setError((err as Error).message);
+      setError(apiErrorMessage(err, 'These tasks could not be loaded.'));
     }
   }, [missionId]);
 
@@ -160,7 +161,7 @@ function WorkItemControls({
       toast.success('Test evidence attached.');
       await onWritten();
     } catch (err) {
-      const message = (err as Error).message;
+      const message = apiErrorMessage(err, 'Could not attach test evidence');
       const cause = (err as { cause?: { errors?: Record<string, string> } }).cause;
       if (cause?.errors) {
         if (!applyServerErrors(cause, evidenceForm.setError)) toast.error(message);
@@ -188,7 +189,7 @@ function WorkItemControls({
       toast.success(`Transition → ${values.status}`);
       await onWritten();
     } catch (err) {
-      const message = (err as Error).message;
+      const message = apiErrorMessage(err, 'Could not record the transition');
       const cause = (err as { cause?: { errors?: Record<string, string> } }).cause;
       if (cause?.errors) {
         if (!applyServerErrors(cause, transitionForm.setError)) toast.error(message);

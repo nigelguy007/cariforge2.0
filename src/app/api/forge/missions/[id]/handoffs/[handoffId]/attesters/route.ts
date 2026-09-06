@@ -35,7 +35,17 @@ export async function POST(
     const detail = await addHandoffAttester({
       missionId: id,
       handoffId,
-      userId: parsed.data.userId,
+      // SECURITY (2026-09-03 audit): this was `parsed.data.userId` — taken
+      // straight from the REQUEST BODY, with no check that the caller owns
+      // or is party to the mission. Any signed-in user could POST an
+      // arbitrary userId + role against any mission id and forge a named
+      // specialist's governance attestation — fabricating the attested
+      // audit trail this product's guarantees rest on, which gate approvals
+      // then treat as satisfied. This route's own contract (header comment)
+      // is "any authed user may add THEMSELVES", so bind it to the session
+      // and make the code match that intent. parsed.data.userId is now
+      // deliberately ignored; self-attestation is unchanged.
+      userId: auth.user.id,
       role: parsed.data.role,
     });
     return NextResponse.json(detail, { status: 200 });

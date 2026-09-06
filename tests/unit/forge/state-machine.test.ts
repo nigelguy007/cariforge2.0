@@ -55,11 +55,16 @@ describe('forge gate binding', () => {
       expect(gateIndexFor(stage)).toBe(i);
     });
   }
+  // FIXED 2026-09-04: a real, live-verified bug (see state-machine.ts's
+  // nextStageFor comment) — every case used to assert the CURRENT stage
+  // instead of the one gate approval actually advances the mission INTO.
+  // Approving gate 0 (Discovery) must land the mission in InReadiness, not
+  // leave it stuck at InDiscovery.
   it('nextStageFor steps through the lifecycle', () => {
-    expect(nextStageFor(0)).toBe('InDiscovery');
-    expect(nextStageFor(1)).toBe('InReadiness');
-    expect(nextStageFor(2)).toBe('InWorkflow');
-    expect(nextStageFor(3)).toBe('InGovernance');
+    expect(nextStageFor(0)).toBe('InReadiness');
+    expect(nextStageFor(1)).toBe('InWorkflow');
+    expect(nextStageFor(2)).toBe('InGovernance');
+    expect(nextStageFor(3)).toBe('InBuild');
     expect(nextStageFor(4)).toBe('Completed');
     expect(() => nextStageFor(5)).toThrow(ForgeError);
   });

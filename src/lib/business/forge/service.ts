@@ -5,26 +5,49 @@
 
 import 'server-only';
 import { Prisma } from '@prisma/client';
-import type {
-  ApprovalDecision,
-  MissionDetailT,
-  MissionListItemT,
-  MissionStatus,
-  ObjectionResolution,
-  ReasonCode,
-  StageName,
-  ToolActionDecision,
-  ToolActionScope,
-  WorkItemReadT,
-  WorkItemStatusT,
+import {
+  type ApprovalDecision,
+  GATE_DEFS,
+  isApproveDecision,
+  type MissionDetailT,
+  type MissionListItemT,
+  type MissionStatus,
+  type ObjectionResolution,
+  type ReasonCode,
+  type StageName,
+  type ToolActionDecision,
+  type ToolActionScope,
+  type WorkItemReadT,
+  type WorkItemStatusT,
 } from '@/lib/contracts/forge';
 import { prisma } from '@/lib/db';
-import { sendEmail } from '@/lib/email/send';
+// 2026-09-04: switched from the framework's src/lib/email/send.ts to the
+// user-owned Resend-backed transport (identical interface) — see
+// send-resend.ts's header for why: the framework module's target
+// (POLSIA_EMAIL_PROXY_URL) is a confirmed-dead https://email-proxy.invalid
+// placeholder, so gate-decision emails were silently never actually
+// sending (swallowed by this function's own catch below).
+import { sendEmail } from '@/lib/email/send-resend';
 import { tagOracleGateDecisionEmail } from '@/lib/email/templates/tag-oracle-gate-decision';
-import { computeNextVersion, markDownstreamInvalidated, validateParent } from './handoffs';
-import { assertElderOracleAttested, assertSpecialistAttestersPresent } from './oracle-council';
+import {
+  computeNextVersion,
+  findOrphanedObjectionIds,
+  markDownstreamInvalidated,
+  validateParent,
+} from './handoffs';
+import {
+  assertElderOracleAttested,
+  assertSpecialistAttestersPresent,
+  isElderGate,
+} from './oracle-council';
 import { assertAttribution, assertNonApproveAttribution, assertReasonAllowed } from './policy';
-import { gateIndexFor, nextStageFor, recomputeConfidence } from './state-machine';
+import {
+  FORGE_ERROR_CODES,
+  ForgeError,
+  gateIndexFor,
+  nextStageFor,
+  recomputeConfidence,
+} from './state-machine';
 import { assertExternalApproved, assertRollbackLink, assertScopeDenied } from './tool-actions';
 import { isValidWorkItemTransition, progressSummary, type WorkItemRecord } from './work-items';
 
@@ -53,6 +76,8 @@ function missionListItem(row: {
   updatedAt: Date;
   domainTags: string[];
   elderOracleUserId?: string | null;
+  sourceLeadId?: string | null;
+  hasOpenConcern?: boolean;
 }): MissionListItemT {
   return {
     id: row.id,
@@ -65,6 +90,8 @@ function missionListItem(row: {
     updatedAt: row.updatedAt.toISOString(),
     domainTags: row.domainTags,
     elderOracleUserId: row.elderOracleUserId ?? null,
+    sourceLeadId: row.sourceLeadId ?? null,
+    hasOpenConcern: row.hasOpenConcern ?? false,
   };
 }
 
@@ -98,17 +125,38 @@ async function enrichMissionsWithElderOracle(
     createdAt: Date;
     updatedAt: Date;
     domainTags: string[];
+    sourceLeadId?: string | null;
   }>,
 ): Promise<MissionListItemT[]> {
   if (rows.length === 0) return [];
-  const assignments = await prisma.missionOracleAssignment.findMany({
-    where: { missionId: { in: rows.map((r) => r.id) }, role: 'ElderOracle' },
-  });
+  const ids = rows.map((r) => r.id);
+  const [assignments, openObjections] = await Promise.all([
+    prisma.missionOracleAssignment.findMany({
+      where: { missionId: { in: ids }, role: 'ElderOracle' },
+    }),
+    // Real bug fix (2026-09-05): mission.status alone can't tell a caller
+    // "this needs your attention" — it only changes on an actual gate
+    // decision (decideGate), never on drafting/review activity. A brand-new
+    // project sitting on a real, AI-raised objection stayed 'Draft'
+    // forever and never showed up in Approvals. One cheap distinct query
+    // (Objection has its own scalar missionId, no join needed) rather than
+    // a per-mission detail fetch.
+    prisma.objection.findMany({
+      where: { missionId: { in: ids }, resolution: null },
+      select: { missionId: true },
+      distinct: ['missionId'],
+    }),
+  ]);
   const elderByMission = new Map<string, string>(
     assignments.map((a) => [a.missionId, a.userId] as const),
   );
+  const concernByMission = new Set(openObjections.map((o) => o.missionId));
   return rows.map((r) =>
-    missionListItem({ ...r, elderOracleUserId: elderByMission.get(r.id) ?? null }),
+    missionListItem({
+      ...r,
+      elderOracleUserId: elderByMission.get(r.id) ?? null,
+      hasOpenConcern: concernByMission.has(r.id),
+    }),
   );
 }
 
@@ -145,6 +193,36 @@ export async function getMissionDetail(
     prisma.missionOracleAssignment.findMany({ where: { missionId } }),
   ]);
 
+  // Real user report (2026-09-05): "system says 2 unresolved concerns but
+  // nothing there" — a second, real mission hitting the exact class of
+  // bug carryForwardStaleObjections fixes, but on DATA CREATED BEFORE
+  // that fix was deployed: this mission's Concerns tab correctly showed
+  // zero current concerns (its own "From earlier drafts (5)" bucket was
+  // right), yet nextActionFor's own top-priority check — which scans ALL
+  // objections mission-wide with no handoff filter, by design (see its
+  // own comment) — still found 2 with resolution: null sitting on an
+  // already-superseded/invalidated handoff from before that write path
+  // existed. A one-time migration can't reach data on missions nobody
+  // has redrafted since; this makes getMissionDetail SELF-HEALING
+  // instead — every read checks for exactly this orphaned state and
+  // fixes it in place, so the fix reaches every mission the next time
+  // anyone actually opens it, not just ones redrafted after today.
+  const orphanedObjectionIds = findOrphanedObjectionIds(handoffs, objections);
+  if (orphanedObjectionIds.length > 0) {
+    const healedText =
+      'Automatically carried forward: this step was redrafted before the concern was directly answered. The new draft will be reviewed fresh, and this will be raised again if it still applies.';
+    await prisma.objection.updateMany({
+      where: { id: { in: orphanedObjectionIds } },
+      data: { resolution: 'CarriedForward', resolutionText: healedText },
+    });
+    for (const o of objections) {
+      if (orphanedObjectionIds.includes(o.id)) {
+        o.resolution = 'CarriedForward';
+        o.resolutionText = healedText;
+      }
+    }
+  }
+
   const handoffIds = handoffs.map((h) => h.id);
   const handoffAttesters =
     handoffIds.length === 0
@@ -162,10 +240,25 @@ export async function getMissionDetail(
 
   const gateStates = computeGateStates(mission.id, handoffs, approvals);
 
+  // UX review H1: resolve approver display names once so the gate rail can
+  // stamp "who · when" without a per-approval lookup client-side.
+  const approverIds = [
+    ...new Set(approvals.map((a) => a.approverUserId).filter((id): id is string => !!id)),
+  ];
+  const approverUsers =
+    approverIds.length === 0
+      ? []
+      : await prisma.user.findMany({
+          where: { id: { in: approverIds } },
+          select: { id: true, name: true },
+        });
+  const approverNameById = new Map(approverUsers.map((u) => [u.id, u.name] as const));
+
   const missionShape = mission as typeof mission & {
     previousStatus?: MissionStatus | null;
     intakeStructured?: unknown;
     releaseReadoutAt?: Date | null;
+    sourceLeadId?: string | null;
   };
   return {
     mission: {
@@ -187,6 +280,7 @@ export async function getMissionDetail(
       updatedAt: mission.updatedAt.toISOString(),
       domainTags: mission.domainTags,
       elderOracleUserId,
+      sourceLeadId: missionShape.sourceLeadId ?? null,
       releaseReadoutAt: missionShape.releaseReadoutAt
         ? (missionShape.releaseReadoutAt as Date).toISOString()
         : null,
@@ -217,7 +311,9 @@ export async function getMissionDetail(
         gateIndex: a.gateIndex,
         stageHandoffId: a.stageHandoffId,
         approverUserId: a.approverUserId,
+        approverName: a.approverUserId ? (approverNameById.get(a.approverUserId) ?? null) : null,
         decision: a.decision,
+        controls: a.controls,
         reasonCode: a.reasonCode as ReasonCode,
         reasonText: a.reasonText,
         supersedesApprovalId: a.supersedesApprovalId,
@@ -366,7 +462,7 @@ function computeGateStates(
     const lastApproval = apForGate[0] ?? null;
     let state: 'Awaiting' | 'Approved' | 'Returned' | 'Refused' = 'Awaiting';
     if (lastApproval) {
-      if (lastApproval.decision === 'Approve') state = 'Approved';
+      if (isApproveDecision(lastApproval.decision)) state = 'Approved';
       else if (lastApproval.decision === 'Return') state = 'Returned';
       else state = 'Refused';
     }
@@ -378,7 +474,7 @@ function computeGateStates(
       currentStageHandoffId: latest ? latest.id : null,
       currentHandoffVersion: latest ? latest.version : null,
       lastApprovalId: lastApproval ? lastApproval.id : null,
-      allowedReasonCodes: [],
+      allowedReasonCodes: [...(GATE_DEFS[gateIndex]?.allowedReasonCodes ?? [])],
     };
   });
 }
@@ -475,6 +571,41 @@ async function writeAudit(
   });
 }
 
+// Real user report (2026-09-05, live screenshots): "it says there are 3
+// outstanding concerns unresolved .. yet the system says they are
+// resolved". Root cause: neither submitHandoff nor correctHandoff ever
+// touched the Objection table when superseding a handoff — an objection
+// raised against a draft stays `resolution: null` FOREVER once that
+// draft is redrafted away, even though the thing it was raised against no
+// longer exists. nextActionFor's outstandingObjection check (and every
+// "N concerns open" count) scans ALL objections mission-wide with no
+// regard for which handoff they're attached to, so these orphaned
+// objections could — and, on a mission redrafted this many times, did —
+// permanently block the mission behind concerns about content that had
+// already been replaced, while the Concerns list separately showed a
+// long, confusing history of OTHER same-role objections (from other
+// versions) already marked resolved. 'CarriedForward' already exists in
+// OBJECTION_RESOLUTION_VALUES with real display copy (ui-terms.ts:
+// "Carried forward, with the concern on record") and is already read by
+// use-project-workspace.ts/evidence-view.ts — it was simply never
+// written anywhere. This is that write path: called at the exact moment
+// a handoff is superseded, inside the same transaction, so it can never
+// race with a fresh objection landing on the NEW handoff a moment later.
+async function carryForwardStaleObjections(
+  tx: Prisma.TransactionClient,
+  missionId: string,
+  supersededHandoffId: string,
+) {
+  await tx.objection.updateMany({
+    where: { missionId, stageHandoffId: supersededHandoffId, resolution: null },
+    data: {
+      resolution: 'CarriedForward',
+      resolutionText:
+        'Automatically carried forward: this step was redrafted before the concern was directly answered. The new draft will be reviewed fresh, and this will be raised again if it still applies.',
+    },
+  });
+}
+
 export async function createMission(args: {
   userId: string;
   intake: string;
@@ -482,17 +613,29 @@ export async function createMission(args: {
   normalizedNeed?: string;
   intakeStructured?: Record<string, unknown>;
   domainTags: string[];
+  // UX review C1: Lead id this mission converts — caller (route) has
+  // already verified the lead belongs to this user's email.
+  sourceLeadId?: string;
 }): Promise<MissionDetailT> {
   const slug = slugify(args.name ?? args.intake);
+  // UX: a name wasn't required at intake (the front-door "What do you
+  // want to build?" box only asks for the free-text need), but showing
+  // the literal string "Untitled mission" back to the person who just
+  // wrote it reads as broken, not as an intentional placeholder — same
+  // "derive a name from the description" pattern as guide.ts's
+  // suggestNameAndSlug(), just inlined here since only the name (not a
+  // slug too) is needed.
+  const derivedName = args.intake.trim().split(/\s+/).slice(0, 8).join(' ').slice(0, 120);
   const mission = await prisma.mission.create({
     data: {
       slug,
-      name: args.name?.trim() || 'Untitled mission',
+      name: args.name?.trim() || derivedName || 'Untitled mission',
       intake: args.intake,
       normalizedNeed: args.normalizedNeed ?? '',
       domainTags: args.domainTags,
       createdById: args.userId,
       intakeStructured: (args.intakeStructured ?? null) as Prisma.InputJsonValue,
+      sourceLeadId: args.sourceLeadId ?? null,
     },
   });
   await prisma.missionAudit.create({
@@ -502,6 +645,7 @@ export async function createMission(args: {
       payload: missionAuditPayload({
         intake: args.intake,
         hasStructuredIntake: !!args.intakeStructured,
+        sourceLeadId: args.sourceLeadId ?? null,
       }),
       actorId: args.userId,
       missionVersionAtEvent: 0,
@@ -568,6 +712,31 @@ export async function submitHandoff(args: {
   if (!args.isAdmin && mission.createdById !== args.userId) throw new Error('FORGE_FORBIDDEN');
 
   const newVersion = await prisma.$transaction(async (tx) => {
+    // Defense in depth, added 2026-09-05 alongside the live governance-
+    // bypass fix in the /draft route and use-project-workspace.ts's
+    // currentGate: those fixed the UI/route path that was choosing which
+    // stage to draft, but this — the actual write path every one of them
+    // ultimately calls — had no floor of its own. Any other caller
+    // (a future bug, a direct API call, the admin manual-handoff form)
+    // could still submit a stage's FIRST handoff before its predecessor
+    // gate was ever approved. A stage's own gate (gateIndexFor(stage))
+    // is only legitimately startable once the PRIOR gate has a real
+    // Approve-family decision on record — gate 0 (Discovery) has no
+    // predecessor, so it's always allowed.
+    const gateIdx = gateIndexFor(args.stage);
+    if (gateIdx > 0) {
+      const priorApproval = await tx.approval.findFirst({
+        where: { missionId: args.missionId, gateIndex: gateIdx - 1 },
+        orderBy: { at: 'desc' },
+      });
+      if (!priorApproval || !isApproveDecision(priorApproval.decision)) {
+        throw new ForgeError(
+          FORGE_ERROR_CODES.STAGE_MISMATCH,
+          `Gate ${gateIdx - 1} must be approved before a ${args.stage} step output can be submitted.`,
+        );
+      }
+    }
+
     const latestForStage = await tx.stageHandoff.findFirst({
       where: { missionId: args.missionId, stage: args.stage },
       orderBy: { version: 'desc' },
@@ -616,7 +785,6 @@ export async function submitHandoff(args: {
       });
     }
 
-    const gateIdx = gateIndexFor(args.stage);
     const created = await tx.stageHandoff.create({
       data: {
         missionId: args.missionId,
@@ -637,6 +805,7 @@ export async function submitHandoff(args: {
         where: { id: latestForStage.id },
         data: { supersededById: created.id },
       });
+      await carryForwardStaleObjections(tx, args.missionId, latestForStage.id);
     }
 
     await writeAudit(
@@ -704,6 +873,7 @@ export async function correctHandoff(args: {
       where: { id: prior.id },
       data: { supersededById: newRow.id },
     });
+    await carryForwardStaleObjections(tx, args.missionId, prior.id);
 
     // Invalidate downstream stages
     const invalidatedStages = markDownstreamInvalidated(gateIndexFor(prior.stage));
@@ -719,6 +889,18 @@ export async function correctHandoff(args: {
         where: { id: h.id },
         data: { invalidationReasonCode: args.reasonCode },
       });
+      // Real user report (2026-09-05): "all say resolution closed yet
+      // showing 3 unresolved concerns" — carryForwardStaleObjections
+      // above only covered the ONE handoff being directly superseded
+      // (`prior`); it missed every DOWNSTREAM handoff invalidated right
+      // here. An invalidated handoff is just as stale as a superseded
+      // one — its own objections are about a step output that's now
+      // built on outdated upstream information — so they need the same
+      // treatment or they orphan exactly the same way, just on a
+      // different stage the person isn't looking at (they're checking
+      // the step they just redrafted, not Readiness/Workflow/Governance
+      // three stages ahead).
+      await carryForwardStaleObjections(tx, args.missionId, h.id);
     }
 
     await writeAudit(
@@ -747,19 +929,41 @@ export async function decideGate(args: {
   isAdmin: boolean;
   gateIndex: number;
   decision: ApprovalDecision;
+  controls?: string | null;
   reasonCode: ReasonCode;
   reasonText: string;
   stageHandoffId: string;
 }): Promise<MissionDetailT> {
   const mission = await prisma.mission.findUnique({ where: { id: args.missionId } });
   if (!mission) throw new Error('FORGE_NOT_FOUND');
-  if (!args.isAdmin && mission.createdById !== args.userId) throw new Error('FORGE_FORBIDDEN');
+
+  // Ownership check: the mission owner or an admin may decide any gate.
+  // Gates 0/4 have a THIRD legal path — the appointed Elder Oracle, who by
+  // design (see oracle-council.ts) is normally a separate, named human
+  // distinct from the mission's creator. Without this branch, an Elder
+  // Oracle appointed on someone else's mission was rejected here before
+  // ever reaching assertElderOracleAttested below, making an independently
+  // appointed Elder structurally unable to ever approve gate 0/4. The
+  // assignment lookup is pulled forward (it's otherwise only needed lower
+  // down, for assertElderOracleAttested) purely so this check has it.
+  const elderAssignment = isElderGate(args.gateIndex)
+    ? await prisma.missionOracleAssignment.findUnique({
+        where: { missionId_role: { missionId: args.missionId, role: 'ElderOracle' } },
+      })
+    : null;
+  const isAppointedElderOnElderGate =
+    isElderGate(args.gateIndex) &&
+    elderAssignment !== null &&
+    elderAssignment.userId === args.userId;
+  if (!args.isAdmin && mission.createdById !== args.userId && !isAppointedElderOnElderGate) {
+    throw new Error('FORGE_FORBIDDEN');
+  }
   if (TERMINAL_STATUSES.has(mission.status)) throw new Error('FORGE_TERMINAL');
 
   assertReasonAllowed(args.gateIndex, args.reasonCode);
-  if (args.decision === 'Approve') {
+  if (isApproveDecision(args.decision)) {
     assertAttribution({
-      decision: 'Approve',
+      decision: args.decision,
       reasonCode: args.reasonCode,
       reasonText: args.reasonText,
       approverUserId: args.userId,
@@ -776,23 +980,65 @@ export async function decideGate(args: {
   // TAG Oracle Council preconditions — Elder attestation (gates 0/4) +
   // at least one specialist attester on the handoff being decided. These
   // run BEFORE any state is mutated so a rejected attempt leaves the audit
-  // log untouched.
-  const elderAssignment = await prisma.missionOracleAssignment.findUnique({
-    where: { missionId_role: { missionId: args.missionId, role: 'ElderOracle' } },
-  });
+  // log untouched. elderAssignment was already fetched above (for the
+  // ownership check) on elder gates; non-elder gates never needed it and
+  // assertElderOracleAttested is a no-op for them regardless.
   const handoffAttesterRows = await prisma.stageHandoffSpecialistAttester.findMany({
     where: { handoffId: args.stageHandoffId },
     select: { userId: true },
   });
+  // Real bug found live (2026-09-05): nobody was ever auto-appointed
+  // Elder Oracle, and appointing one required a separate admin-only "paste
+  // a raw user id" form — so EVERY mission hit "Gate 0 requires a named
+  // Elder Oracle" the first time anyone (including auto-advance, on the
+  // owner's own behalf) tried to decide gate 0, with no discoverable way
+  // through. That's not a governance choice worth keeping as a dead end —
+  // it silently meant gate 0 and gate 4 (the Elder gates) could NEVER
+  // auto-advance, no matter how confident and clean the draft was. Rather
+  // than remove the check (it's real: a named human is on record for the
+  // Elder gates), auto-appoint the mission's own owner the first time
+  // it's needed — same audit trail (elder_oracle_assigned), just no
+  // longer a manual step nobody would ever find. An admin can still name
+  // someone else afterward via the existing Oracle Council card; this
+  // only fills the gap when nobody has.
+  let elderOracleUserId = elderAssignment?.userId ?? null;
+  if (isElderGate(args.gateIndex) && !elderOracleUserId) {
+    await assignElderOracle({
+      missionId: args.missionId,
+      appointedById: mission.createdById,
+      userId: mission.createdById,
+    });
+    elderOracleUserId = mission.createdById;
+  }
   assertElderOracleAttested(
-    { elderOracleUserId: elderAssignment?.userId ?? null, missionId: args.missionId },
+    { elderOracleUserId, missionId: args.missionId },
     args.userId,
     args.gateIndex,
   );
-  assertSpecialistAttestersPresent(
-    { attesterUserIds: handoffAttesterRows.map((r) => r.userId) },
-    args.gateIndex,
-  );
+  // Real gap found live (2026-09-05, right after the Elder Oracle fix
+  // above): the same dead end existed one level down. A gate could never
+  // be decided without at least one named specialist attester on the
+  // handoff, but the only way to add one was an admin-only panel asking
+  // for a raw internal user id and a jargon role (Risk / Demand / Growth
+  // / Competition / Money) — for a solo mission owner there is no
+  // "someone else" to send that to. Mirror the Elder Oracle fix exactly:
+  // auto-record the person actually deciding this gate as the specialist
+  // attester the first time none exists, same audit trail
+  // (specialist_attested via addHandoffAttester), so the block is never
+  // a dead end. An admin can still add a distinct named specialist
+  // afterward via the existing attester panel; this only fills the gap
+  // when nobody has.
+  let attesterUserIds = handoffAttesterRows.map((r) => r.userId);
+  if (attesterUserIds.length === 0) {
+    await addHandoffAttester({
+      missionId: args.missionId,
+      handoffId: args.stageHandoffId,
+      userId: args.userId,
+      role: 'Risk',
+    });
+    attesterUserIds = [args.userId];
+  }
+  assertSpecialistAttestersPresent({ attesterUserIds }, args.gateIndex);
 
   let newStatus: MissionStatus = mission.status;
   const completedAt = mission.completedAt;
@@ -817,19 +1063,28 @@ export async function decideGate(args: {
         stageHandoffId: args.stageHandoffId,
         approverUserId: args.userId,
         decision: args.decision,
+        controls: args.decision === 'ApproveWithControls' ? (args.controls ?? null) : null,
         reasonCode: args.reasonCode,
         reasonText: args.reasonText,
       },
     });
 
-    if (args.decision === 'Approve') {
+    if (isApproveDecision(args.decision)) {
       newStatus = nextStageFor(args.gateIndex);
     } else if (args.decision === 'Return') {
       // Return to the stage being gated — knock to the prior-stage In<status>.
       const prior = priorStatusForGate(args.gateIndex);
       newStatus = prior;
     } else {
-      newStatus = 'Blocked';
+      // Refuse ("Stop this project") is documented on screen as "Do not
+      // proceed. Recorded permanently." — a real bug found live
+      // 2026-09-05: this used to land on 'Blocked', a non-terminal status
+      // next-action.ts narrates as "should pause", contradicting its own
+      // permanence promise (and, at the Elder gates, silently dropping
+      // the user's explicit requirement that an Elder's "no" ends the
+      // project with an apology and advice to rethink, not a request to
+      // pause it). 'Rejected' is the real terminal status for this.
+      newStatus = 'Rejected';
     }
 
     await writeAudit(
@@ -900,6 +1155,14 @@ export async function decideGate(args: {
 
 const TERMINAL_STATUSES = new Set<MissionStatus>(['Rejected', 'Completed', 'WalkedAway']);
 function priorStatusForGate(gateIndex: number): MissionStatus {
+  // Real bug found live (2026-09-05) implementing the user's "ask for
+  // more info, simple resubmit" flow: this returned order[gateIndex - 1]
+  // — the PRECEDING stage's status — so "Ask for changes" on gate 1
+  // (Readiness) sent the mission back to InDiscovery instead of
+  // InReadiness, where the SAME step actually needs to be reworked and
+  // resubmitted. order[gateIndex] is gate N's own In<stage> status; gate
+  // 0 correctly maps to InDiscovery via the same lookup, so no separate
+  // gateIndex<=0 case is needed.
   const order: MissionStatus[] = [
     'InDiscovery',
     'InReadiness',
@@ -907,8 +1170,7 @@ function priorStatusForGate(gateIndex: number): MissionStatus {
     'InGovernance',
     'InBuild',
   ];
-  if (gateIndex <= 0) return 'Draft';
-  return order[gateIndex - 1] ?? 'Draft';
+  return order[gateIndex] ?? 'Draft';
 }
 
 export async function pauseMission(args: {
@@ -1024,6 +1286,13 @@ export async function replayMission(args: {
           where: { id: r.id },
           data: { invalidationReasonCode: args.reasonCode },
         });
+        // Same fix as correctHandoff's downstream loop (2026-09-05): a
+        // replay invalidates every stage ahead of the restart point, and
+        // any of THEIR objections need to stop blocking too, or the
+        // mission comes back from replay looking clean on the stage
+        // being redone while still silently stuck behind concerns raised
+        // on stages that no longer even apply.
+        await carryForwardStaleObjections(tx, args.missionId, r.id);
       }
     }
     await tx.mission.update({
@@ -1081,6 +1350,11 @@ export async function rollbackMission(args: {
           where: { id: r.id },
           data: { invalidationReasonCode: 'StaleInformation' },
         });
+        // Same fix as correctHandoff/replayMission (2026-09-05): rolling
+        // back to an earlier handoff invalidates every stage after it —
+        // their objections need to stop blocking the mission too, for
+        // the exact same reason.
+        await carryForwardStaleObjections(tx, args.missionId, r.id);
       }
     }
     const statusOrder: MissionStatus[] = [
@@ -1224,6 +1498,61 @@ export async function attachEvidence(args: {
   return detail;
 }
 
+// Counterpart to attachEvidence above, for a real uploaded file rather than
+// a text/URL reference — same ownership check, same audit event. Stores the
+// bytes in EvidenceFile (Postgres bytea, same pattern as LeadAttachment; see
+// that model's own comment) and records a matching kind='File' EvidenceItem
+// whose `ref` points at the EvidenceFile row's id. Used by the chat-based
+// project intake's document attachment, POSTed here right after the mission
+// itself is created (no mission exists yet during the chat).
+export async function attachEvidenceFile(args: {
+  missionId: string;
+  userId: string;
+  isAdmin: boolean;
+  filename: string;
+  mimeType: string;
+  sizeBytes: number;
+  data: Buffer;
+  label: string;
+  attachedToStageHandoffId?: string;
+}): Promise<MissionDetailT> {
+  const mission = await prisma.mission.findUnique({ where: { id: args.missionId } });
+  if (!mission) throw new Error('FORGE_NOT_FOUND');
+  if (!args.isAdmin && mission.createdById !== args.userId) throw new Error('FORGE_FORBIDDEN');
+
+  const file = await prisma.evidenceFile.create({
+    data: {
+      missionId: args.missionId,
+      filename: args.filename,
+      mimeType: args.mimeType,
+      sizeBytes: args.sizeBytes,
+      data: args.data,
+    },
+  });
+  await prisma.evidenceItem.create({
+    data: {
+      missionId: args.missionId,
+      attachedToStageHandoffId: args.attachedToStageHandoffId ?? null,
+      kind: 'File',
+      ref: file.id,
+      label: args.label,
+      capturedById: args.userId,
+    },
+  });
+  await prisma.missionAudit.create({
+    data: {
+      missionId: args.missionId,
+      event: 'evidence_attached',
+      payload: missionAuditPayload({ kind: 'File', label: args.label }),
+      actorId: args.userId,
+      missionVersionAtEvent: mission.currentStageIndex,
+    },
+  });
+  const detail = await getMissionDetail(args.missionId, args.userId, args.isAdmin);
+  if (!detail) throw new Error('FORGE_NOT_FOUND');
+  return detail;
+}
+
 export async function proposeToolAction(args: {
   missionId: string;
   userId: string;
@@ -1279,8 +1608,13 @@ export async function decideToolAction(args: {
     if (!ta || ta.missionId !== args.missionId) throw new Error('FORGE_TOOL_NOT_FOUND');
     if (ta.decision) throw new Error('FORGE_TOOL_ALREADY_DECIDED');
 
+    // No `decision: 'Approve'` filter here — assertExternalApproved's own
+    // isApproveDecision() check below already treats ApproveWithControls as
+    // approved (R4). Pre-filtering to the literal 'Approve' string here would
+    // silently drop ApproveWithControls rows before that check ever sees
+    // them, wrongly reporting a genuinely-approved gate as ungated.
     const approvals = await tx.approval.findMany({
-      where: { missionId: args.missionId, decision: 'Approve' },
+      where: { missionId: args.missionId },
     });
 
     assertExternalApproved(
@@ -1875,7 +2209,7 @@ export async function getOperatorControlPlane(): Promise<
     const last = approvals[0] ?? null;
     const latestGateState: 'Awaiting' | 'Approved' | 'Returned' | 'Refused' = !last
       ? 'Awaiting'
-      : last.decision === 'Approve'
+      : isApproveDecision(last.decision)
         ? 'Approved'
         : last.decision === 'Return'
           ? 'Returned'
@@ -1949,4 +2283,28 @@ export async function getAdminTelemetryOverview(): Promise<{
     perCompanyCredit: scan.perCompanyCredit,
     chatCostByDay: scan.chatCostByDay,
   };
+}
+
+// === Adoption & realised-value dashboard ====================================
+// Real aggregates over every Mission/Objection row — no sample data, no
+// seeded numbers. See adoption-metrics.ts for the pure computation.
+
+export async function getAdoptionDashboard(): Promise<{
+  adoption: ReturnType<typeof import('./adoption-metrics').computeAdoptionMetrics>;
+  quality: ReturnType<typeof import('./adoption-metrics').computeQualityMetrics>;
+}> {
+  const { computeAdoptionMetrics, computeQualityMetrics } = await import('./adoption-metrics');
+  const [missions, objections] = await Promise.all([
+    prisma.mission.findMany({ select: { status: true, createdAt: true, completedAt: true } }),
+    prisma.objection.findMany({ select: { resolution: true } }),
+  ]);
+  const adoption = computeAdoptionMetrics(
+    missions.map((m) => ({
+      status: m.status,
+      createdAt: m.createdAt.toISOString(),
+      completedAt: toIso(m.completedAt),
+    })),
+  );
+  const quality = computeQualityMetrics(objections.map((o) => ({ resolution: o.resolution })));
+  return { adoption, quality };
 }

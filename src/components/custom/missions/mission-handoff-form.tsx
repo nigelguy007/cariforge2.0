@@ -23,6 +23,7 @@ import {
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { apiFetch } from '@/lib/api-client';
+import { apiErrorMessage } from '@/lib/api-error-message';
 import { HandoffCreate, MissionDetail, STAGE_NAMES } from '@/lib/contracts/forge';
 import { applyServerErrors } from '@/lib/forms';
 
@@ -61,7 +62,7 @@ export function MissionHandoffForm({
       toast.success('Handoff submitted');
       onWritten();
     } catch (err) {
-      const message = (err as Error).message ?? 'Could not submit handoff';
+      const message = apiErrorMessage(err, 'Could not submit handoff');
       const cause = (err as { cause?: { errors?: Record<string, string> } }).cause;
       if (cause?.errors) {
         if (!applyServerErrors(cause, form.setError)) toast.error(message);

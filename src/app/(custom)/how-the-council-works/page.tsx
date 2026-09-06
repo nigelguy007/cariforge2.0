@@ -35,7 +35,7 @@ const organization = {
 
 export default function HowTheCouncilWorksPage() {
   return (
-    <main className="flex flex-col">
+    <main id="main-content" className="flex flex-col">
       <JsonLd script={organization} />
       <section className="section-lg relative overflow-hidden hero-aurora">
         <div className="container-page flex flex-col gap-10">

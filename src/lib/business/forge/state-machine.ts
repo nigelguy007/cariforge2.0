@@ -22,9 +22,14 @@ export const FORGE_ERROR_CODES = {
 export class ForgeError extends Error {
   constructor(
     public readonly code: (typeof FORGE_ERROR_CODES)[keyof typeof FORGE_ERROR_CODES],
-    message: string,
+    // `detail` is the human-readable, action-oriented text a caller
+    // wrote for this specific violation — kept as its own field (not
+    // just baked into `.message`) so forgeErrorResponse can surface it
+    // to the client directly instead of parsing the "CODE: detail"
+    // string or falling back to a generic message.
+    public readonly detail: string,
   ) {
-    super(`${code}: ${message}`);
+    super(`${code}: ${detail}`);
     this.name = 'ForgeError';
   }
 }
@@ -40,7 +45,9 @@ export class ForgeError extends Error {
 //   InGovernance → AwaitingApproval (SoftwareBuild handoff v1 submitted)
 //   InBuild → Completed (gate 4 Approved)
 //   AwaitingApproval → Returned-to-stage status (gate Return with reason)
-//   AwaitingApproval → Blocked (gate Refuse)
+//   AwaitingApproval → Rejected (gate Refuse — "Stop this project" is a
+//     permanent stop per its own UI copy, so it lands on the real
+//     terminal status, not a resumable one)
 //   Any active → Paused
 //   Paused → previous active status (Resume)
 //   Active target → Rejected / WalkedAway / RolledBack (final rejections)
@@ -61,7 +68,7 @@ export const transitions: Record<MissionStatus, MissionStatus[]> = {
     'InBuild',
     'Completed',
     'Paused',
-    'Blocked',
+    'Rejected',
     'WalkedAway',
     'RolledBack',
   ],
@@ -116,19 +123,31 @@ export function gateIndexFor(stage: StageName): number {
 
 // nextStageFor: given a gate-approval decision, what's the next mission
 // status? Pure: drives /api/forge/missions/:id/gates/:gateIndex/decide
-// and /api/forge/missions/:id/transitions/start. `gateIndexConfirmed` is
-// the gate that was just Approved. Approving gate 4 (SoftwareBuild) closes
-// the mission (Completed).
+// and /api/forge/missions/:id/transitions/start. `gateIndex` is the gate
+// that was just Approved — the mission moves INTO the stage that approval
+// unlocks (gate 0's own purpose, per GATE_DEFS, is "confirm the need is
+// real... [so Readiness can start]" — approving it means Discovery is
+// DONE, not that we're still in it). Approving gate 4 (SoftwareBuild)
+// closes the mission (Completed).
+//
+// FIXED 2026-09-04: every case below used to return the CURRENT stage
+// instead of the next one (case 0 returned 'InDiscovery', not
+// 'InReadiness' — an off-by-one present in every case except 4, which had
+// nowhere further to be off into). Found by actually walking a real
+// mission through gate 0 end-to-end: the mission's status never left
+// InDiscovery after gate 0 was genuinely approved. The stale unit test
+// below had been asserting the bug as if it were correct — see its
+// history for what it checked before this fix.
 export function nextStageFor(gateIndex: number): MissionStatus {
   switch (gateIndex) {
     case 0:
-      return 'InDiscovery';
-    case 1:
       return 'InReadiness';
-    case 2:
+    case 1:
       return 'InWorkflow';
-    case 3:
+    case 2:
       return 'InGovernance';
+    case 3:
+      return 'InBuild';
     case 4:
       return 'Completed';
     default:

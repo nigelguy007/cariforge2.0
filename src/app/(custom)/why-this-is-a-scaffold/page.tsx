@@ -75,10 +75,10 @@ export default function WhyThisIsAScaffoldPage() {
               <GlassChip tone="brand" className="self-start">
                 § 01 · What this deliverable does NOT cover
               </GlassChip>
-              <h2 className="text-h2 font-display tracking-tight text-white">
+              <h2 className="text-h2 font-display tracking-tight text-foreground">
                 What this deliverable does NOT cover.
               </h2>
-              <p className="max-w-3xl text-body text-white/85">
+              <p className="max-w-3xl text-body text-foreground/85">
                 These five exclusions are written to be read plainly by a compliance officer, not
                 buried in a clause. If a need here matters for your engagement, that is the
                 conversation to have up front — not the moment to discover it at hand-off.
@@ -105,10 +105,10 @@ export default function WhyThisIsAScaffoldPage() {
               <GlassChip tone="brand" className="self-start">
                 § 02 · What this deliverable DOES cover
               </GlassChip>
-              <h2 className="text-h2 font-display tracking-tight text-white">
+              <h2 className="text-h2 font-display tracking-tight text-foreground">
                 What this deliverable DOES cover (the actual promise).
               </h2>
-              <p className="max-w-3xl text-body text-white/85">
+              <p className="max-w-3xl text-body text-foreground/85">
                 These four inclusions are the shape of every run. They are produced by the system
                 itself and recorded in the audit-trail bundle at hand-off, so the promise below is
                 verifiable, not aspirational.
@@ -130,7 +130,7 @@ export default function WhyThisIsAScaffoldPage() {
             </ul>
           </div>
 
-          <p className="text-small text-white/70">
+          <p className="text-small text-muted-foreground">
             Read the same promise spelled out at the{' '}
             <Link href="/faq#scaffold-vs-product" className="link-brand">
               FAQ’s scaffold-vs-product answer

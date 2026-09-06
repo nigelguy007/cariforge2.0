@@ -40,6 +40,7 @@ export async function POST(
       isAdmin: auth.isAdmin,
       gateIndex: parsedIdx,
       decision: parsed.data.decision,
+      controls: parsed.data.controls ?? null,
       reasonCode: parsed.data.reasonCode,
       reasonText: parsed.data.reasonText,
       stageHandoffId: parsed.data.stageHandoffId,

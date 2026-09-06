@@ -5,7 +5,8 @@
 
 import * as React from 'react';
 import { apiFetch } from '@/lib/api-client';
-import { MissionDetail, type MissionDetailT } from '@/lib/contracts/forge';
+import { MissionDetail, type MissionDetailT, MissionList } from '@/lib/contracts/forge';
+import { humanise } from '@/lib/ui-terms';
 
 export function MissionBlockersPanel({ missionSlug }: { missionSlug: string }) {
   const [detail, setDetail] = React.useState<MissionDetailT | null>(null);
@@ -14,11 +15,9 @@ export function MissionBlockersPanel({ missionSlug }: { missionSlug: string }) {
     (async () => {
       try {
         const list = await apiFetch('/api/forge/missions', {
-          schema: MissionDetail,
+          schema: MissionList,
         });
-        const found = (
-          list as unknown as { items: Array<{ id: string; slug: string }> }
-        ).items.find((it) => it.slug === missionSlug);
+        const found = list.items.find((it) => it.slug === missionSlug);
         if (!found) return;
         const d = await apiFetch(`/api/forge/missions/${found.id}`, {
           schema: MissionDetail,
@@ -38,8 +37,8 @@ export function MissionBlockersPanel({ missionSlug }: { missionSlug: string }) {
   const isPaused = detail.mission.status === 'Paused';
   const isBlocked = detail.mission.status === 'Blocked' || detail.mission.status === 'RolledBack';
   const blockers: Array<{ id: string; label: string }> = [];
-  if (isPaused) blockers.push({ id: 'paused', label: 'Mission is paused.' });
-  if (isBlocked) blockers.push({ id: 'blocked', label: 'Mission is blocked.' });
+  if (isPaused) blockers.push({ id: 'paused', label: 'This project is paused.' });
+  if (isBlocked) blockers.push({ id: 'blocked', label: 'This project is blocked.' });
   for (const o of outstandingObjections) {
     blockers.push({
       id: `obj-${o.id}`,
@@ -49,7 +48,7 @@ export function MissionBlockersPanel({ missionSlug }: { missionSlug: string }) {
   for (const t of outstandingToolActions) {
     blockers.push({
       id: `ta-${t.id}`,
-      label: `Pending tool decision: ${t.tool} (${t.scope}).`,
+      label: `Pending decision: ${humanise(t.tool)} (${humanise(t.scope)}).`,
     });
   }
   if (blockers.length === 0) {
@@ -57,7 +56,7 @@ export function MissionBlockersPanel({ missionSlug }: { missionSlug: string }) {
       <div className="glass-card rounded-2xl p-6 text-body">
         <h3 className="text-h4">No outstanding blockers</h3>
         <p className="mt-1 text-small text-muted-foreground">
-          Mission can proceed to the next decision without further input.
+          This project can proceed to the next decision without further input.
         </p>
       </div>
     );

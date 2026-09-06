@@ -66,6 +66,14 @@ export async function listLeadsForAdmin(
     where: { leadId: { in: leadIds } },
     orderBy: { startedAt: 'desc' },
   });
+  // Existence only (select: { leadId: true }) — never pull attachment bytes
+  // into this list read. One attachment per lead is enforced at upload time,
+  // but this Set works fine even if that ever changes.
+  const attachmentRows = await prisma.leadAttachment.findMany({
+    where: { leadId: { in: leadIds } },
+    select: { leadId: true },
+  });
+  const leadIdsWithAttachment = new Set(attachmentRows.map((a) => a.leadId));
 
   // Map the latest run per leadId. Runs arrive newest-first from the query
   // above so the FIRST hit per key wins via Map insertion order.
@@ -92,6 +100,7 @@ export async function listLeadsForAdmin(
       notes: lead.notes ?? null,
       councilRunStatus: latest?.status ?? null,
       councilRunVerdict: latest?.verdict ?? null,
+      hasAttachment: leadIdsWithAttachment.has(lead.id),
     };
   });
 
@@ -131,6 +140,10 @@ export async function setLeadNotes(id: string, notes: string | null): Promise<Le
     where: { leadId: row.id },
     orderBy: { startedAt: 'desc' },
   });
+  const attachment = await prisma.leadAttachment.findFirst({
+    where: { leadId: row.id },
+    select: { id: true },
+  });
 
   return LeadListItemSchema.parse({
     id: row.id,
@@ -143,6 +156,7 @@ export async function setLeadNotes(id: string, notes: string | null): Promise<Le
     notes: row.notes ?? null,
     councilRunStatus: (latestRun?.status as RunStatus | undefined) ?? null,
     councilRunVerdict: (latestRun?.verdict as Verdict | null | undefined) ?? null,
+    hasAttachment: attachment !== null,
   });
 }
 

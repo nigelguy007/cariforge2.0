@@ -23,8 +23,10 @@ import {
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { apiFetch } from '@/lib/api-client';
+import { apiErrorMessage } from '@/lib/api-error-message';
 import { MissionDetail, type MissionDetailT, ObjectionCreate } from '@/lib/contracts/forge';
 import { applyServerErrors } from '@/lib/forms';
+import { stepLabel } from '@/lib/ui-terms';
 
 export function MissionObjectionCreateForm({
   detail,
@@ -56,7 +58,7 @@ export function MissionObjectionCreateForm({
       toast.success('Objection raised');
       onWritten();
     } catch (err) {
-      const message = (err as Error).message ?? 'Could not raise objection';
+      const message = apiErrorMessage(err, 'Could not raise objection');
       const cause = (err as { cause?: { errors?: Record<string, string> } }).cause;
       if (cause?.errors) {
         if (!applyServerErrors(cause, form.setError)) toast.error(message);
@@ -77,22 +79,22 @@ export function MissionObjectionCreateForm({
           name="stageHandoffId"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Against handoff</FormLabel>
+              <FormLabel>Which step is this about?</FormLabel>
               <Select onValueChange={field.onChange} value={field.value}>
                 <FormControl>
                   <SelectTrigger>
-                    <SelectValue placeholder="Pick a handoff" />
+                    <SelectValue placeholder="Pick a step" />
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
                   {handoffOptions.length === 0 ? (
                     <SelectItem value="" disabled>
-                      No handoffs yet
+                      No step output yet
                     </SelectItem>
                   ) : (
                     handoffOptions.map((h) => (
                       <SelectItem key={h.id} value={h.id}>
-                        {h.stage} v{h.version}
+                        {stepLabel(h.stage)} (version {h.version})
                       </SelectItem>
                     ))
                   )}

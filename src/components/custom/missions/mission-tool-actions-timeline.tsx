@@ -5,6 +5,8 @@ import { useState } from 'react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { apiFetch } from '@/lib/api-client';
+import { apiErrorMessage } from '@/lib/api-error-message';
+import { useIsAdmin } from '@/lib/auth-client';
 import {
   GATE_REASON_CODES,
   MissionDetail,
@@ -13,6 +15,7 @@ import {
   type ToolActionItemT,
   ToolActionRollback,
 } from '@/lib/contracts/forge';
+import { humanise } from '@/lib/ui-terms';
 
 export function MissionToolActionsTimeline({
   detail,
@@ -50,6 +53,7 @@ function ToolActionCard({
 }) {
   const [rollbackTarget, setRollbackTarget] = useState('');
   const [rollbackReason, setRollbackReason] = useState('StaleInformation');
+  const isAdmin = useIsAdmin();
 
   const decide = async (decision: 'Approved' | 'Denied') => {
     try {
@@ -66,7 +70,7 @@ function ToolActionCard({
       toast.success(`Tool action ${decision === 'Approved' ? 'approved' : 'denied'}`);
       onWritten();
     } catch (err) {
-      toast.error((err as Error).message ?? 'Could not record decision');
+      toast.error(apiErrorMessage(err, 'Could not record decision'));
     }
   };
 
@@ -77,10 +81,10 @@ function ToolActionCard({
         body: JSON.stringify({ resultRef: `forge-result:${toolAction.id}` }),
         schema: MissionDetail,
       });
-      toast.success('Tool action executed (stubbed result)');
+      toast.success('Tool action run');
       onWritten();
     } catch (err) {
-      toast.error((err as Error).message ?? 'Could not execute');
+      toast.error(apiErrorMessage(err, 'Could not execute'));
     }
   };
 
@@ -101,30 +105,34 @@ function ToolActionCard({
       toast.success('Rollback recorded');
       onWritten();
     } catch (err) {
-      toast.error((err as Error).message ?? 'Could not record rollback');
+      toast.error(apiErrorMessage(err, 'Could not record rollback'));
     }
   };
 
   return (
     <article className="glass-card lift-soft space-y-2 rounded-2xl p-5">
-      <header className="flex items-start justify-between gap-outh-4">
+      <header className="flex items-start justify-between gap-4">
         <div>
           <p className="text-caption uppercase tracking-wide text-brand-700">
-            {toolAction.tool} · {toolAction.scope}
+            {humanise(toolAction.scope)}
           </p>
-          <p className="text-h4">{toolAction.tool}</p>
+          <p className="text-h4">{humanise(toolAction.tool)}</p>
         </div>
         <span className="glass-chip rounded-full px-2.5 py-0.5 text-caption">
           {toolAction.executedAt
-            ? 'executed'
+            ? 'Run'
             : toolAction.decision
-              ? `decided: ${toolAction.decision}`
-              : 'pending'}
+              ? toolAction.decision === 'Approved'
+                ? 'Approved'
+                : 'Denied'
+              : 'Awaiting your decision'}
         </span>
       </header>
-      <pre className="overflow-x-auto rounded-lg bg-muted/60 p-2 text-caption">
-        {JSON.stringify(toolAction.payload, null, 2).slice(0, 500)}
-      </pre>
+      {isAdmin ? (
+        <pre className="overflow-x-auto rounded-lg bg-muted/60 p-2 text-caption">
+          {JSON.stringify(toolAction.payload, null, 2).slice(0, 500)}
+        </pre>
+      ) : null}
       <div className="flex flex-wrap items-center gap-2">
         {!toolAction.decision ? (
           <Button
@@ -141,18 +149,18 @@ function ToolActionCard({
             Deny
           </Button>
         ) : null}
-        {toolAction.decision === 'Approved' && !toolAction.executedAt ? (
+        {isAdmin && toolAction.decision === 'Approved' && !toolAction.executedAt ? (
           <Button type="button" size="sm" className="glass-cta" onClick={execute}>
-            Execute (stub)
+            Run it
           </Button>
         ) : null}
-        {toolAction.executedAt ? (
+        {isAdmin && toolAction.executedAt ? (
           <Button type="button" size="sm" variant="outline" onClick={rollback}>
             Record rollback
           </Button>
         ) : null}
       </div>
-      {toolAction.executedAt ? (
+      {isAdmin && toolAction.executedAt ? (
         <div className="grid gap-2 md:grid-cols-2">
           <label className="text-small">
             Rollback target (prior tool action ID)

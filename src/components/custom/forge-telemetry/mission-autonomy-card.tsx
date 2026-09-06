@@ -6,6 +6,7 @@
 
 import * as React from 'react';
 import { apiFetch } from '@/lib/api-client';
+import { apiErrorMessage } from '@/lib/api-error-message';
 import { type MissionAutonomyT, MissionTelemetryRead } from '@/lib/contracts/telemetry';
 
 function toneForActor(actor: MissionAutonomyT['releaseActor']): string {
@@ -41,7 +42,7 @@ export function MissionAutonomyCard({ missionSlug }: { missionSlug: string }) {
         });
         if (!cancelled) setAutonomy(t.autonomy);
       } catch (err) {
-        if (!cancelled) setError((err as Error).message);
+        if (!cancelled) setError(apiErrorMessage(err, 'Autonomy telemetry could not be loaded.'));
       }
     })();
     return () => {

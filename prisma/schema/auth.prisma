@@ -10,6 +10,16 @@
 // emailAndPassword is enabled in src/lib/auth.ts — the password lives on Account.
 // The admin plugin is enabled in src/lib/auth.ts and adds role/ban metadata.
 // @@map keeps the physical table names lowercase, exactly what better-auth's adapter queries.
+//
+// HAND-EDITED (no polsia CLI / module registry reachable from this environment
+// to regenerate this file): the installed `better-auth` package is 1.7.1, whose
+// core schema (@better-auth/core/dist/db/schema/account.mjs + db/get-tables.mjs)
+// now requires a required `issuer` string field on Account plus a unique
+// (issuer, accountId) index — used to key local vs. OAuth accounts. Every
+// account.create() call (including plain email/password sign-up) sets it, so
+// its absence here throws `Unknown argument issuer` and 500s. Added below to
+// keep this framework-owned file in sync with its own framework's currently
+// installed version — not a customization. See prisma/migrations/20260826120000_add_account_issuer.
 
 model User {
   id            String    @id
@@ -50,6 +60,7 @@ model Account {
   id                    String    @id
   accountId             String
   providerId            String
+  issuer                String
   userId                String
   user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   accessToken           String?
@@ -62,6 +73,7 @@ model Account {
   createdAt             DateTime
   updatedAt             DateTime
 
+  @@unique([issuer, accountId])
   @@map("account")
 }
 

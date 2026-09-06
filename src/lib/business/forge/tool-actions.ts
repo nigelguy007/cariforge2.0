@@ -1,10 +1,15 @@
 // @polsia:user-owned — pure tool-action policy. Called from
 // /api/forge/missions/:id/tool-actions/* routes.
 
-import type { MissionStatus, ToolActionScope } from '@/lib/contracts/forge';
+import {
+  type ApprovalDecision,
+  isApproveDecision,
+  type MissionStatus,
+  type ToolActionScope,
+} from '@/lib/contracts/forge';
 import { FORGE_ERROR_CODES, ForgeError } from './state-machine';
 
-export { ForgeError, FORGE_ERROR_CODES };
+export { FORGE_ERROR_CODES, ForgeError };
 
 const BLOCKING_STATUSES: ReadonlySet<MissionStatus> = new Set([
   'Paused',
@@ -25,7 +30,7 @@ export interface ToolActionRef {
 
 export interface ApprovalRef {
   gateIndex: number;
-  decision: 'Approve' | 'Return' | 'Refuse';
+  decision: ApprovalDecision;
 }
 
 export function assertScopeDenied(_scope: ToolActionScope, status: MissionStatus): void {
@@ -33,7 +38,7 @@ export function assertScopeDenied(_scope: ToolActionScope, status: MissionStatus
   // External or Internal — both denied while mission is paused/blocked/etc.
   throw new ForgeError(
     FORGE_ERROR_CODES.TOOL_SCOPE_DENIED,
-    `Tool actions denied while mission is ${status}.`,
+    `Tool actions are denied while the mission is ${status}. Resume the mission (or wait for it to leave ${status}) before proposing or executing a tool action.`,
   );
 }
 
@@ -45,11 +50,11 @@ export function assertExternalApproved(
     // Internal may require a gate-level approval; if the agent flagged
     // requiresGateApproval=true, gate must exist with same stage linkage.
     if (tool.requiresGateApproval) {
-      const found = approvals.find((a) => a.decision === 'Approve' && a.gateIndex >= 0);
+      const found = approvals.find((a) => isApproveDecision(a.decision) && a.gateIndex >= 0);
       if (!found) {
         throw new ForgeError(
           FORGE_ERROR_CODES.TOOL_GATE_APPROVAL_MISSING,
-          `Tool ${tool.scope} request requires an active gate approval.`,
+          `This Internal tool action requires at least one gate to already have an Approve decision recorded. Get a gate approved first, then retry.`,
         );
       }
     }
@@ -63,11 +68,11 @@ export function assertExternalApproved(
       `External scope must set requiresGateApproval=true.`,
     );
   }
-  const matched = approvals.find((a) => a.decision === 'Approve');
+  const matched = approvals.find((a) => isApproveDecision(a.decision));
   if (!matched) {
     throw new ForgeError(
       FORGE_ERROR_CODES.TOOL_GATE_APPROVAL_MISSING,
-      `External tool ${tool.scope} requires an existing gate Approve decision.`,
+      `This External tool action requires at least one gate to already have an Approve decision recorded. Get a gate approved first, then retry.`,
     );
   }
 }

@@ -14,6 +14,7 @@ function approval(decision: ApprovalItemT['decision'] = 'Approve'): ApprovalItem
     stageHandoffId: 'h-build-1',
     approverUserId: 'user-1',
     decision,
+    controls: null,
     reasonCode: 'Approved',
     reasonText: 'Looks good.',
     supersedesApprovalId: null,
@@ -142,7 +143,11 @@ describe('blueprintFromHandoffs', () => {
       mission: { id: 'm-2', name: 'Mission 2', releaseReadoutAt: null },
       handoffs: [handoff('SoftwareBuild', 1, { route: '/q' })],
     });
-    expect(result.reuseSignals.some((s) => /SoftwareBuild handoff present/.test(s))).toBe(true);
+    // Display text renamed from "Prototype spec" to "MVP build"
+    // (2026-09-05, matches GATE_DEFS[4].name's "MVP build approved") —
+    // the underlying stage enum passed into handoff() above is still
+    // 'SoftwareBuild', unchanged.
+    expect(result.reuseSignals.some((s) => /MVP build handoff present/.test(s))).toBe(true);
   });
   it('handles empty handoffs without throwing', () => {
     const result = blueprintFromHandoffs({

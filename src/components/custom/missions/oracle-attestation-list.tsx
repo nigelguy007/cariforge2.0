@@ -18,6 +18,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { apiFetch } from '@/lib/api-client';
+import { apiErrorMessage } from '@/lib/api-error-message';
 import {
   type HandoffItemT,
   type MissionDetailT,
@@ -53,7 +54,7 @@ export function OracleAttestationList({ detail, handoff, onWritten }: OracleAtte
       setUserIdInput('');
       await onWritten();
     } catch (err) {
-      toast.error((err as Error).message ?? 'Could not record attester.');
+      toast.error(apiErrorMessage(err, 'Could not record attester.'));
     } finally {
       setAdding(false);
     }

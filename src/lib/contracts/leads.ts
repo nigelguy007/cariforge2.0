@@ -4,13 +4,35 @@
 // zod only, no server-only imports.
 
 import { z } from 'zod';
+import { ConfiguratorResponse } from './configurator';
+
+// Product decision (2026-08-29): the front-door brief's first response is a
+// fully-automated Discovery-agent read — reuses the exact same call and
+// shape as the pre-signup workflow configurator (contracts/configurator.ts,
+// business/configurator.ts's getConfiguratorResult) rather than a second,
+// diverging agent persona. 'unavailable' (no ANTHROPIC_API_KEY, or the call
+// failed) is a real, expected case the UI must degrade gracefully from —
+// never the reason a brief submission fails.
+export const LeadTriage = ConfiguratorResponse;
+export type LeadTriage = z.infer<typeof LeadTriage>;
 
 export const LeadCreate = z.object({
+  // Was capped at 500 chars when this field was framed as a literal
+  // "one-line brief" — it's the actual requirements-capture area (what do
+  // you want to build using AI?), so it needs room for a real paragraph or
+  // two, not a single sentence. 20 chars stays the floor (still rules out
+  // empty/junk submissions); 4000 is generous enough for a genuine
+  // requirements writeup without inviting a full document dump — see
+  // brief-intake-form.tsx for the (pending) file-attachment path for
+  // anything longer than that.
   brief: z
     .string()
     .trim()
-    .min(20, 'Brief is too short — give us at least one sentence.')
-    .max(500, 'Brief is too long — please cap at 500 characters.'),
+    .min(20, 'Tell us a bit more — at least one full sentence.')
+    .max(
+      4000,
+      'That’s a lot of detail — please cap it at 4000 characters, or attach it as a document instead.',
+    ),
   email: z
     .union([z.string().email('That email looks off.'), z.literal('')])
     .optional()
@@ -21,10 +43,79 @@ export const LeadItem = LeadCreate.extend({
   id: z.string(),
   createdAt: z.string(), // ISO-8601 from the server; client parses as a string
   notified: z.boolean(), // true iff owner-email send succeeded
+  // Present only on the front-door brief path (source='home'); absent
+  // (undefined) rather than null so the walkthrough path's response shape
+  // doesn't have to carry a field it never sets.
+  triage: LeadTriage.optional(),
 });
 
 export type LeadCreate = z.infer<typeof LeadCreate>;
 export type LeadItem = z.infer<typeof LeadItem>;
+
+// ────────────────────────────────────────────────────────────────────────────
+// Lead attachment — one optional document per brief, stored directly in
+// Postgres (LeadAttachment.data, bytea) rather than a separate file-storage
+// provider. No new infrastructure needed at pilot scale.
+
+// Hard cap, enforced both client-side (fail fast, no wasted upload) and
+// server-side (the only cap that actually matters). 4 MiB stays safely under
+// Vercel's serverless function request-body limit (4.5 MB) with headroom for
+// multipart overhead and the rest of the form fields.
+// Real user request (2026-09-05): the chat intake needed to accept
+// "documents and videos and images", not just small reference documents.
+// Raised from 4 MB (sized for a document/photo) to 25 MB — enough for a
+// short video clip or several photos, still comfortably under Vercel
+// Functions' 100 MB request-body ceiling. Files are stored directly in
+// Postgres as bytea (see EvidenceFile/LeadAttachment) — appropriate at
+// pilot scale for a handful of short clips per project, NOT a general
+// video-hosting solution; a real multi-minute/high-resolution video
+// would need real object storage (S3/Blob), a separate, larger change,
+// not silently done here.
+export const MAX_ATTACHMENT_BYTES = 25 * 1024 * 1024;
+
+// Deliberately narrow: document, image and short-video formats a regulated
+// buyer would plausibly attach to a requirements brief. No executables, no
+// archives (a zip could smuggle anything past this check), no raw HTML/SVG
+// (XSS if ever rendered inline). Extend this list deliberately, not by
+// widening it to '*/*'.
+export const ALLOWED_ATTACHMENT_MIME_TYPES = [
+  'application/pdf',
+  'application/msword',
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document', // .docx
+  'text/plain',
+  'text/csv',
+  'image/png',
+  'image/jpeg',
+  'image/gif',
+  'image/webp',
+  'video/mp4',
+  'video/quicktime', // .mov
+  'video/webm',
+] as const;
+
+export const LeadAttachmentMeta = z.object({
+  id: z.string(),
+  filename: z.string(),
+  mimeType: z.string(),
+  sizeBytes: z.number().int(),
+  createdAt: z.string(),
+});
+
+export type LeadAttachmentMeta = z.infer<typeof LeadAttachmentMeta>;
+
+// Cosmetic, buyer-facing reference derived from the lead's cuid — the raw id
+// (e.g. "cmtc51g2u0001js04r455be7k") is a database primary key, not something
+// a regulated buyer should have to read back over email. This is
+// deterministic (same id -> same code every time) and NOT a separate stored
+// value, so no migration is needed and support can always recompute it from
+// the id in the leads table. Not cryptographically unique on its own — for
+// pilot volumes an 8-char slice of a cuid is plenty; revisit if collisions
+// ever matter (e.g. add a dedicated indexed column) at higher volume.
+export function friendlyLeadReference(id: string): string {
+  const clean = id.replace(/[^a-z0-9]/gi, '').toUpperCase();
+  const tail = clean.length >= 8 ? clean.slice(-8) : clean.padStart(8, '0');
+  return `CF-${tail.slice(0, 4)}-${tail.slice(4, 8)}`;
+}
 
 // ────────────────────────────────────────────────────────────────────────────
 // Admin leads dashboard — read-only view used by /admin/leads (server route +
@@ -62,6 +153,10 @@ export const LeadListItem = z.object({
   // the admin can see the council's ruling without paging into a separate run.
   councilRunStatus: z.enum(RunStatusValues).nullable(),
   councilRunVerdict: z.enum(VerdictValues).nullable(),
+  // True iff a document was attached via POST /api/leads/[id]/attachment —
+  // existence only, never the bytes. GET /api/admin/leads/[id]/attachment
+  // downloads it.
+  hasAttachment: z.boolean(),
 });
 
 export const LeadList = z.object({
@@ -132,3 +227,20 @@ export type LeadNotesUpdateResponse = z.infer<typeof LeadNotesUpdateResponse>;
 // procurement-grade form copy can't drift. The keys match what walkthrough
 // rows store in Lead.payload.segment verbatim.
 export const LEAD_SEGMENT_LABELS = LEAD_SEGMENT_VALUES;
+
+// === Open briefs (UX review C1, wireframe v2) ===============================
+// A signed-in user's own submitted briefs that haven't been converted into a
+// mission yet — matched by the session email server-side, surfaced on the
+// dashboard as a conversion card so the CF reference finally goes somewhere.
+
+export const OpenBriefItem = z.object({
+  id: z.string(),
+  reference: z.string(), // friendlyLeadReference(id) — the CF-XXXX-XXXX shown at submission
+  brief: z.string(),
+  createdAt: z.string(),
+  hasAttachment: z.boolean(),
+});
+export type OpenBriefItem = z.infer<typeof OpenBriefItem>;
+
+export const OpenBriefList = z.object({ items: z.array(OpenBriefItem) });
+export type OpenBriefList = z.infer<typeof OpenBriefList>;

@@ -11,7 +11,10 @@ import { NextResponse } from 'next/server';
 import type { z } from 'zod';
 import { NewsletterAck, NewsletterSignup } from '@/lib/contracts/newsletter';
 import { prisma } from '@/lib/db';
-import { sendEmail } from '@/lib/email/send';
+// 2026-09-04: switched from the framework's src/lib/email/send.ts to the
+// user-owned Resend-backed transport (identical interface) — see
+// send-resend.ts's header for why.
+import { sendEmail } from '@/lib/email/send-resend';
 import { formatNewsletterEmail } from '@/lib/email-templates/newsletter-owner-notification';
 
 export const dynamic = 'force-dynamic';
@@ -63,8 +66,12 @@ export async function POST(req: Request) {
           data: { notifiedAt: new Date() },
         });
         notified = true;
-      } catch {
-        // swallow — lead is captured; the operator can re-notify from the leads table.
+      } catch (err) {
+        // Not silently swallowed (2026-09-04) — lead is still captured
+        // either way, but a failed send is now visible in logs instead of
+        // vanishing (same fix applied to the two owner-notification paths
+        // in src/app/api/leads/route.ts).
+        console.error('[newsletter] owner notification email failed to send:', err);
       }
     }
 

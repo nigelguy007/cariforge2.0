@@ -44,3 +44,19 @@ lerna-debug.log*
 
 # Polsia upgrade reconcile sidecars (never commit)
 *.polsia-app-old
+.claude/settings.local.json
+
+# Session handoff notes. NEVER commit: this repo is public, and HANDOFF.md
+# documents unfixed security findings against the live deployment — publishing
+# it would hand an attacker a mapped route list. Committed handover docs that
+# contain no live vulnerability detail belong in docs/ instead.
+HANDOFF.md
+
+# Playwright e2e (2026-09-04) — .auth/ holds real session cookies for the QA
+# accounts (tests/e2e/global-setup.ts writes them). Public repo: never commit
+# a live session token. playwright-report/ and test-results/ are just run
+# output.
+tests/e2e/.auth/
+tests/e2e/.output/
+playwright-report/
+test-results/

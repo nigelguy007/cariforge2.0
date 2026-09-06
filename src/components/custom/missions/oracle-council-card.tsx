@@ -12,14 +12,16 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { apiFetch } from '@/lib/api-client';
+import { apiErrorMessage } from '@/lib/api-error-message';
 import { ORACLE_ROLE_NAMES } from '@/lib/business/forge/oracle-council';
-import type {
-  ApprovalItemT,
-  GateStateT,
-  HandoffItemT,
-  MissionDetailT,
-  MissionOracleAssignmentItemT,
-  OracleRole,
+import {
+  type ApprovalItemT,
+  type GateStateT,
+  type HandoffItemT,
+  isApproveDecision,
+  type MissionDetailT,
+  type MissionOracleAssignmentItemT,
+  type OracleRole,
 } from '@/lib/contracts/forge';
 
 interface OracleCouncilCardProps {
@@ -36,7 +38,7 @@ export function OracleCouncilCard({ detail, onWritten }: OracleCouncilCardProps)
   // Gate ladder rows — five gates, one per Oracle, in lifecycle order.
   const rows = detail.gates.map((g) => {
     const approvalForGate = detail.approvals.find(
-      (a) => a.gateIndex === g.gateIndex && a.decision === 'Approve',
+      (a) => a.gateIndex === g.gateIndex && isApproveDecision(a.decision),
     );
     const handoff = detail.handoffs.find((h) => h.id === g.currentStageHandoffId);
     const attestersOnHandoff = handoff
@@ -61,7 +63,7 @@ export function OracleCouncilCard({ detail, onWritten }: OracleCouncilCardProps)
       setUserIdInput('');
       await onWritten();
     } catch (err) {
-      toast.error((err as Error).message ?? 'Could not appoint Elder Oracle.');
+      toast.error(apiErrorMessage(err, 'Could not appoint Elder Oracle.'));
     } finally {
       setAssigning(false);
     }
