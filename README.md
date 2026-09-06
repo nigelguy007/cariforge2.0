@@ -38,10 +38,10 @@ trail nobody — including the people who built the platform — can quietly edi
 
 ## Who it's for
 
-Primary buyers are Caribbean governments, public agencies, tourism boards,
+Primary buyers are individuals who want to be SMEs, Caribbean governments, private and public sector agencies, tourism boards,
 development organisations, universities, and enterprises that want to
 implement AI but lack a repeatable, governed route from idea to deployment.
-A second segment is the region's own founders and SMEs — a fashion designer
+A second segment is the region's own founders and SMEs — e.g. a fashion designer
 in Trinidad who knows AI could help her shipping paperwork, without needing
 to know what a "readiness score" is.
 
