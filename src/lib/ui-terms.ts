@@ -439,9 +439,17 @@ export function humanise(value: string): string {
 // later decision made by the buyer's own team. One shared phrase, reused
 // everywhere via these constants rather than five ad-hoc rewordings.
 
+// Updated again 2026-09-06 (direct user correction: "this is creating the
+// real build so any reference to prototype needs to be changed" / "state
+// an mvp will be created" / "I want the real build to be created so it's
+// production ready and able to be expanded") — "solution package" ->
+// "MVP", and the code itself now targets production-quality (see
+// ai-draft.ts's draftSoftwareBuildFiles / build-job.ts's system prompts).
+// CariForge still doesn't host/launch it live for you; that boundary
+// stays intentional, just reworded below.
 /** Step 8 of the brief: what step 5 actually produces. Never "deployable build". */
-export const PROTOTYPE_PACKAGE = 'approved, finished, ready-to-use solution package';
+export const PROTOTYPE_PACKAGE = 'approved, production-ready MVP';
 export const PROTOTYPE_PACKAGE_CONTENTS =
-  'a finished, ready-to-use solution, the Project plan, the Operating guide and an evidence receipt';
+  'a production-ready MVP, the Project plan, the Operating guide and an evidence receipt';
 export const PROTOTYPE_BOUNDARY =
-  'This is a finished, ready-to-use solution package for review, not a production deployment. Putting it into production is a separate, later decision made by your own team.';
+  'This is a production-ready MVP for review. CariForge does not host or launch it live for you — putting it into production is a separate, later decision made by your own team.';

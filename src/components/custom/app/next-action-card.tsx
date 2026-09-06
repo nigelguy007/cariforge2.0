@@ -5,8 +5,8 @@
 // (a concern to resolve, a requested action to decide, pause/resume/run
 // again, a task to assign) opens the matching section of Supporting detail
 // where the existing governance component does the work. Terminal states
-// say what was produced — an approved runnable prototype package — and
-// never claim a production deployment.
+// say what was produced — an approved, production-quality MVP — without
+// claiming CariForge itself deployed it live.
 
 'use client';
 
@@ -17,7 +17,12 @@ import { Button } from '@/components/ui/button';
 import { apiFetch } from '@/lib/api-client';
 import { useIsAdmin, useSession } from '@/lib/auth-client';
 import { nextActionFor } from '@/lib/business/forge/next-action';
-import { MissionDetail, type MissionDetailT, type StageName } from '@/lib/contracts/forge';
+import {
+  BuildJobProgress,
+  MissionDetail,
+  type MissionDetailT,
+  type StageName,
+} from '@/lib/contracts/forge';
 import { humaniseCopy, PROTOTYPE_PACKAGE, STAGE_UI, stepNumberLabel } from '@/lib/ui-terms';
 import { DecisionDialog } from './decision-dialog';
 import type { DetailSection } from './supporting-detail';
@@ -175,6 +180,13 @@ export function NextActionCard({
   const [dialogOpen, setDialogOpen] = React.useState(false);
   const [drafting, setDrafting] = React.useState(false);
   const [draftingStep, setDraftingStep] = React.useState<number | null>(null);
+  // File-by-file progress while the SoftwareBuild stage's async job runs
+  // (2026-09-06 — see runBuildJob below). null outside that stage, or
+  // before its planning step reports a file count yet.
+  const [buildProgress, setBuildProgress] = React.useState<{
+    current: number;
+    total: number;
+  } | null>(null);
   const isAdmin = useIsAdmin();
   const { data: session } = useSession();
   // Matches submitHandoff's own server-side rule exactly (isAdmin OR the
@@ -202,6 +214,36 @@ export function NextActionCard({
   // confidence, or the project reaching a terminal state. nextActionFor
   // is the same pure function the server's own /next-action endpoint
   // uses — no guessing at the shape from the client side.
+  // Real production incident (2026-09-06): the SoftwareBuild stage's own
+  // AI call is deliberately sized for ~150s — a real MVP's file/spec
+  // generation genuinely takes that long — but this project's Vercel plan
+  // (Hobby) kills any function at 60s, which showed up live as "says
+  // Working… then crashes". Fixed with a resumable job (build-job/
+  // route.ts) instead of upgrading to Vercel Pro: this polls that job
+  // forward one bounded step at a time (plan, one file, or finalize),
+  // each well under 60s, until it reports Done or Failed. A hard cap
+  // (matching MAX_AUTO_STAGES below) against ever polling forever if a
+  // real bug ever left a job stuck oscillating between two states.
+  const MAX_BUILD_JOB_POLLS = 40;
+  const runBuildJob = async (
+    missionId: string,
+    onProgress: (p: { current: number; total: number } | null) => void,
+  ): Promise<MissionDetailT> => {
+    for (let i = 0; i < MAX_BUILD_JOB_POLLS; i++) {
+      const result = await apiFetch(`/api/forge/missions/${missionId}/build-job`, {
+        method: 'POST',
+        schema: BuildJobProgress,
+      });
+      if (result.status === 'Done') return result.detail;
+      if (result.status === 'Failed')
+        throw new Error(result.error, { cause: { error: result.error } });
+      onProgress(result.status === 'Generating' ? result.progress : null);
+    }
+    throw new Error('apiFetch build-job exceeded its poll cap', {
+      cause: { error: 'This build is taking longer than expected. Try again shortly.' },
+    });
+  };
+
   const MAX_AUTO_STAGES = 5; // one loop iteration per real stage, hard cap against ever looping forever
   const draftWithAi = async () => {
     setDrafting(true);
@@ -220,10 +262,14 @@ export function NextActionCard({
       for (let i = 0; i < MAX_AUTO_STAGES; i++) {
         setDraftingStep(i + 1);
         onDraftingStageChange?.(currentStage);
-        const updated = await apiFetch(`/api/forge/missions/${detail.mission.id}/draft`, {
-          method: 'POST',
-          schema: MissionDetail,
-        });
+        const updated =
+          currentStage === 'SoftwareBuild'
+            ? await runBuildJob(detail.mission.id, setBuildProgress)
+            : await apiFetch(`/api/forge/missions/${detail.mission.id}/draft`, {
+                method: 'POST',
+                schema: MissionDetail,
+              });
+        setBuildProgress(null);
         stepsDrafted += 1;
         const nextView = nextActionFor({
           status: updated.mission.status,
@@ -266,6 +312,7 @@ export function NextActionCard({
     } finally {
       setDrafting(false);
       setDraftingStep(null);
+      setBuildProgress(null);
       onDraftingStageChange?.(null);
     }
   };
@@ -319,7 +366,15 @@ export function NextActionCard({
             }}
           >
             {plan.button.draftWithAi && drafting
-              ? `Working${draftingStep && draftingStep > 1 ? ` (step ${draftingStep})` : ''}…`
+              ? buildProgress
+                ? // The SoftwareBuild stage's own real per-file progress
+                  // (2026-09-06) — this stage takes noticeably longer than
+                  // the others, so a bare "Working…" for a couple of
+                  // minutes reads as stuck; showing which file is
+                  // genuinely in flight fixes that without inventing a
+                  // fake percentage.
+                  `Working (file ${buildProgress.current + 1} of ${buildProgress.total})…`
+                : `Working${draftingStep && draftingStep > 1 ? ` (step ${draftingStep})` : ''}…`
               : plan.button.label}
           </Button>
           <Link href="/missions" className="app-link app-small inline-flex min-h-11 items-center">

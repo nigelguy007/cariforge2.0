@@ -54,7 +54,7 @@ export function MissionReplayForm({
         <option value="1">From Readiness (gate 1)</option>
         <option value="2">From Workflow (gate 2)</option>
         <option value="3">From Governance (gate 3)</option>
-        <option value="4">From Prototype Spec (gate 4)</option>
+        <option value="4">From MVP Build (gate 4)</option>
       </select>
       <input
         className="rounded-md border border-border bg-background px-2 py-1 text-small"

@@ -20,20 +20,29 @@
 // draft anything else — including refusing outright if that gate already
 // has a handoff (matching NextActionCard's own "Draft with AI" button
 // visibility, so this can never draft over an existing undecided step).
+// That guard now lives in draft-context.ts's resolveDraftContext, shared
+// with build-job/route.ts, so both paths enforce it identically.
+//
+// SoftwareBuild redirect (2026-09-06, real production incident: the AI
+// call this stage makes is deliberately sized for ~150s — a real MVP's
+// file/spec generation genuinely takes that long — but this Vercel
+// project's Hobby plan kills any function at 60s, which is exactly what
+// was happening, live, as "says Working… then crashes"). User's explicit
+// choice over upgrading to Vercel Pro: this ONE stage is now handled by
+// build-job/route.ts's resumable, chunked job instead of the single
+// synchronous draftStepOutput call below — see that route and
+// business/forge/build-job.ts for the full design. The other four stages
+// are unaffected; their drafts are fast enough to finish well inside 60s
+// and keep using this endpoint exactly as before.
 import 'server-only';
 import { NextResponse } from 'next/server';
 import { draftStepOutput } from '@/lib/business/forge/ai-draft';
 import { forgeErrorResponse, requireForgeAuth } from '@/lib/business/forge/api-helpers';
 import { reviewAndMaybeAdvance } from '@/lib/business/forge/auto-advance';
-import { nextActionFor } from '@/lib/business/forge/next-action';
+import { resolveDraftContext } from '@/lib/business/forge/draft-context';
 import { getMissionDetail, submitHandoff } from '@/lib/business/forge/service';
 
 export const dynamic = 'force-dynamic';
-
-function summarisePriorHandoff(payload: Record<string, unknown>): string | null {
-  const summary = payload.summary ?? payload.problemStatement;
-  return typeof summary === 'string' && summary.trim() ? summary.trim() : null;
-}
 
 export async function POST(req: Request, ctx: { params: Promise<{ id: string }> }) {
   const auth = await requireForgeAuth(req);
@@ -43,72 +52,21 @@ export async function POST(req: Request, ctx: { params: Promise<{ id: string }> 
     const detail = await getMissionDetail(id, auth.user.id, auth.isAdmin);
     if (!detail) return NextResponse.json({ error: 'Not found' }, { status: 404 });
 
-    const view = nextActionFor({
-      status: detail.mission.status,
-      gates: detail.gates,
-      approvals: detail.approvals,
-      objections: detail.objections,
-      toolActions: detail.toolActions.map((t) => ({
-        id: t.id,
-        decision: t.decision,
-        tool: t.tool,
-        scope: t.scope,
-      })),
-      workItems: detail.workItems ?? [],
-    });
-    // 'ReviseStage' (added 2026-09-05, user's own flow: "ask for more
-    // info - simple step I add more and then resubmit") is a Returned
-    // gate that genuinely needs a NEW draft — unlike 'ApproveGate', it is
-    // EXPECTED to already have a handoff (the one that was returned), so
-    // the "already has a draft" refusal below only applies to the fresh-
-    // draft case.
-    if (view.kind !== 'ApproveGate' && view.kind !== 'ReviseStage') {
+    const ctxResult = resolveDraftContext(detail);
+    if (!ctxResult.ok) {
+      return NextResponse.json({ error: ctxResult.error }, { status: ctxResult.status });
+    }
+    const { stage, priorContext, feedback, evidence } = ctxResult;
+
+    if (stage === 'SoftwareBuild') {
       return NextResponse.json(
         {
           error:
-            'Something else needs attention on this project before CariForge can draft the next step — check the project workspace for what it is.',
+            'The Build stage now runs as a resumable job — call POST .../build-job instead of .../draft for this stage.',
         },
         { status: 409 },
       );
     }
-    const gate = detail.gates.find((g) => g.gateIndex === view.gateIndex);
-    if (view.kind === 'ApproveGate' && gate?.currentStageHandoffId) {
-      return NextResponse.json(
-        { error: 'This step already has a draft awaiting a decision.' },
-        { status: 409 },
-      );
-    }
-    const stage = view.stage;
-
-    const priorContext = detail.handoffs
-      .filter((h) => h.supersededById === null && h.stage !== stage)
-      .sort((a, b) => a.createdAt.localeCompare(b.createdAt))
-      .map((h) => summarisePriorHandoff(h.payload as Record<string, unknown>))
-      .filter((s): s is string => s !== null);
-
-    // Only a real redraft carries feedback — the most recent Return
-    // decision's own reviewer note for this exact gate. ai-draft.ts
-    // already had a `feedback` param built for precisely this ("prior
-    // attempt... unresolved reviewer concerns"); nothing ever populated
-    // it until now.
-    const feedback =
-      view.kind === 'ReviseStage'
-        ? detail.approvals
-            .filter(
-              (a) =>
-                a.gateIndex === view.gateIndex && a.decision === 'Return' && a.reasonText.trim(),
-            )
-            .sort((a, b) => b.at.localeCompare(a.at))
-            .slice(0, 1)
-            .map((a) => a.reasonText.trim())
-        : [];
-
-    // Real gap found live (2026-09-05, functionality pass benchmarked
-    // against Kore.ai's Search/Knowledge AI pillar): attached Evidence
-    // was fetched onto `detail` this whole time and never once reached
-    // the agent drafting the step — grepped ai-draft.ts to confirm it
-    // only ever read intake/normalizedNeed/priorContext.
-    const evidence = detail.evidence.map((e) => ({ label: e.label, kind: e.kind }));
 
     const result = await draftStepOutput({
       stage,

@@ -156,7 +156,10 @@ const STAGE_FOCUS: Readonly<Record<StageName, string>> = {
 
 let cachedClient: Anthropic | null | undefined;
 
-function getClient(): Anthropic | null {
+// Exported (2026-09-06) so build-job.ts's chunked SoftwareBuild path can
+// reuse the exact same client/timeout/degrade posture documented above,
+// instead of a second, drifting copy of this same hard-won config.
+export function getClient(): Anthropic | null {
   if (cachedClient !== undefined) return cachedClient;
   const apiKey = process.env.AI_GATEWAY_API_KEY ?? process.env.ANTHROPIC_API_KEY;
   // timeout/maxRetries: the SDK's own defaults are a 10-MINUTE timeout with

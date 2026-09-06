@@ -121,6 +121,45 @@ model StageHandoff {
   @@index([missionId, createdAt])
 }
 
+// Async, chunked SoftwareBuild generation (2026-09-06, real user-reported
+// production incident: the single synchronous AI call this stage used to
+// make is deliberately sized for a 150s run — the file/spec generation
+// genuinely takes that long for a real MVP — but this Vercel project is on
+// the Hobby plan, which kills any serverless function at 60s. Choice made
+// explicitly by the user over upgrading to Pro: stay on Hobby, make the
+// generation itself resumable instead. One HTTP request now does ONE
+// bounded unit of work (plan the file list, or generate one file's
+// content, or finalize) well under 60s, persists progress here, and
+// returns; the client polls this job forward step by step until Done.
+// See business/forge/build-job.ts for the state machine this drives.
+model SoftwareBuildJob {
+  id            String                 @id @default(cuid())
+  missionId     String
+  status        SoftwareBuildJobStatus @default(Planning)
+  // The file list (path + one-line purpose, no content yet) and the
+  // technical-spec fields, produced by the single "planning" step.
+  // Null until that step completes.
+  plan          Json?
+  // Files completed so far — grows by one GeneratedFileV4 {path, content}
+  // per "generating" step, in plan-list order.
+  files         Json                   @default("[]")
+  nextFileIndex Int                    @default(0)
+  error         String?
+  createdById   String
+  createdAt     DateTime               @default(now())
+  updatedAt     DateTime               @updatedAt
+
+  @@index([missionId, createdAt])
+}
+
+enum SoftwareBuildJobStatus {
+  Planning
+  Generating
+  Finalizing
+  Done
+  Failed
+}
+
 model Approval {
   id                  String           @id @default(cuid())
   missionId           String

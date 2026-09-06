@@ -355,10 +355,13 @@ describe('evidenceViewToDocumentSpec', () => {
     );
     expect(view.isComplete).toBe(true);
     const spec = evidenceViewToDocumentSpec(view);
-    expect(spec.notes).toContain('approved, finished, ready-to-use');
+    // "approved, finished, ready-to-use" -> "approved, production-ready
+    // MVP" (2026-09-06, direct user correction: "state an mvp will be
+    // created").
+    expect(spec.notes).toContain('approved, production-ready MVP');
     expect(spec.notes).toContain('not a production deployment');
     const mayDo = view.questions.find((q) => q.key === 'may-do');
     const boundary = mayDo?.facts.find((f) => f.id === 'production-boundary');
-    expect(boundary?.value).toContain('approved, finished, ready-to-use');
+    expect(boundary?.value).toContain('approved, production-ready MVP');
   });
 });

@@ -820,6 +820,27 @@ export const MissionDetail = z.object({
   handoffAttesters: z.array(StageHandoffAttesterItem),
 });
 
+// Response shape for POST /api/forge/missions/:id/build-job (2026-09-06,
+// see business/forge/build-job.ts's own header for the full "why" — this
+// project's Hobby Vercel plan caps a function at 60s, so the SoftwareBuild
+// stage's real ~150s generation is now resumable across several short
+// polls instead of one long synchronous call). Discriminated on `status`
+// so the client never has to guess which fields are present; `detail` is
+// the exact same MissionDetail shape the synchronous /draft endpoint
+// already returns, so the rest of the client's post-draft handling
+// (toast, onWritten, the auto-chain loop) needs no separate code path
+// once a build reaches Done.
+export const BuildJobProgress = z.discriminatedUnion('status', [
+  z.object({ status: z.literal('Planning') }),
+  z.object({
+    status: z.literal('Generating'),
+    progress: z.object({ current: z.number().int(), total: z.number().int() }),
+  }),
+  z.object({ status: z.literal('Finalizing') }),
+  z.object({ status: z.literal('Done'), detail: MissionDetail }),
+  z.object({ status: z.literal('Failed'), error: z.string() }),
+]);
+
 // === Helpers =================================================================
 
 export function parseList<T>(schema: z.ZodType<T>, raw: unknown): T {

@@ -174,7 +174,7 @@ const GATES = [
   { name: 'Ready for workflow', signer: 'Readiness' },
   { name: 'Workflow approved', signer: 'Workflow' },
   { name: 'Governance clear', signer: 'Governance' },
-  { name: 'Prototype spec approved', signer: 'Elder Oracle' },
+  { name: 'MVP build approved', signer: 'Elder Oracle' },
 ] as const;
 
 // SPECIALIST_ROLE_VALUES from src/lib/contracts/forge.ts — the five voices
