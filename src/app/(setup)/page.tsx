@@ -215,7 +215,7 @@ export default function Home() {
           </span>
 
           <h1 className="cq-display cq-rise" style={{ ['--cq-d' as string]: '0.12s' }}>
-            Software the AI can&rsquo;t sign off on.
+            Software the AI can&rsquo;t sign off on
           </h1>
 
           <p className="cq-lede cq-rise" style={{ ['--cq-d' as string]: '0.2s' }}>
