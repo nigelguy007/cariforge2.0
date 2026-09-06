@@ -189,47 +189,63 @@ Write the COMPLETE, real content for exactly this one file:
 Path: ${args.targetPath}
 Purpose: ${args.targetPurpose}`;
 
-  try {
-    const response = await client.messages.parse(
-      {
-        model: 'anthropic/claude-sonnet-5',
-        // Confirmed live (2026-09-06, Vercel runtime logs): 4_000 truncated
-        // mid-file on a genuinely long, real file (a business-logic
-        // module, not boilerplate) — the JSON-escaped {content: "..."}
-        // wrapper adds overhead on top of the file's own length, so the
-        // model's output hit the cap mid-string and failed to parse
-        // ("Unterminated string in JSON...") on EVERY attempt for that
-        // same file, not intermittently. 8_192 gives real
-        // production-quality files (real validation/error-handling, per
-        // the system prompt above) enough headroom.
-        max_tokens: 8_192,
-        output_config: { effort: 'medium', format: zodOutputFormat(FileContentV4) },
-        system,
-        messages: [{ role: 'user', content: `Write ${args.targetPath} now.` }],
-      },
-      // Overrides getClient()'s 45s default for THIS call only. That
-      // default was set for a different, already-diagnosed pathology
-      // (ai-draft.ts's getClient() comment: a mostly-optional 17-field
-      // schema hanging indefinitely against this Gateway — raising the
-      // timeout there provably didn't help since the call never
-      // progressed at all). FileContentV4 has exactly one required
-      // field, so it doesn't fit that failure shape — confirmed live
-      // (2026-09-06) right after raising max_tokens above: this call
-      // failed with a clean "Request timed out." at 45s, i.e. it was
-      // still actively generating, not hung. getClient()'s own comment
-      // also confirms this project's real function ceiling is ~300s (a
-      // /draft request chaining five 45s-default calls hit that as the
-      // platform limit), so 90s here still leaves the finalize step and
-      // the platform itself comfortable headroom.
-      { timeout: 90_000 },
-    );
-    if (!response.parsed_output) return null;
-    const parsed = FileContentV4.safeParse(response.parsed_output);
-    return parsed.success ? parsed.data.content : null;
-  } catch (err) {
-    console.error('[forge] generateFileContent failed:', err);
-    return null;
+  // File length varies enormously across a real 5-20 file MVP (a
+  // package.json vs. a real upload/validation API route), so no single
+  // static max_tokens is safe for every file. Confirmed live twice
+  // (2026-09-06): 4_000 truncated mid-JSON on one file
+  // ("lib/disclosureRules.ts"), and even after raising it to 8_192 a
+  // DIFFERENT, longer file ("app/api/claims/upload/route.ts") hit the
+  // exact same "Unterminated string in JSON..." failure — the JSON-
+  // escaped {content: "..."} wrapper plus this system prompt's own
+  // demand for real validation/error-handling means some files
+  // genuinely need more room than others. Rather than keep raising one
+  // static number and hitting a new wall on the next long file, retry
+  // ONCE with a much larger budget specifically when the failure looks
+  // like this exact truncation shape (not for other failures — a
+  // genuine timeout or refusal wouldn't be helped by more tokens).
+  const attempts: ReadonlyArray<{ maxTokens: number; timeoutMs: number }> = [
+    { maxTokens: 8_192, timeoutMs: 90_000 },
+    { maxTokens: 20_000, timeoutMs: 150_000 },
+  ];
+  let lastErr: unknown;
+  for (const attempt of attempts) {
+    try {
+      const response = await client.messages.parse(
+        {
+          model: 'anthropic/claude-sonnet-5',
+          max_tokens: attempt.maxTokens,
+          output_config: { effort: 'medium', format: zodOutputFormat(FileContentV4) },
+          system,
+          messages: [{ role: 'user', content: `Write ${args.targetPath} now.` }],
+        },
+        // Overrides getClient()'s 45s default for THIS call only. That
+        // default was set for a different, already-diagnosed pathology
+        // (ai-draft.ts's getClient() comment: a mostly-optional
+        // 17-field schema hanging indefinitely against this Gateway —
+        // raising the timeout there provably didn't help since the call
+        // never progressed at all). FileContentV4 has exactly one
+        // required field, so it doesn't fit that failure shape —
+        // confirmed live (2026-09-06) this call instead failed with a
+        // clean "Request timed out." partway through, i.e. it was still
+        // actively generating, not hung. getClient()'s own comment also
+        // confirms this project's real function ceiling is ~300s (a
+        // /draft request chaining five 45s-default calls hit that as
+        // the platform limit), so even the larger retry here leaves the
+        // finalize step and the platform itself real headroom.
+        { timeout: attempt.timeoutMs },
+      );
+      if (!response.parsed_output) return null;
+      const parsed = FileContentV4.safeParse(response.parsed_output);
+      return parsed.success ? parsed.data.content : null;
+    } catch (err) {
+      lastErr = err;
+      const looksTruncated =
+        err instanceof Error && /unterminated string in json/i.test(err.message);
+      if (!looksTruncated) break; // a real timeout/refusal — more tokens won't fix it, don't retry
+    }
   }
+  console.error('[forge] generateFileContent failed:', lastErr);
+  return null;
 }
 
 export type BuildJobResult =

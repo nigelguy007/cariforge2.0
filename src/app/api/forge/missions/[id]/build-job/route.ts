@@ -21,12 +21,14 @@ import { resolveDraftContext } from '@/lib/business/forge/draft-context';
 import { getMissionDetail } from '@/lib/business/forge/service';
 
 export const dynamic = 'force-dynamic';
-// Explicit, not left to the framework default: this route's own AI call
-// can now run up to 90s (see build-job.ts's generateFileContent comment
-// on why 45s wasn't enough) plus the Prisma write after it. 120s leaves
-// real headroom under the ~300s ceiling this project has already hit
-// live once before (see ai-draft.ts's getClient() comment).
-export const maxDuration = 120;
+// Explicit, not left to the framework default: generateFileContent can
+// now retry once with a much larger budget on a detected truncation
+// (confirmed live 2026-09-06 — see its own comment), so this one route
+// call can run a 90s attempt followed by a 150s retry (240s worst
+// case) plus the Prisma write after it. 280s stays under the ~300s
+// ceiling this project has already hit live once before (see
+// ai-draft.ts's getClient() comment) while covering that worst case.
+export const maxDuration = 280;
 
 export async function POST(req: Request, ctx: { params: Promise<{ id: string }> }) {
   const auth = await requireForgeAuth(req);
