@@ -160,6 +160,30 @@ enum SoftwareBuildJobStatus {
   Failed
 }
 
+// Real user report (2026-09-06): a completed mission's generated files and
+// technical spec existed in StageHandoff.payload all along, but nothing in
+// the UI ever rendered them — "the build is complete however i dont see
+// the files and spec as expected." Also asked for a real "MVP to
+// production" roadmap with concrete next steps, which is more than the
+// existing deploymentNotes field (a short paragraph) provides.
+//
+// This table caches that roadmap (an AI-generated document, one bounded
+// call — see business/forge/deliverables.ts) keyed by mission + kind, so:
+// (1) it's generated once, not re-generated on every page view or every
+// download, and (2) it persists in the database, not browser storage — the
+// explicit ask ("make sure the download remains when the person logs in
+// and out and comeback") is satisfied by this being server-authoritative,
+// not a client-side blob URL. @@unique enforces "generate once per kind".
+model MissionDeliverable {
+  id        String   @id @default(cuid())
+  missionId String
+  kind      String
+  content   Json
+  createdAt DateTime @default(now())
+
+  @@unique([missionId, kind])
+}
+
 model Approval {
   id                  String           @id @default(cuid())
   missionId           String

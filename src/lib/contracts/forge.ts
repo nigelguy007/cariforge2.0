@@ -841,6 +841,38 @@ export const BuildJobProgress = z.discriminatedUnion('status', [
   z.object({ status: z.literal('Failed'), error: z.string() }),
 ]);
 
+// Response shape for GET /api/forge/missions/:id/deliverables (2026-09-06,
+// real user report: a completed mission's generated files and technical
+// spec existed in the database but nothing in the UI ever rendered them).
+// `roadmap` is null only if generation genuinely failed — the panel that
+// renders this degrades gracefully by hiding that section, same posture as
+// the rest of the AI-backed pipeline.
+export const MissionDeliverableFile = z.object({
+  path: z.string(),
+  content: z.string(),
+});
+export const MissionProductionRoadmap = z.object({
+  summary: z.string(),
+  securitySteps: z.array(z.string()),
+  infrastructureSteps: z.array(z.string()),
+  dataSteps: z.array(z.string()),
+  observabilitySteps: z.array(z.string()),
+  testingSteps: z.array(z.string()),
+  costConsiderations: z.array(z.string()),
+  recommendedOrder: z.array(z.string()),
+});
+export const MissionDeliverables = z.object({
+  missionId: z.string(),
+  summary: z.string(),
+  techStack: z.array(z.string()),
+  architectureOverview: z.string(),
+  dataModel: z.string(),
+  apiSurface: z.array(z.string()),
+  deploymentNotes: z.string(),
+  files: z.array(MissionDeliverableFile),
+  roadmap: MissionProductionRoadmap.nullable(),
+});
+
 // === Helpers =================================================================
 
 export function parseList<T>(schema: z.ZodType<T>, raw: unknown): T {
@@ -855,6 +887,7 @@ export type HandoffCorrectInput = z.infer<typeof HandoffCorrect>;
 export type GateDecideInput = z.infer<typeof GateDecide>;
 export type MissionListItemT = z.infer<typeof MissionListItem>;
 export type MissionDetailT = z.infer<typeof MissionDetail>;
+export type MissionDeliverablesT = z.infer<typeof MissionDeliverables>;
 export type HandoffItemT = z.infer<typeof HandoffItem>;
 export type ApprovalItemT = z.infer<typeof ApprovalItem>;
 export type ObjectionItemT = z.infer<typeof ObjectionItem>;

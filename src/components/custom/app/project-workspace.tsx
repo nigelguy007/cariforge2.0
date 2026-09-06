@@ -16,6 +16,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import type { StageName } from '@/lib/contracts/forge';
 import { STEPS } from '@/lib/ui-terms';
 import { AgentActivityPanel, agentActivityDoneCount } from './agent-activity-panel';
+import { MissionDeliverablesPanel } from './mission-deliverables-panel';
 import { NextActionCard } from './next-action-card';
 import { PreparedSummary } from './prepared-summary';
 import { ProjectStepper } from './project-stepper';
@@ -165,6 +166,16 @@ export function ProjectWorkspace({ missionSlug }: { missionSlug: string }) {
         detailId={DETAIL_ID}
         onDraftingStageChange={setDraftingStage}
       />
+
+      {/* Real user report (2026-09-06): "the build is complete however i
+          dont see the files and spec as expected" — the data was in the
+          database all along; this panel is the missing read path. Gated on
+          the mission actually having produced a SoftwareBuild handoff so
+          it doesn't fetch (and 404) for a mission still earlier in the
+          pipeline. */}
+      {detail.handoffs.some((h) => h.stage === 'SoftwareBuild' && h.supersededById === null) ? (
+        <MissionDeliverablesPanel missionId={detail.mission.id} />
+      ) : null}
 
       <div className="flex justify-end">
         {/* .app-glass-cta (custom-style.css): a deliberate, scoped liquid-

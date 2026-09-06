@@ -138,7 +138,11 @@ function planFor(view: ProjectWorkspaceView, isAdmin: boolean, canDraft: boolean
     case 'Complete':
       return {
         heading: 'This project is complete',
-        sentence: `The ${PROTOTYPE_PACKAGE} has been approved. It is a finished, ready-to-use solution with its Project plan, Operating guide and evidence receipt — not a production deployment.`,
+        // Wording changed 2026-09-06 (direct user instruction) — was "...
+        // evidence receipt — not a production deployment.", which read as
+        // a dead end. Now frames the receipt as the input to the next,
+        // separate step rather than a boundary statement.
+        sentence: `The ${PROTOTYPE_PACKAGE} has been approved. It is a finished, ready-to-use solution with its Project plan, Operating guide and evidence receipt to convert into a production deployment.`,
       };
     // User-specified flow (2026-09-05): "If not approved by elder then
     // it's stops apologies and advises user rethink then comeback." A
