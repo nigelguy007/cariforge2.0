@@ -195,7 +195,7 @@ export function SupportingDetail({
       <>
         {isAdmin ? <OracleCouncilCard detail={detail} onWritten={onWritten} /> : null}
         {latestHandoff ? (
-          <div className="app-panel">
+          <div className="app-panel p-5">
             <p className="app-small text-[var(--app-text-muted)]">
               Specialist reviews on the latest step output (
               {stageUiForIndex(STEPS.findIndex((s) => s.stage === latestHandoff.stage)).title},
@@ -306,7 +306,7 @@ export function SupportingDetail({
               key={step.stage}
               id={`${id}-step-${step.number}`}
               tabIndex={-1}
-              className="app-panel scroll-mt-24"
+              className="app-panel scroll-mt-24 p-5"
             >
               <p className="app-body font-medium text-[var(--app-text)]">
                 Step {step.number}: {step.title}
@@ -341,7 +341,7 @@ export function SupportingDetail({
       </>
     ),
     export: (
-      <div className="app-panel">
+      <div className="app-panel p-5">
         <p className="app-body font-medium text-[var(--app-text)]">
           Approved, finished, ready-to-use solution package
         </p>

@@ -7,7 +7,7 @@ import type { SummaryItem } from './use-project-workspace';
 export function PreparedSummary({ items }: { items: readonly SummaryItem[] }) {
   if (items.length === 0) return null;
   return (
-    <section aria-labelledby="prepared-summary-heading" className="app-panel">
+    <section aria-labelledby="prepared-summary-heading" className="app-panel p-5">
       <h2 id="prepared-summary-heading" className="app-caption text-[var(--app-text-muted)]">
         Prepared by CariForge
       </h2>

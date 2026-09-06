@@ -324,7 +324,7 @@ export function NextActionCard({
   return (
     <section
       aria-labelledby="next-action-heading"
-      className={plan.button ? 'app-panel-action' : 'app-panel'}
+      className={plan.button ? 'app-panel-action p-5 sm:p-6' : 'app-panel p-5 sm:p-6'}
     >
       <p className="app-caption text-[var(--app-text-muted)]">
         {isTerminal ? 'Outcome' : 'Your next action'}

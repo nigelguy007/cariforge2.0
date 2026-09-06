@@ -69,7 +69,7 @@ export function MissionDeliverablesPanel({ missionId }: { missionId: string }) {
 
   if (state.status === 'loading') {
     return (
-      <section className="app-panel" aria-busy="true">
+      <section className="app-panel p-5" aria-busy="true">
         <p className="app-caption text-[var(--app-text-muted)]">Loading the MVP build…</p>
       </section>
     );
@@ -81,7 +81,7 @@ export function MissionDeliverablesPanel({ missionId }: { missionId: string }) {
   const { data } = state;
 
   return (
-    <section aria-labelledby="deliverables-heading" className="app-panel">
+    <section aria-labelledby="deliverables-heading" className="app-panel p-5">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <h2 id="deliverables-heading" className="app-caption text-[var(--app-text-muted)]">
