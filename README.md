@@ -86,4 +86,6 @@ bootstrap lives in `db/`.
 
 ## License
 
+Copyright © 2026 CariForge. All rights reserved.
+
 MIT. See [LICENSE](./LICENSE).
