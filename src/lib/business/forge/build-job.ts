@@ -201,15 +201,27 @@ Purpose: ${args.targetPurpose}`;
         // ("Unterminated string in JSON...") on EVERY attempt for that
         // same file, not intermittently. 8_192 gives real
         // production-quality files (real validation/error-handling, per
-        // the system prompt above) enough headroom; still one file per
-        // call, well under the 45s per-call timeout and the platform's
-        // 60s function cap.
+        // the system prompt above) enough headroom.
         max_tokens: 8_192,
         output_config: { effort: 'medium', format: zodOutputFormat(FileContentV4) },
         system,
         messages: [{ role: 'user', content: `Write ${args.targetPath} now.` }],
       },
-      { timeout: 45_000 },
+      // Overrides getClient()'s 45s default for THIS call only. That
+      // default was set for a different, already-diagnosed pathology
+      // (ai-draft.ts's getClient() comment: a mostly-optional 17-field
+      // schema hanging indefinitely against this Gateway — raising the
+      // timeout there provably didn't help since the call never
+      // progressed at all). FileContentV4 has exactly one required
+      // field, so it doesn't fit that failure shape — confirmed live
+      // (2026-09-06) right after raising max_tokens above: this call
+      // failed with a clean "Request timed out." at 45s, i.e. it was
+      // still actively generating, not hung. getClient()'s own comment
+      // also confirms this project's real function ceiling is ~300s (a
+      // /draft request chaining five 45s-default calls hit that as the
+      // platform limit), so 90s here still leaves the finalize step and
+      // the platform itself comfortable headroom.
+      { timeout: 90_000 },
     );
     if (!response.parsed_output) return null;
     const parsed = FileContentV4.safeParse(response.parsed_output);
