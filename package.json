@@ -1,8 +1,8 @@
 {
-  "name": "polsia-app-template",
+  "name": "cariforge2-0",
   "version": "0.3.9",
   "private": true,
-  "description": "Polsia Next.js template with the shadcn UI baseline built in",
+  "description": "CariForge — a governed, seven-agent AI implementation platform for the Caribbean",
   "engines": {
     "node": ">=20.18.1"
   },
