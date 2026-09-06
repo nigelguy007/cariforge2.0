@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { apiFetch } from '@/lib/api-client';
 import { apiErrorMessage } from '@/lib/api-error-message';
+import { apiHref } from '@/lib/api-href';
 import { computeAuditHashChain } from '@/lib/business/forge/assurance-pack';
 import { AssurancePack } from '@/lib/contracts/assurance-pack';
 import { MissionDetail, type MissionDetailT, MissionList } from '@/lib/contracts/forge';
@@ -238,7 +239,7 @@ export function EvidenceRecord({ missionSlug }: { missionSlug: string }) {
             <li>
               <a
                 className="app-link app-small"
-                href={`/api/forge/missions/${detail.mission.id}/export?format=json`}
+                href={apiHref(`/api/forge/missions/${detail.mission.id}/export?format=json`)}
               >
                 Decision record (JSON)
               </a>
@@ -246,7 +247,7 @@ export function EvidenceRecord({ missionSlug }: { missionSlug: string }) {
             <li>
               <a
                 className="app-link app-small"
-                href={`/api/forge/missions/${detail.mission.id}/export?format=csv`}
+                href={apiHref(`/api/forge/missions/${detail.mission.id}/export?format=csv`)}
               >
                 Decision record (CSV)
               </a>
@@ -254,7 +255,7 @@ export function EvidenceRecord({ missionSlug }: { missionSlug: string }) {
             <li>
               <a
                 className="app-link app-small"
-                href={`/api/forge/missions/${detail.mission.id}/export?format=pdf`}
+                href={apiHref(`/api/forge/missions/${detail.mission.id}/export?format=pdf`)}
               >
                 Proof record (PDF)
               </a>

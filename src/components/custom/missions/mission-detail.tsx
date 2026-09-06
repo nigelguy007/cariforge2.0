@@ -16,6 +16,7 @@ import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { apiFetch } from '@/lib/api-client';
 import { apiErrorMessage } from '@/lib/api-error-message';
+import { apiHref } from '@/lib/api-href';
 import {
   type ApprovalItemT,
   GATE_DEFS,
@@ -338,7 +339,7 @@ export function MissionDetail({ missionSlug }: { missionSlug: string }) {
             <div className="flex flex-wrap gap-3">
               <a
                 className="glass-cta inline-flex items-center rounded-full px-4 py-2 text-body"
-                href={`/api/forge/missions/${detail.mission.id}/export?format=json`}
+                href={apiHref(`/api/forge/missions/${detail.mission.id}/export?format=json`)}
                 target="_blank"
                 rel="noreferrer"
               >
@@ -346,7 +347,7 @@ export function MissionDetail({ missionSlug }: { missionSlug: string }) {
               </a>
               <a
                 className="glass-outline-cta inline-flex items-center rounded-full px-4 py-2 text-body"
-                href={`/api/forge/missions/${detail.mission.id}/export?format=csv`}
+                href={apiHref(`/api/forge/missions/${detail.mission.id}/export?format=csv`)}
                 target="_blank"
                 rel="noreferrer"
               >

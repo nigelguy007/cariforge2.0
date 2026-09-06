@@ -51,6 +51,15 @@ export const cspExtraSources: CspExtraSources = {
 
 /** Package-level Next options (transpilePackages, experimental.optimizePackageImports, …). */
 export const userNextConfig: NextConfig = {
+  // 2026-09-06, direct user instruction: embed this exact build under
+  // www.cariforge.com/888 (a Vercel rewrite proxying to a dedicated second
+  // deployment of this same repo, distinct from the app's own root
+  // deployment at cariforge2-0.vercel.app). Env-var-driven so ONLY that
+  // dedicated deployment sets NEXT_BASE_PATH=/888 — cariforge2-0.vercel.app
+  // itself is unaffected (the var is unset there, basePath stays undefined).
+  // Without this, every asset request and internal <Link> navigation
+  // escapes the /888 prefix and 404s through the proxy — confirmed live.
+  basePath: process.env.NEXT_BASE_PATH || undefined,
   // UX review C3 (wireframe v2): the run-only Approval Desk merged into the
   // unified /approvals inbox. Config-level redirect so old bookmarks get a
   // real 308 instead of a streamed page-level redirect.

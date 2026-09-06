@@ -11,6 +11,7 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { apiFetch } from '@/lib/api-client';
 import { apiErrorMessage } from '@/lib/api-error-message';
+import { apiHref } from '@/lib/api-href';
 import { AssurancePack, type AssurancePackT } from '@/lib/contracts/assurance-pack';
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
@@ -169,7 +170,7 @@ export function AssurancePackCard({ missionId }: { missionId: string }) {
         </Button>
         <a
           className="app-link app-small inline-flex min-h-11 items-center"
-          href={`/api/forge/missions/${missionId}/assurance-pack`}
+          href={apiHref(`/api/forge/missions/${missionId}/assurance-pack`)}
           target="_blank"
           rel="noreferrer"
         >

@@ -38,6 +38,7 @@ import { MissionWorkItemsPanel } from '@/components/custom/missions/mission-work
 import { OracleAttestationList } from '@/components/custom/missions/oracle-attestation-list';
 import { OracleCouncilCard } from '@/components/custom/missions/oracle-council-card';
 import { QAReviewCard } from '@/components/custom/missions/qa-review-card';
+import { apiHref } from '@/lib/api-href';
 import { useIsAdmin } from '@/lib/auth-client';
 import { isStaleHandoff } from '@/lib/business/forge/handoffs';
 import type { MissionDetailT } from '@/lib/contracts/forge';
@@ -357,12 +358,18 @@ export function SupportingDetail({
             </Link>
           </li>
           <li>
-            <a className="app-link app-small" href={`/api/forge/missions/${mission.id}/blueprint`}>
+            <a
+              className="app-link app-small"
+              href={apiHref(`/api/forge/missions/${mission.id}/blueprint`)}
+            >
               Project plan (JSON)
             </a>
           </li>
           <li>
-            <a className="app-link app-small" href={`/api/forge/missions/${mission.id}/runbook`}>
+            <a
+              className="app-link app-small"
+              href={apiHref(`/api/forge/missions/${mission.id}/runbook`)}
+            >
               Operating guide (JSON)
             </a>
           </li>

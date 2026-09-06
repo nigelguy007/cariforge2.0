@@ -16,6 +16,7 @@ import { Download, Loader2 } from 'lucide-react';
 import * as React from 'react';
 import { Button } from '@/components/ui/button';
 import { apiFetch } from '@/lib/api-client';
+import { apiHref } from '@/lib/api-href';
 import { MissionDeliverables, type MissionDeliverablesT } from '@/lib/contracts/forge';
 
 type LoadState =
@@ -92,7 +93,7 @@ export function MissionDeliverablesPanel({ missionId }: { missionId: string }) {
           </p>
         </div>
         <Button asChild className="min-h-11">
-          <a href={`/api/forge/missions/${missionId}/download`}>
+          <a href={apiHref(`/api/forge/missions/${missionId}/download`)}>
             <Download aria-hidden="true" className="size-4" />
             Download everything (.zip)
           </a>

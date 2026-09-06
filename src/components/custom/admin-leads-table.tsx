@@ -41,6 +41,7 @@ import {
 } from '@/components/ui/table';
 import { Textarea } from '@/components/ui/textarea';
 import { apiFetch } from '@/lib/api-client';
+import { apiHref } from '@/lib/api-href';
 import {
   LEAD_SEGMENT_VALUES,
   LeadList,
@@ -213,7 +214,7 @@ function SubmissionBlock({ item }: { item: LeadListItem }) {
       </p>
       {item.hasAttachment ? (
         <a
-          href={`/api/admin/leads/${item.id}/attachment`}
+          href={apiHref(`/api/admin/leads/${item.id}/attachment`)}
           className="inline-flex w-fit items-center gap-1 text-xs font-medium text-brand-700 underline-offset-4 hover:underline"
         >
           <Download className="size-3" aria-hidden="true" />
@@ -588,7 +589,7 @@ export function AdminLeadsTable() {
           )}
           <Separator className="my-2 max-w-[120px]" />
           <Button asChild variant="ghost" size="sm">
-            <a href="/api/admin/leads/export" download>
+            <a href={apiHref('/api/admin/leads/export')} download>
               Download empty export
             </a>
           </Button>
