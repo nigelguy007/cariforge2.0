@@ -727,6 +727,10 @@ export default function Home() {
                   <Link href="/pricing">Pricing</Link>
                   <Link href="/compare">Compare</Link>
                   <Link href="/sample-brief">Sample brief</Link>
+                  {/* Added with the Framer "Span" template pass (2026-09-06)
+                      — see /updates' own header comment for the full
+                      context. */}
+                  <Link href="/updates">Updates</Link>
                 </div>
               </div>
               <div>
@@ -735,6 +739,7 @@ export default function Home() {
                   <Link href="/how-the-council-works">The council</Link>
                   <Link href="/pilot/oracle-council">The Oracles</Link>
                   <Link href="/faq">FAQ</Link>
+                  <Link href="/contact">Contact</Link>
                   <CqFooterAuthLink />
                 </div>
               </div>

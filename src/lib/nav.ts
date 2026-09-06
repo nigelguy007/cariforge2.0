@@ -109,6 +109,12 @@ export const navItems: NavItem[] = [
   { label: 'Compare', href: '/compare', group: 'footer', order: 0 },
   { label: 'Pricing', href: '/pricing', group: 'footer', order: 1 },
   { label: 'Testimonials', href: '/testimonials', group: 'footer', order: 2 },
+  // Added with the Framer "Span" template pass (2026-09-06) — see /updates'
+  // own header comment for the full context. Span's page set includes both;
+  // Careers and Waitlist from that same set were explicitly excluded by the
+  // user as not relevant to CariForge's stage.
+  { label: 'Updates', href: '/updates', group: 'footer', order: 2.5 },
+  { label: 'Contact', href: '/contact', group: 'footer', order: 2.6 },
   {
     label: 'How the council works',
     href: '/how-the-council-works',
