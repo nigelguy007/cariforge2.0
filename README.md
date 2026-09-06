@@ -1,9 +1,9 @@
 # CariForge
 
-A governed, seven-agent AI implementation platform, built in the Caribbean, for
+A governed, seven-agent AI implementation platform, built by the Caribbean, for
 the Caribbean. A user states one business goal in plain language; a seven-agent
 delivery core defines the need, checks readiness, designs the workflow, applies
-safeguards, and prepares and tests a solution — stopped, deliberately, at five
+safeguards, and prepares and tests an MVP solution with specifications — stopped, deliberately, at five
 human gates, so a named person decides every consequential transition.
 
 - **Website:** [www.cariforge.com](https://www.cariforge.com)
