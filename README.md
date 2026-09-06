@@ -55,9 +55,8 @@ to know what a "readiness score" is.
   - `cariforgeplatform-web` — the same app embedded at
     [www.cariforge.com/888](https://www.cariforge.com/888) via Next.js
     `basePath`, proxied from the marketing site
-- Built on the Polsia Next.js template (shadcn UI baseline, typed env
-  validation, CSP/security headers, Biome, Vitest) — see `AGENTS.md` and
-  `.polsia/` for how the underlying scaffold's ownership model works if
+- Built on the  Next.js template (shadcn UI baseline, typed env
+  validation, CSP/security headers, Biome, Vitest) — see `AGENTS.md` for how the underlying scaffold's ownership model works if
   you're extending this codebase.
 
 ## Local development
