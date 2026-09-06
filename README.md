@@ -1,9 +1,9 @@
 # CariForge
 
-A governed, seven-agent AI implementation platform, built in the Caribbean, for
+A governed, seven-agent AI implementation platform, built by the Caribbean, for
 the Caribbean. A user states one business goal in plain language; a seven-agent
 delivery core defines the need, checks readiness, designs the workflow, applies
-safeguards, and prepares and tests a solution — stopped, deliberately, at five
+safeguards, and prepares and tests an MVP solution with specifications — stopped, deliberately, at five
 human gates, so a named person decides every consequential transition.
 
 - **Website:** [www.cariforge.com](https://www.cariforge.com)
@@ -38,10 +38,10 @@ trail nobody — including the people who built the platform — can quietly edi
 
 ## Who it's for
 
-Primary buyers are Caribbean governments, public agencies, tourism boards,
+Primary buyers are individuals who want to be SMEs, Caribbean governments, private and public sector agencies, tourism boards,
 development organisations, universities, and enterprises that want to
 implement AI but lack a repeatable, governed route from idea to deployment.
-A second segment is the region's own founders and SMEs — a fashion designer
+A second segment is the region's own founders and SMEs — e.g. a fashion designer
 in Trinidad who knows AI could help her shipping paperwork, without needing
 to know what a "readiness score" is.
 
@@ -55,9 +55,8 @@ to know what a "readiness score" is.
   - `cariforgeplatform-web` — the same app embedded at
     [www.cariforge.com/888](https://www.cariforge.com/888) via Next.js
     `basePath`, proxied from the marketing site
-- Built on the Polsia Next.js template (shadcn UI baseline, typed env
-  validation, CSP/security headers, Biome, Vitest) — see `AGENTS.md` and
-  `.polsia/` for how the underlying scaffold's ownership model works if
+- Built on the  Next.js template (shadcn UI baseline, typed env
+  validation, CSP/security headers, Biome, Vitest) — see `AGENTS.md` for how the underlying scaffold's ownership model works if
   you're extending this codebase.
 
 ## Local development
