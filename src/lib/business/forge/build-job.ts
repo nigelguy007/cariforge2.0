@@ -193,7 +193,18 @@ Purpose: ${args.targetPurpose}`;
     const response = await client.messages.parse(
       {
         model: 'anthropic/claude-sonnet-5',
-        max_tokens: 4_000,
+        // Confirmed live (2026-09-06, Vercel runtime logs): 4_000 truncated
+        // mid-file on a genuinely long, real file (a business-logic
+        // module, not boilerplate) — the JSON-escaped {content: "..."}
+        // wrapper adds overhead on top of the file's own length, so the
+        // model's output hit the cap mid-string and failed to parse
+        // ("Unterminated string in JSON...") on EVERY attempt for that
+        // same file, not intermittently. 8_192 gives real
+        // production-quality files (real validation/error-handling, per
+        // the system prompt above) enough headroom; still one file per
+        // call, well under the 45s per-call timeout and the platform's
+        // 60s function cap.
+        max_tokens: 8_192,
         output_config: { effort: 'medium', format: zodOutputFormat(FileContentV4) },
         system,
         messages: [{ role: 'user', content: `Write ${args.targetPath} now.` }],
