@@ -1373,12 +1373,27 @@
     0 1px 3px oklch(0.09 0.02 var(--brand-h) / 0.85),
     0 1px 16px oklch(0.09 0.02 var(--brand-h) / 0.7);
 }
-/* Same contrast fix as .app-h1 above, scoped to a page's own <header>
-   (title + one-line subtitle — see missions/page.tsx, home-view.tsx and
-   the same pattern repeated on every dashboard page) rather than every
-   .app-body anywhere, so panel-contained body text elsewhere is
-   untouched — it never sits over the halo, so it never needed this. */
-.app-shell header .app-body {
+/* Broadened 2026-09-06 (two more real live screenshots, same words as the
+   .app-h1 report above: "white writing on the l[i]ght background... still
+   not visible", circling a mission page's "Saved …" caption and a
+   ProjectStepper step label). Both sit over the halo's warm-left zone the
+   same way .app-h1 already does, but neither is inside a page's <header>
+   (the narrower rule this replaced), and the stepper label doesn't even
+   use the .app-caption/.app-small CLASS — it sets --app-text-muted via a
+   raw Tailwind arbitrary value, so no selector scoped to specific
+   typography classes could ever catch every current and future instance
+   of this same pattern. Rather than keep chasing individual components,
+   this now sits on .app-shell itself: text-shadow is an inherited
+   property, so every descendant gets it by default. Confirmed safe to
+   apply this broadly, not just to the few spots caught live so far: on
+   this app's actual dark panel backgrounds a dark shadow behind light
+   text is imperceptible (nothing to contrast against), and the one
+   "bright surface" component — Button's primary variant, a near-white
+   pill (--primary: #f5f5f7) — pairs it with near-black text
+   (--primary-foreground: #1d1d1f), where a dark shadow behind near-black
+   text is equally invisible. It only ever becomes visible exactly where
+   it needs to: light/muted text sitting over the halo's bright zone. */
+.app-shell {
   text-shadow:
     0 1px 2px oklch(0.09 0.02 var(--brand-h) / 0.8),
     0 1px 12px oklch(0.09 0.02 var(--brand-h) / 0.6);
