@@ -7,11 +7,18 @@
 // Vercel Pro: stay on Hobby, make the generation itself resumable.
 //
 // Shape: one HTTP request (build-job/route.ts) advances the job by
-// exactly ONE bounded step and returns — well under 60s each time:
+// exactly ONE bounded step and returns. The binding per-request limit is
+// now the 120s proxied-request timeout of the www.cariforge.com/888 Vercel
+// external rewrite users come through (2026-09-28), so each step makes at
+// most one AI call, sized to fit it where possible (see FILE_ATTEMPTS for
+// the one deliberate exception, a last-resort third attempt):
 //   Planning   — one AI call: the file list (path + one-line purpose) and
-//                the full technical spec, NO file content yet.
+//                the full technical spec, NO file content yet. A failed
+//                plan is retried once on the next poll before failing.
 //   Generating — one AI call per poll: this step's ONE target file's full
 //                content, given the plan and what's already been written.
+//                A failed file is retried on the next poll (up to 3
+//                attempts — see FILE_ATTEMPTS) before the job fails.
 //   Finalizing — no AI call: assemble the completed payload and run the
 //                exact same submitHandoff + reviewAndMaybeAdvance path the
 //                synchronous stages already use.
@@ -54,6 +61,18 @@ const SoftwareBuildPlanV4 = z4.object({
   confidence: z4.number().min(0).max(1),
 });
 type SoftwareBuildPlan = z4.infer<typeof SoftwareBuildPlanV4>;
+
+// What the planning call is actually asked for and parsed against: the
+// same shape, minus the `.max(20)` on `files`. zodOutputFormat strips array
+// bounds from the JSON schema it sends to the model, but safeParse still
+// enforces them — confirmed live (2026-09-28): the model returned more than
+// 20 files and the whole plan was rejected ("Too big: expected array to
+// have <=20 items"), losing a ~43s call. The list is dependency-ordered, so
+// planSoftwareBuild keeps the first MAX_PLANNED_FILES instead of rejecting.
+const SoftwareBuildPlanParseV4 = SoftwareBuildPlanV4.extend({
+  files: z4.array(PlannedFileV4).min(5),
+});
+const MAX_PLANNED_FILES = 20;
 
 const FileContentV4 = z4.object({ content: z4.string() });
 
@@ -101,7 +120,7 @@ list and the technical specification. Do NOT write file content here —
 that happens one file at a time in a later step, so keep to path +
 one-line purpose per file.
 
-List 5-20 real files that together implement the workflow described
+List 8-15 real files that together implement the workflow described
 below — the real pages/routes, the real data model, and the real core
 logic implied by the need, workflow steps and governance controls already
 established. Always include a package.json and a README.md among them.
@@ -134,17 +153,26 @@ Set confidence (0-1) honestly: lower if the described workflow was vague.`;
     const response = await client.messages.parse(
       {
         model: 'anthropic/claude-sonnet-5',
-        max_tokens: 4_000,
-        output_config: { effort: 'medium', format: zodOutputFormat(SoftwareBuildPlanV4) },
+        // 4_000 truncated the plan JSON ("Unterminated string in JSON") in
+        // 4 of 5 live attempts (2026-09-28), each ~43s at ~93 output
+        // tokens/s. 8_000 gives the plan room (~86s at that rate), inside
+        // the 115s timeout below.
+        max_tokens: 8_000,
+        output_config: { effort: 'medium', format: zodOutputFormat(SoftwareBuildPlanParseV4) },
         system,
         messages: [{ role: 'user', content: userMessage }],
       },
-      { timeout: 45_000 },
+      // Users reach the app through the www.cariforge.com/888 Vercel
+      // external rewrite, documented with a hard 120s proxied-request
+      // limit — 115s leaves room for the job reads/writes around this call.
+      { timeout: 115_000 },
     );
     if (!response.parsed_output) return null;
-    const parsed = SoftwareBuildPlanV4.safeParse(response.parsed_output);
+    const parsed = SoftwareBuildPlanParseV4.safeParse(response.parsed_output);
     if (!parsed.success) return null;
-    const safeFiles = parsed.data.files.filter((f) => isSafeRelativePath(f.path));
+    const safeFiles = parsed.data.files
+      .filter((f) => isSafeRelativePath(f.path))
+      .slice(0, MAX_PLANNED_FILES);
     if (safeFiles.length === 0) return null;
     return { ...parsed.data, files: safeFiles };
   } catch (err) {
@@ -153,14 +181,91 @@ Set confidence (0-1) honestly: lower if the described workflow was vague.`;
   }
 }
 
+// File length varies enormously across a real 8-15 file MVP (a
+// package.json vs. a real upload/validation API route), so no single
+// static max_tokens is safe for every file. Confirmed live twice
+// (2026-09-06): 4_000 truncated mid-JSON on one file
+// ("lib/disclosureRules.ts"), and even after raising it to 8_192 a
+// DIFFERENT, longer file ("app/api/claims/upload/route.ts") hit the
+// exact same "Unterminated string in JSON..." failure — the JSON-
+// escaped {content: "..."} wrapper plus this system prompt's own
+// demand for real validation/error-handling means some files
+// genuinely need more room than others. That originally became a
+// second, larger attempt (20_000 tokens / 150s) inside the SAME request,
+// but that can push one request past the 120s proxied-request limit of
+// the www.cariforge.com rewrite, and timeouts weren't retried at all —
+// confirmed live (2026-09-28): one 90s timeout at file 18/20 failed the
+// whole build. Now each request makes exactly ONE call, and a failed file
+// (timeout, truncation, bad/empty output) is retried on the client's NEXT
+// poll with an escalating budget, up to FILE_ATTEMPTS.length attempts,
+// before the job is marked Failed.
+//
+// Output is capped by the timeout, not just max_tokens: at the ~93
+// output tokens/s observed live, 100s is ~9_300 tokens, 125s ~11_600 and
+// 230s ~21_400. Attempt 1 fits the rewrite's documented 120s limit.
+// Attempt 2 (125s) leans on a 131s request observed succeeding through
+// that same rewrite (2026-09-28). Attempt 3 (230s) is a deliberate last
+// resort for a genuinely long file: its reply may be lost to the browser
+// at the proxy, but the server keeps running (route maxDuration 280s) and
+// still saves the file, and the user's next click resumes the job at the
+// following file.
+interface FileAttemptBudget {
+  readonly maxTokens: number;
+  readonly timeoutMs: number;
+}
+const FILE_ATTEMPTS: readonly [FileAttemptBudget, ...FileAttemptBudget[]] = [
+  { maxTokens: 8_192, timeoutMs: 100_000 },
+  { maxTokens: 12_000, timeoutMs: 125_000 },
+  { maxTokens: 20_000, timeoutMs: 230_000 },
+];
+
+// Planning gets one retry (two attempts, same budget) on the next poll.
+const PLAN_ATTEMPTS = 2;
+
+// Attempt tracking without a schema change: while a step is being
+// retried, SoftwareBuildJob.error holds a machine-readable marker — the
+// job itself stays Planning/Generating, not Failed:
+//   `retry:plan:<failedAttempts>`            while Planning
+//   `retry:<fileIndex>:<failedAttempts>`     while Generating
+// It is parsed at the start of each step (a file marker whose index isn't
+// the current nextFileIndex is ignored), cleared to null when the step
+// succeeds, and overwritten with the human-readable message if the job is
+// marked Failed. Nothing reads `error` back out to users today; the route
+// only returns BuildJobResult.
+const FILE_RETRY_MARKER = /^retry:(\d+):(\d+)$/;
+const PLAN_RETRY_MARKER = /^retry:plan:(\d+)$/;
+
+function fileRetryMarker(fileIndex: number, failedAttempts: number): string {
+  return `retry:${fileIndex}:${failedAttempts}`;
+}
+
+function planRetryMarker(failedAttempts: number): string {
+  return `retry:plan:${failedAttempts}`;
+}
+
+/** Failed attempts already recorded for this file index (0 if none/stale). */
+function failedFileAttempts(error: string | null, fileIndex: number): number {
+  const match = error ? FILE_RETRY_MARKER.exec(error) : null;
+  if (!match || Number(match[1]) !== fileIndex) return 0;
+  return Number(match[2]);
+}
+
+/** Failed planning attempts already recorded (0 if none). */
+function failedPlanAttempts(error: string | null): number {
+  const match = error ? PLAN_RETRY_MARKER.exec(error) : null;
+  return match ? Number(match[1]) : 0;
+}
+
 async function generateFileContent(args: {
   plan: SoftwareBuildPlan;
   targetPath: string;
   targetPurpose: string;
   doneSoFar: readonly GeneratedFile[];
-}): Promise<string | null> {
+  /** 1-based; picks this call's budget from FILE_ATTEMPTS. */
+  attempt: number;
+}): Promise<{ ok: true; content: string } | { ok: false; error: unknown }> {
   const client = getClient();
-  if (!client) return null;
+  if (!client) return { ok: false, error: new Error('AI client unavailable') };
 
   // Full content of already-generated files the target file might
   // reasonably import from or need to match the shape of — capped so this
@@ -178,7 +283,11 @@ governed project — a production-quality MVP, not a placeholder or a
 "hello world". Build it to production-quality standards for its scope:
 real input validation, real error handling (no swallowed errors, no
 bare happy-path-only logic), and code a second developer could pick up
-cold. Never truncate mid-file, never hardcode a real secret/API key.
+cold. Keep the file focused and under ~400 lines: if a full
+implementation would be longer, implement the core path completely and
+note in a code comment what remains. Either way the file you return must
+be complete and valid — never stop mid-file, never hardcode a real
+secret/API key.
 
 Architecture this file must fit (already decided): ${args.plan.architectureOverview}
 Tech stack: ${args.plan.techStack.join(', ')}
@@ -189,63 +298,38 @@ Write the COMPLETE, real content for exactly this one file:
 Path: ${args.targetPath}
 Purpose: ${args.targetPurpose}`;
 
-  // File length varies enormously across a real 5-20 file MVP (a
-  // package.json vs. a real upload/validation API route), so no single
-  // static max_tokens is safe for every file. Confirmed live twice
-  // (2026-09-06): 4_000 truncated mid-JSON on one file
-  // ("lib/disclosureRules.ts"), and even after raising it to 8_192 a
-  // DIFFERENT, longer file ("app/api/claims/upload/route.ts") hit the
-  // exact same "Unterminated string in JSON..." failure — the JSON-
-  // escaped {content: "..."} wrapper plus this system prompt's own
-  // demand for real validation/error-handling means some files
-  // genuinely need more room than others. Rather than keep raising one
-  // static number and hitting a new wall on the next long file, retry
-  // ONCE with a much larger budget specifically when the failure looks
-  // like this exact truncation shape (not for other failures — a
-  // genuine timeout or refusal wouldn't be helped by more tokens).
-  const attempts: ReadonlyArray<{ maxTokens: number; timeoutMs: number }> = [
-    { maxTokens: 8_192, timeoutMs: 90_000 },
-    { maxTokens: 20_000, timeoutMs: 150_000 },
-  ];
-  let lastErr: unknown;
-  for (const attempt of attempts) {
-    try {
-      const response = await client.messages.parse(
-        {
-          model: 'anthropic/claude-sonnet-5',
-          max_tokens: attempt.maxTokens,
-          output_config: { effort: 'medium', format: zodOutputFormat(FileContentV4) },
-          system,
-          messages: [{ role: 'user', content: `Write ${args.targetPath} now.` }],
-        },
-        // Overrides getClient()'s 45s default for THIS call only. That
-        // default was set for a different, already-diagnosed pathology
-        // (ai-draft.ts's getClient() comment: a mostly-optional
-        // 17-field schema hanging indefinitely against this Gateway —
-        // raising the timeout there provably didn't help since the call
-        // never progressed at all). FileContentV4 has exactly one
-        // required field, so it doesn't fit that failure shape —
-        // confirmed live (2026-09-06) this call instead failed with a
-        // clean "Request timed out." partway through, i.e. it was still
-        // actively generating, not hung. getClient()'s own comment also
-        // confirms this project's real function ceiling is ~300s (a
-        // /draft request chaining five 45s-default calls hit that as
-        // the platform limit), so even the larger retry here leaves the
-        // finalize step and the platform itself real headroom.
-        { timeout: attempt.timeoutMs },
-      );
-      if (!response.parsed_output) return null;
-      const parsed = FileContentV4.safeParse(response.parsed_output);
-      return parsed.success ? parsed.data.content : null;
-    } catch (err) {
-      lastErr = err;
-      const looksTruncated =
-        err instanceof Error && /unterminated string in json/i.test(err.message);
-      if (!looksTruncated) break; // a real timeout/refusal — more tokens won't fix it, don't retry
-    }
+  const budget = FILE_ATTEMPTS[args.attempt - 1] ?? FILE_ATTEMPTS[0];
+  try {
+    const response = await client.messages.parse(
+      {
+        model: 'anthropic/claude-sonnet-5',
+        max_tokens: budget.maxTokens,
+        output_config: { effort: 'medium', format: zodOutputFormat(FileContentV4) },
+        system,
+        messages: [{ role: 'user', content: `Write ${args.targetPath} now.` }],
+      },
+      // Overrides getClient()'s 45s default for THIS call only. That
+      // default was set for a different, already-diagnosed pathology
+      // (ai-draft.ts's getClient() comment: a mostly-optional
+      // 17-field schema hanging indefinitely against this Gateway —
+      // raising the timeout there provably didn't help since the call
+      // never progressed at all). FileContentV4 has exactly one
+      // required field, so it doesn't fit that failure shape —
+      // confirmed live (2026-09-06) this call instead failed with a
+      // clean "Request timed out." partway through, i.e. it was still
+      // actively generating, not hung. The ceiling that matters now is
+      // the 120s proxied-request limit of the www.cariforge.com rewrite —
+      // see FILE_ATTEMPTS for how each attempt's timeout relates to it.
+      { timeout: budget.timeoutMs },
+    );
+    if (!response.parsed_output) return { ok: false, error: new Error('No parsed output') };
+    const parsed = FileContentV4.safeParse(response.parsed_output);
+    return parsed.success
+      ? { ok: true, content: parsed.data.content }
+      : { ok: false, error: parsed.error };
+  } catch (err) {
+    return { ok: false, error: err };
   }
-  console.error('[forge] generateFileContent failed:', lastErr);
-  return null;
 }
 
 export type BuildJobResult =
@@ -254,11 +338,45 @@ export type BuildJobResult =
   | { readonly status: 'Done'; readonly detail: MissionDetailT }
   | { readonly status: 'Failed'; readonly error: string };
 
+/** A conditional write matched nothing: another, overlapping request
+ *  already moved this job on. Re-read it and report where it actually is,
+ *  rather than overwriting that newer state. */
+async function currentJobState(
+  jobId: string,
+  args: { missionId: string; userId: string; isAdmin: boolean },
+): Promise<BuildJobResult> {
+  const current = await prisma.softwareBuildJob.findUnique({ where: { id: jobId } });
+  const generic: BuildJobResult = {
+    status: 'Failed',
+    error: 'CariForge could not continue this build right now. Try again shortly.',
+  };
+  if (!current) return generic;
+  switch (current.status) {
+    case 'Planning':
+    case 'Finalizing':
+      return { status: current.status };
+    case 'Generating': {
+      const plan = current.plan as unknown as SoftwareBuildPlan | null;
+      return {
+        status: 'Generating',
+        progress: { current: current.nextFileIndex, total: plan?.files.length ?? 0 },
+      };
+    }
+    case 'Done': {
+      const detail = await getMissionDetail(args.missionId, args.userId, args.isAdmin);
+      return detail ? { status: 'Done', detail } : generic;
+    }
+    default:
+      return generic;
+  }
+}
+
 /** Advances (creating if needed) the active SoftwareBuildJob for this
  *  mission by exactly one bounded step, and returns its new state. Safe
  *  to call repeatedly from a client poll loop — each call does real work
  *  and persists progress before returning, so a call that itself times
- *  out or fails only loses ONE file's worth of work, not the whole build. */
+ *  out or fails only loses ONE file's worth of work, not the whole build —
+ *  and that file is retried on the next call before the job is failed. */
 export async function advanceSoftwareBuildJob(args: {
   missionId: string;
   userId: string;
@@ -281,6 +399,7 @@ export async function advanceSoftwareBuildJob(args: {
 
   try {
     if (job.status === 'Planning') {
+      const planAttempt = failedPlanAttempts(job.error) + 1;
       const plan = await planSoftwareBuild({
         need: args.need,
         priorContext: args.priorContext,
@@ -288,19 +407,37 @@ export async function advanceSoftwareBuildJob(args: {
         evidence: args.evidence,
       });
       if (!plan) {
-        await prisma.softwareBuildJob.update({
-          where: { id: job.id },
+        if (planAttempt < PLAN_ATTEMPTS) {
+          // Not fatal yet: stay Planning and let the client's next poll
+          // (it keeps polling on { status: 'Planning' }) plan again.
+          console.warn(
+            `[forge] planSoftwareBuild failed (attempt ${planAttempt}/${PLAN_ATTEMPTS}), will retry`,
+          );
+          const marked = await prisma.softwareBuildJob.updateMany({
+            where: { id: job.id, status: 'Planning' },
+            data: { error: planRetryMarker(planAttempt) },
+          });
+          if (marked.count === 0) return currentJobState(job.id, args);
+          return { status: 'Planning' };
+        }
+        const failed = await prisma.softwareBuildJob.updateMany({
+          where: { id: job.id, status: 'Planning' },
           data: { status: 'Failed', error: 'CariForge could not plan this build right now.' },
         });
+        if (failed.count === 0) return currentJobState(job.id, args);
         return {
           status: 'Failed',
           error: 'CariForge could not plan this build right now. Try again shortly.',
         };
       }
-      await prisma.softwareBuildJob.update({
-        where: { id: job.id },
-        data: { plan, status: 'Generating', nextFileIndex: 0 },
+      // Conditional on still being Planning, so a slow, overlapping request
+      // can never overwrite a plan another request already saved (and
+      // reset its progress) — it reports that job's current state instead.
+      const saved = await prisma.softwareBuildJob.updateMany({
+        where: { id: job.id, status: 'Planning' },
+        data: { plan, status: 'Generating', nextFileIndex: 0, error: null },
       });
+      if (saved.count === 0) return currentJobState(job.id, args);
       return { status: 'Generating', progress: { current: 0, total: plan.files.length } };
     }
 
@@ -317,27 +454,65 @@ export async function advanceSoftwareBuildJob(args: {
         });
         return { status: 'Finalizing' };
       }
-      const content = await generateFileContent({
+      // Every write below is conditional on the job still being on THIS
+      // file, so a slow, overlapping request (e.g. one whose reply the
+      // proxy already dropped) can never move a job that has since been
+      // advanced, finalized or failed backwards — it reports that job's
+      // current state instead.
+      const sameStep = {
+        id: job.id,
+        status: 'Generating' as const,
+        nextFileIndex: job.nextFileIndex,
+      };
+      const attempt = failedFileAttempts(job.error, job.nextFileIndex) + 1;
+      const generated = await generateFileContent({
         plan,
         targetPath: target.path,
         targetPurpose: target.purpose,
         doneSoFar: doneFiles,
+        attempt,
       });
-      if (content === null) {
-        await prisma.softwareBuildJob.update({
-          where: { id: job.id },
+      if (!generated.ok) {
+        if (attempt < FILE_ATTEMPTS.length) {
+          // Not fatal yet: leave nextFileIndex/files alone and record the
+          // attempt, so the client's next poll retries this same file with
+          // the next (larger) budget — see FILE_ATTEMPTS.
+          console.warn(
+            `[forge] generateFileContent failed for ${target.path} (attempt ${attempt}/${FILE_ATTEMPTS.length}), will retry:`,
+            generated.error,
+          );
+          const marked = await prisma.softwareBuildJob.updateMany({
+            where: sameStep,
+            data: { error: fileRetryMarker(job.nextFileIndex, attempt) },
+          });
+          if (marked.count === 0) return currentJobState(job.id, args);
+          return {
+            status: 'Generating',
+            progress: { current: job.nextFileIndex, total: plan.files.length },
+          };
+        }
+        console.error(
+          `[forge] generateFileContent failed for ${target.path} (attempt ${attempt}/${FILE_ATTEMPTS.length}), giving up:`,
+          generated.error,
+        );
+        const failed = await prisma.softwareBuildJob.updateMany({
+          where: sameStep,
           data: { status: 'Failed', error: `CariForge could not generate ${target.path}.` },
         });
+        if (failed.count === 0) return currentJobState(job.id, args);
         return {
           status: 'Failed',
           error: `CariForge could not generate ${target.path}. Try again shortly.`,
         };
       }
-      const updatedFiles: GeneratedFile[] = [...doneFiles, { path: target.path, content }];
+      const updatedFiles: GeneratedFile[] = [
+        ...doneFiles,
+        { path: target.path, content: generated.content },
+      ];
       const nextIndex = job.nextFileIndex + 1;
       const nowDone = nextIndex >= plan.files.length;
-      await prisma.softwareBuildJob.update({
-        where: { id: job.id },
+      const saved = await prisma.softwareBuildJob.updateMany({
+        where: sameStep,
         data: {
           // Cast, not `any`: GeneratedFile's `readonly` fields don't
           // structurally satisfy Prisma's mutable InputJsonObject index
@@ -348,8 +523,11 @@ export async function advanceSoftwareBuildJob(args: {
           files: updatedFiles as unknown as Prisma.InputJsonValue,
           nextFileIndex: nextIndex,
           status: nowDone ? 'Finalizing' : 'Generating',
+          // Clears any retry marker left by earlier failed attempts.
+          error: null,
         },
       });
+      if (saved.count === 0) return currentJobState(job.id, args);
       return nowDone
         ? { status: 'Finalizing' }
         : { status: 'Generating', progress: { current: nextIndex, total: plan.files.length } };

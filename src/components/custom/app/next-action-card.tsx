@@ -227,8 +227,11 @@ export function NextActionCard({
   // forward one bounded step at a time (plan, one file, or finalize),
   // each well under 60s, until it reports Done or Failed. A hard cap
   // (matching MAX_AUTO_STAGES below) against ever polling forever if a
-  // real bug ever left a job stuck oscillating between two states.
-  const MAX_BUILD_JOB_POLLS = 40;
+  // real bug ever left a job stuck oscillating between two states. 64
+  // (was 40) covers the worst legitimate case now that failed steps are
+  // retried on the next poll (2026-09-28): plan ×2 + 20 files ×3 +
+  // finalize = 63.
+  const MAX_BUILD_JOB_POLLS = 64;
   const runBuildJob = async (
     missionId: string,
     onProgress: (p: { current: number; total: number } | null) => void,
