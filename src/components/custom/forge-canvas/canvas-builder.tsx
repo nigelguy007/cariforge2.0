@@ -44,6 +44,7 @@ import {
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { apiFetch } from '@/lib/api-client';
+import { withBasePath } from '@/lib/api-href';
 import { blueprintToYaml, yamlToBlueprint } from '@/lib/business/forge-canvas/yaml';
 import {
   BlueprintItem,
@@ -665,7 +666,7 @@ export function ForgeCanvasBuilder() {
               the mission that spawned them. */}
           {missionLink ? (
             <a
-              href={`/missions/${missionLink.slug}`}
+              href={withBasePath(`/missions/${missionLink.slug}`)}
               className="inline-flex h-9 items-center gap-1 rounded-full border border-brand-300/60 bg-brand-50 px-3 text-xs text-brand-700 hover:underline"
               title={`This blueprint belongs to mission "${missionLink.name}"`}
             >

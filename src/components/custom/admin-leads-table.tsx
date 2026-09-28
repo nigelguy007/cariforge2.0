@@ -375,7 +375,7 @@ interface ExportCopyProps {
 }
 
 function ExportButton({ filter }: ExportCopyProps) {
-  const href = `/api/admin/leads/export${filterParamSuffix(filter)}`;
+  const href = apiHref(`/api/admin/leads/export${filterParamSuffix(filter)}`);
   return (
     <Button asChild variant="outline" size="sm">
       {/* Native <a download> preserves the auth cookie + browser download UX.

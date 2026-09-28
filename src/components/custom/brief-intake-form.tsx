@@ -40,6 +40,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { apiFetch } from '@/lib/api-client';
+import { withBasePath } from '@/lib/api-href';
 import { useSession } from '@/lib/auth-client';
 import type { ConfiguratorResultT } from '@/lib/contracts/configurator';
 import {
@@ -61,7 +62,10 @@ async function uploadAttachment(leadId: string, file: File): Promise<boolean> {
   const body = new FormData();
   body.append('file', file);
   try {
-    const res = await fetch(`/api/leads/${leadId}/attachment`, { method: 'POST', body });
+    const res = await fetch(withBasePath(`/api/leads/${leadId}/attachment`), {
+      method: 'POST',
+      body,
+    });
     return res.ok;
   } catch {
     return false;
@@ -81,7 +85,7 @@ function BriefDashboardCta({ leadId, briefText }: { leadId: string; briefText: s
   if (session?.user) {
     return (
       <a
-        href="/dashboard"
+        href={withBasePath('/dashboard')}
         className="glass-cta inline-flex w-fit items-center justify-center rounded-full px-4 py-2 text-small"
       >
         Track it in your dashboard
@@ -114,13 +118,13 @@ function BriefDashboardCta({ leadId, briefText }: { leadId: string; briefText: s
       </p>
       <div className="flex flex-wrap gap-2">
         <a
-          href={`/signup?lead=${leadId}&intake=${encodeURIComponent(briefText)}`}
+          href={withBasePath(`/signup?lead=${leadId}&intake=${encodeURIComponent(briefText)}`)}
           className="glass-cta inline-flex items-center justify-center rounded-full px-4 py-2 text-small"
         >
           Sign up
         </a>
         <a
-          href="/login"
+          href={withBasePath('/login')}
           className="glass-outline-cta inline-flex items-center justify-center rounded-full px-4 py-2 text-small"
         >
           Log in
@@ -330,7 +334,10 @@ export function BriefIntakeForm() {
           <span aria-hidden="true" className="text-muted-foreground">
             ·
           </span>
-          <a href="/" className="font-medium text-primary underline underline-offset-4">
+          <a
+            href={withBasePath('/')}
+            className="font-medium text-primary underline underline-offset-4"
+          >
             Back to homepage
           </a>
         </div>

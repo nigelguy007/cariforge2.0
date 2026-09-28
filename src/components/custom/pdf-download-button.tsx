@@ -5,6 +5,7 @@ import { Download, Loader2 } from 'lucide-react';
 import type * as React from 'react';
 import { useState } from 'react';
 import { Button, type ButtonProps } from '@/components/ui/button';
+import { withBasePath } from '@/lib/api-href';
 import type { DocumentSpec } from '@/lib/pdf/schema';
 
 export interface PdfDownloadButtonProps extends Omit<ButtonProps, 'onClick' | 'children'> {
@@ -26,7 +27,7 @@ export function PdfDownloadButton({
     if (loading) return;
     setLoading(true);
     try {
-      const res = await fetch('/api/pdf/document', {
+      const res = await fetch(withBasePath('/api/pdf/document'), {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify(documentSpec),

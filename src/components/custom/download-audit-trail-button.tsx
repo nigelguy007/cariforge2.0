@@ -13,6 +13,7 @@ import { Download, Loader2 } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
+import { withBasePath } from '@/lib/api-href';
 
 export interface DownloadAuditTrailButtonProps {
   caseId?: string;
@@ -26,7 +27,7 @@ export function DownloadAuditTrailButton({ caseId, className }: DownloadAuditTra
     if (loading) return;
     setLoading(true);
     try {
-      const res = await fetch('/api/sample-brief/audit-pdf', {
+      const res = await fetch(withBasePath('/api/sample-brief/audit-pdf'), {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify({ caseId: caseId ?? 'CARIFORGE-EU-CLAIMS-2026-Q2-014' }),

@@ -60,6 +60,27 @@ export const userNextConfig: NextConfig = {
   // Without this, every asset request and internal <Link> navigation
   // escapes the /888 prefix and 404s through the proxy — confirmed live.
   basePath: process.env.NEXT_BASE_PATH || undefined,
+  // 2026-09-28: the /888 build also needs the browser-side values derived
+  // from that same basePath, and they were never set on the deployment:
+  // - NEXT_PUBLIC_BASE_PATH feeds withBasePath()/apiHref() (hand-built
+  //   navigations and raw fetches). Unset, sign-in sent users to the bare
+  //   `/home`, i.e. the marketing site's 404, not `/888/home`.
+  // - NEXT_PUBLIC_API_URL is apiFetch's base (framework-owned client). Unset,
+  //   every apiFetch('/api/...') left the /888 prefix and 404'd on the
+  //   marketing site (only /api/auth/* is forwarded there). It must be a full
+  //   URL (env.ts validates z.string().url()), so it is the public origin
+  //   this deployment is served under.
+  // Derived here so they can never drift from NEXT_BASE_PATH; an explicitly
+  // set env var still wins. The root deployment (no NEXT_BASE_PATH) gets
+  // neither, so its behaviour is unchanged.
+  env: process.env.NEXT_BASE_PATH
+    ? {
+        NEXT_PUBLIC_BASE_PATH: process.env.NEXT_PUBLIC_BASE_PATH || process.env.NEXT_BASE_PATH,
+        NEXT_PUBLIC_API_URL:
+          process.env.NEXT_PUBLIC_API_URL ||
+          `https://www.cariforge.com${process.env.NEXT_BASE_PATH}`,
+      }
+    : {},
   // UX review C3 (wireframe v2): the run-only Approval Desk merged into the
   // unified /approvals inbox. Config-level redirect so old bookmarks get a
   // real 308 instead of a streamed page-level redirect.
