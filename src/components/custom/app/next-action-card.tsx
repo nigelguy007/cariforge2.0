@@ -17,6 +17,7 @@ import { Button } from '@/components/ui/button';
 import { apiFetch } from '@/lib/api-client';
 import { useIsAdmin, useSession } from '@/lib/auth-client';
 import { nextActionFor } from '@/lib/business/forge/next-action';
+import { pollBuildJob } from '@/lib/business/forge/poll-build-job';
 import {
   BuildJobProgress,
   MissionDetail,
@@ -225,31 +226,21 @@ export function NextActionCard({
   // Working… then crashes". Fixed with a resumable job (build-job/
   // route.ts) instead of upgrading to Vercel Pro: this polls that job
   // forward one bounded step at a time (plan, one file, or finalize),
-  // each well under 60s, until it reports Done or Failed. A hard cap
-  // (matching MAX_AUTO_STAGES below) against ever polling forever if a
-  // real bug ever left a job stuck oscillating between two states. 64
-  // (was 40) covers the worst legitimate case now that failed steps are
-  // retried on the next poll (2026-09-28): plan ×2 + 20 files ×3 +
-  // finalize = 63.
-  const MAX_BUILD_JOB_POLLS = 64;
-  const runBuildJob = async (
+  // each well under 60s, until it reports Done or Failed. The loop itself (poll cap, and waiting out replies lost to the
+  // www.cariforge.com rewrite's 120s cutoff) lives in poll-build-job.ts so
+  // it can be unit tested; this just supplies the real request.
+  const runBuildJob = (
     missionId: string,
     onProgress: (p: { current: number; total: number } | null) => void,
-  ): Promise<MissionDetailT> => {
-    for (let i = 0; i < MAX_BUILD_JOB_POLLS; i++) {
-      const result = await apiFetch(`/api/forge/missions/${missionId}/build-job`, {
-        method: 'POST',
-        schema: BuildJobProgress,
-      });
-      if (result.status === 'Done') return result.detail;
-      if (result.status === 'Failed')
-        throw new Error(result.error, { cause: { error: result.error } });
-      onProgress(result.status === 'Generating' ? result.progress : null);
-    }
-    throw new Error('apiFetch build-job exceeded its poll cap', {
-      cause: { error: 'This build is taking longer than expected. Try again shortly.' },
+  ): Promise<MissionDetailT> =>
+    pollBuildJob({
+      poll: () =>
+        apiFetch(`/api/forge/missions/${missionId}/build-job`, {
+          method: 'POST',
+          schema: BuildJobProgress,
+        }),
+      onProgress,
     });
-  };
 
   const MAX_AUTO_STAGES = 5; // one loop iteration per real stage, hard cap against ever looping forever
   const draftWithAi = async () => {

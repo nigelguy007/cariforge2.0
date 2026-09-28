@@ -19,6 +19,11 @@
 //                content, given the plan and what's already been written.
 //                A failed file is retried on the next poll (up to 3
 //                attempts — see FILE_ATTEMPTS) before the job fails.
+// Each step is single-flight: a request claims the current step with a
+// lease (see "Single-flight" below) before its AI call, and any other
+// request arriving meanwhile (a double click, a second tab, or the client
+// re-polling after the proxy dropped a long attempt's reply) waits for
+// that attempt instead of starting a duplicate.
 //   Finalizing — no AI call: assemble the completed payload and run the
 //                exact same submitHandoff + reviewAndMaybeAdvance path the
 //                synchronous stages already use.
@@ -31,6 +36,7 @@ import type { MissionDetailT } from '@/lib/contracts/forge';
 import { prisma } from '@/lib/db';
 import { getClient } from './ai-draft';
 import { reviewAndMaybeAdvance } from './auto-advance';
+import { assessStep, type BuildStep, retryMarker, runMarker } from './build-job-markers';
 import { getMissionDetail, submitHandoff } from './service';
 
 const PlannedFileV4 = z4.object({
@@ -165,7 +171,7 @@ Set confidence (0-1) honestly: lower if the described workflow was vague.`;
       // Users reach the app through the www.cariforge.com/888 Vercel
       // external rewrite, documented with a hard 120s proxied-request
       // limit — 115s leaves room for the job reads/writes around this call.
-      { timeout: 115_000 },
+      { timeout: PLAN_TIMEOUT_MS },
     );
     if (!response.parsed_output) return null;
     const parsed = SoftwareBuildPlanParseV4.safeParse(response.parsed_output);
@@ -207,8 +213,8 @@ Set confidence (0-1) honestly: lower if the described workflow was vague.`;
 // that same rewrite (2026-09-28). Attempt 3 (230s) is a deliberate last
 // resort for a genuinely long file: its reply may be lost to the browser
 // at the proxy, but the server keeps running (route maxDuration 280s) and
-// still saves the file, and the user's next click resumes the job at the
-// following file.
+// still saves the file; the client's re-poll waits on that attempt's lease
+// (see "Single-flight" below) rather than starting a duplicate.
 interface FileAttemptBudget {
   readonly maxTokens: number;
   readonly timeoutMs: number;
@@ -220,41 +226,44 @@ const FILE_ATTEMPTS: readonly [FileAttemptBudget, ...FileAttemptBudget[]] = [
 ];
 
 // Planning gets one retry (two attempts, same budget) on the next poll.
-const PLAN_ATTEMPTS = 2;
+const PLAN_TIMEOUT_MS = 115_000;
+const PLAN_ATTEMPT_TIMEOUTS: readonly number[] = [PLAN_TIMEOUT_MS, PLAN_TIMEOUT_MS];
+const FILE_ATTEMPT_TIMEOUTS: readonly number[] = FILE_ATTEMPTS.map((a) => a.timeoutMs);
 
-// Attempt tracking without a schema change: while a step is being
-// retried, SoftwareBuildJob.error holds a machine-readable marker — the
-// job itself stays Planning/Generating, not Failed:
-//   `retry:plan:<failedAttempts>`            while Planning
-//   `retry:<fileIndex>:<failedAttempts>`     while Generating
-// It is parsed at the start of each step (a file marker whose index isn't
-// the current nextFileIndex is ignored), cleared to null when the step
-// succeeds, and overwritten with the human-readable message if the job is
-// marked Failed. Nothing reads `error` back out to users today; the route
-// only returns BuildJobResult.
-const FILE_RETRY_MARKER = /^retry:(\d+):(\d+)$/;
-const PLAN_RETRY_MARKER = /^retry:plan:(\d+)$/;
+// Single-flight + retry tracking, without a schema change: the nullable
+// SoftwareBuildJob.error column doubles as a per-step LEASE and RETRY
+// marker (formats and parsers in build-job-markers.ts), and only holds a
+// human message once the job is Failed. It is never shown to users — the
+// route only returns BuildJobResult, and no response here includes it.
+//   run:<step>:<attempt>:<startedAtMs>  an attempt is in flight
+//   retry:<step>:<failedCount>          the last attempt failed
+// where <step> is `plan` or the file index. Why: confirmed in the local e2e
+// harness (2026-09-28) — after the proxy dropped attempt 3's reply at 120s,
+// the client's re-poll started a DUPLICATE attempt 3 for the same file;
+// the duplicate failed first and marked the job Failed, then the original
+// succeeded but its conditional write no-oped, so a good file was thrown
+// away and the build lost. Now, per step:
+//   1. A live lease for this step (younger than that attempt's timeout +
+//      LEASE_GRACE_MS) → no AI call; long-poll the job for up to
+//      LONG_POLL_MS and report what it becomes (waitWhileInFlight).
+//   2. A stale lease (the function was killed before writing) counts as
+//      that attempt having failed.
+//   3. Claim the next attempt with a conditional write on the exact
+//      `error` value observed; losing that race means another request
+//      claimed or advanced the step → report current state, no AI call.
+//   4. The result write is conditional on still holding OUR lease, so a
+//      lease taken over as stale can never be overwritten by a late result.
+// Finalize makes no AI call of its own, but reviewAndMaybeAdvance does:
+// for SoftwareBuild, one Oracle review and at most one reconciliation,
+// each bounded by getClient()'s 45s timeout (no redraft for this stage —
+// see auto-advance.ts). 2 x 45s plus the handoff/DB writes and margin.
+const FINALIZE_BUDGET_MS = 150_000;
+const FINALIZE_ATTEMPT_TIMEOUTS: readonly number[] = [FINALIZE_BUDGET_MS];
 
-function fileRetryMarker(fileIndex: number, failedAttempts: number): string {
-  return `retry:${fileIndex}:${failedAttempts}`;
-}
+const LONG_POLL_MS = 25_000;
+const LONG_POLL_INTERVAL_MS = 2_000;
 
-function planRetryMarker(failedAttempts: number): string {
-  return `retry:plan:${failedAttempts}`;
-}
-
-/** Failed attempts already recorded for this file index (0 if none/stale). */
-function failedFileAttempts(error: string | null, fileIndex: number): number {
-  const match = error ? FILE_RETRY_MARKER.exec(error) : null;
-  if (!match || Number(match[1]) !== fileIndex) return 0;
-  return Number(match[2]);
-}
-
-/** Failed planning attempts already recorded (0 if none). */
-function failedPlanAttempts(error: string | null): number {
-  const match = error ? PLAN_RETRY_MARKER.exec(error) : null;
-  return match ? Number(match[1]) : 0;
-}
+const sleep = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
 
 async function generateFileContent(args: {
   plan: SoftwareBuildPlan;
@@ -371,6 +380,46 @@ async function currentJobState(
   }
 }
 
+/** Another request holds a live lease on this step: don't start a second
+ *  AI call. Re-read the job every LONG_POLL_INTERVAL_MS for up to
+ *  LONG_POLL_MS (keeping this request well under 30s) and report its state
+ *  as soon as the step moves on (status, file index or marker changed), or
+ *  its unchanged progress when the window ends — the client polls again. */
+async function waitWhileInFlight(
+  observed: { id: string; status: string; nextFileIndex: number; error: string | null },
+  args: { missionId: string; userId: string; isAdmin: boolean },
+): Promise<BuildJobResult> {
+  const deadline = Date.now() + LONG_POLL_MS;
+  while (Date.now() < deadline) {
+    await sleep(Math.min(LONG_POLL_INTERVAL_MS, deadline - Date.now()));
+    const current = await prisma.softwareBuildJob.findUnique({ where: { id: observed.id } });
+    if (
+      !current ||
+      current.status !== observed.status ||
+      current.nextFileIndex !== observed.nextFileIndex ||
+      current.error !== observed.error
+    ) {
+      break;
+    }
+  }
+  return currentJobState(observed.id, args);
+}
+
+/** Marks the job Failed with `stored` (the human message kept on the row),
+ *  only if it still matches `where`; otherwise reports its current state. */
+async function markFailed(
+  where: Prisma.SoftwareBuildJobWhereInput & { id: string },
+  stored: string,
+  args: { missionId: string; userId: string; isAdmin: boolean },
+): Promise<BuildJobResult> {
+  const failed = await prisma.softwareBuildJob.updateMany({
+    where,
+    data: { status: 'Failed', error: stored },
+  });
+  if (failed.count === 0) return currentJobState(where.id, args);
+  return { status: 'Failed', error: `${stored} Try again shortly.` };
+}
+
 /** Advances (creating if needed) the active SoftwareBuildJob for this
  *  mission by exactly one bounded step, and returns its new state. Safe
  *  to call repeatedly from a client poll loop — each call does real work
@@ -397,9 +446,30 @@ export async function advanceSoftwareBuildJob(args: {
     });
   }
 
+  // The lease this request currently holds, if any. The catch-all below
+  // may only fail a job while this request still holds its lease: a
+  // WAITER's transient DB error must never fail the job (and discard the
+  // holder's good attempt), and a released lease can't flip Done → Failed.
+  let heldLease: string | null = null;
+  // Every async return inside this try is `return await` on purpose: a bare
+  // `return promise` would let its rejection skip the catch below.
   try {
     if (job.status === 'Planning') {
-      const planAttempt = failedPlanAttempts(job.error) + 1;
+      const planFailed = 'CariForge could not plan this build right now.';
+      const observed = { id: job.id, status: 'Planning' as const, error: job.error };
+      const step = assessStep(job.error, 'plan', PLAN_ATTEMPT_TIMEOUTS, Date.now());
+      if (step.kind === 'in-flight') return await waitWhileInFlight(job, args);
+      if (step.kind === 'exhausted') return await markFailed(observed, planFailed, args);
+      const lease = runMarker('plan', step.attempt, Date.now());
+      const claimed = await prisma.softwareBuildJob.updateMany({
+        where: observed,
+        data: { error: lease },
+      });
+      if (claimed.count === 0) return await currentJobState(job.id, args);
+      heldLease = lease;
+      // Every write from here on requires still holding OUR lease.
+      const held = { id: job.id, status: 'Planning' as const, error: lease };
+
       const plan = await planSoftwareBuild({
         need: args.need,
         priorContext: args.priorContext,
@@ -407,37 +477,26 @@ export async function advanceSoftwareBuildJob(args: {
         evidence: args.evidence,
       });
       if (!plan) {
-        if (planAttempt < PLAN_ATTEMPTS) {
+        if (step.attempt < PLAN_ATTEMPT_TIMEOUTS.length) {
           // Not fatal yet: stay Planning and let the client's next poll
           // (it keeps polling on { status: 'Planning' }) plan again.
           console.warn(
-            `[forge] planSoftwareBuild failed (attempt ${planAttempt}/${PLAN_ATTEMPTS}), will retry`,
+            `[forge] planSoftwareBuild failed (attempt ${step.attempt}/${PLAN_ATTEMPT_TIMEOUTS.length}), will retry`,
           );
           const marked = await prisma.softwareBuildJob.updateMany({
-            where: { id: job.id, status: 'Planning' },
-            data: { error: planRetryMarker(planAttempt) },
+            where: held,
+            data: { error: retryMarker('plan', step.attempt) },
           });
-          if (marked.count === 0) return currentJobState(job.id, args);
+          if (marked.count === 0) return await currentJobState(job.id, args);
           return { status: 'Planning' };
         }
-        const failed = await prisma.softwareBuildJob.updateMany({
-          where: { id: job.id, status: 'Planning' },
-          data: { status: 'Failed', error: 'CariForge could not plan this build right now.' },
-        });
-        if (failed.count === 0) return currentJobState(job.id, args);
-        return {
-          status: 'Failed',
-          error: 'CariForge could not plan this build right now. Try again shortly.',
-        };
+        return await markFailed(held, planFailed, args);
       }
-      // Conditional on still being Planning, so a slow, overlapping request
-      // can never overwrite a plan another request already saved (and
-      // reset its progress) — it reports that job's current state instead.
       const saved = await prisma.softwareBuildJob.updateMany({
-        where: { id: job.id, status: 'Planning' },
+        where: held,
         data: { plan, status: 'Generating', nextFileIndex: 0, error: null },
       });
-      if (saved.count === 0) return currentJobState(job.id, args);
+      if (saved.count === 0) return await currentJobState(job.id, args);
       return { status: 'Generating', progress: { current: 0, total: plan.files.length } };
     }
 
@@ -454,17 +513,32 @@ export async function advanceSoftwareBuildJob(args: {
         });
         return { status: 'Finalizing' };
       }
+      const fileFailed = `CariForge could not generate ${target.path}.`;
+      const fileStep: BuildStep = job.nextFileIndex;
       // Every write below is conditional on the job still being on THIS
-      // file, so a slow, overlapping request (e.g. one whose reply the
-      // proxy already dropped) can never move a job that has since been
-      // advanced, finalized or failed backwards — it reports that job's
+      // file with the marker we observed/claimed, so a slow, overlapping
+      // request can never move a job that has since been advanced,
+      // finalized, failed or re-leased backwards — it reports that job's
       // current state instead.
-      const sameStep = {
+      const observed = {
         id: job.id,
         status: 'Generating' as const,
         nextFileIndex: job.nextFileIndex,
+        error: job.error,
       };
-      const attempt = failedFileAttempts(job.error, job.nextFileIndex) + 1;
+      const step = assessStep(job.error, fileStep, FILE_ATTEMPT_TIMEOUTS, Date.now());
+      if (step.kind === 'in-flight') return await waitWhileInFlight(job, args);
+      if (step.kind === 'exhausted') return await markFailed(observed, fileFailed, args);
+      const attempt = step.attempt;
+      const lease = runMarker(fileStep, attempt, Date.now());
+      const claimed = await prisma.softwareBuildJob.updateMany({
+        where: observed,
+        data: { error: lease },
+      });
+      if (claimed.count === 0) return await currentJobState(job.id, args);
+      heldLease = lease;
+      const held = { ...observed, error: lease };
+
       const generated = await generateFileContent({
         plan,
         targetPath: target.path,
@@ -482,10 +556,10 @@ export async function advanceSoftwareBuildJob(args: {
             generated.error,
           );
           const marked = await prisma.softwareBuildJob.updateMany({
-            where: sameStep,
-            data: { error: fileRetryMarker(job.nextFileIndex, attempt) },
+            where: held,
+            data: { error: retryMarker(fileStep, attempt) },
           });
-          if (marked.count === 0) return currentJobState(job.id, args);
+          if (marked.count === 0) return await currentJobState(job.id, args);
           return {
             status: 'Generating',
             progress: { current: job.nextFileIndex, total: plan.files.length },
@@ -495,15 +569,7 @@ export async function advanceSoftwareBuildJob(args: {
           `[forge] generateFileContent failed for ${target.path} (attempt ${attempt}/${FILE_ATTEMPTS.length}), giving up:`,
           generated.error,
         );
-        const failed = await prisma.softwareBuildJob.updateMany({
-          where: sameStep,
-          data: { status: 'Failed', error: `CariForge could not generate ${target.path}.` },
-        });
-        if (failed.count === 0) return currentJobState(job.id, args);
-        return {
-          status: 'Failed',
-          error: `CariForge could not generate ${target.path}. Try again shortly.`,
-        };
+        return await markFailed(held, fileFailed, args);
       }
       const updatedFiles: GeneratedFile[] = [
         ...doneFiles,
@@ -512,7 +578,7 @@ export async function advanceSoftwareBuildJob(args: {
       const nextIndex = job.nextFileIndex + 1;
       const nowDone = nextIndex >= plan.files.length;
       const saved = await prisma.softwareBuildJob.updateMany({
-        where: sameStep,
+        where: held,
         data: {
           // Cast, not `any`: GeneratedFile's `readonly` fields don't
           // structurally satisfy Prisma's mutable InputJsonObject index
@@ -523,19 +589,36 @@ export async function advanceSoftwareBuildJob(args: {
           files: updatedFiles as unknown as Prisma.InputJsonValue,
           nextFileIndex: nextIndex,
           status: nowDone ? 'Finalizing' : 'Generating',
-          // Clears any retry marker left by earlier failed attempts.
+          // Releases our lease (the next file starts unclaimed).
           error: null,
         },
       });
-      if (saved.count === 0) return currentJobState(job.id, args);
+      if (saved.count === 0) return await currentJobState(job.id, args);
       return nowDone
         ? { status: 'Finalizing' }
         : { status: 'Generating', progress: { current: nextIndex, total: plan.files.length } };
     }
 
-    // job.status === 'Finalizing': no AI call — assemble the completed
-    // payload and hand off through the EXACT same write path every other
-    // stage already uses (submitHandoff + reviewAndMaybeAdvance).
+    // job.status === 'Finalizing': no AI call of its own — assemble the
+    // completed payload and hand off through the EXACT same write path
+    // every other stage already uses (submitHandoff + reviewAndMaybeAdvance).
+    // Leased like every other step, so two tabs (or a re-poll after a lost
+    // reply) can never submit the handoff twice. One attempt: a failed or
+    // stale finalize marks the job Failed (the user can start again).
+    const observed = { id: job.id, status: 'Finalizing' as const, error: job.error };
+    const step = assessStep(job.error, 'finalize', FINALIZE_ATTEMPT_TIMEOUTS, Date.now());
+    if (step.kind === 'in-flight') return await waitWhileInFlight(job, args);
+    if (step.kind === 'exhausted') {
+      return await markFailed(observed, 'CariForge could not continue this build right now.', args);
+    }
+    const lease = runMarker('finalize', step.attempt, Date.now());
+    const claimed = await prisma.softwareBuildJob.updateMany({
+      where: observed,
+      data: { error: lease },
+    });
+    if (claimed.count === 0) return await currentJobState(job.id, args);
+    heldLease = lease;
+
     const plan = job.plan as unknown as SoftwareBuildPlan;
     const files = job.files as unknown as GeneratedFile[];
     const { files: _planFiles, ...specRest } = plan;
@@ -566,14 +649,26 @@ export async function advanceSoftwareBuildJob(args: {
         draftMissingEvidence: plan.missingEvidence,
       });
     }
-    await prisma.softwareBuildJob.update({ where: { id: job.id }, data: { status: 'Done' } });
+    // Clearing the lease with Done also releases it, so nothing after this
+    // (e.g. a failing getMissionDetail) can flip the job back to Failed.
+    const finished = await prisma.softwareBuildJob.updateMany({
+      where: { ...observed, error: lease },
+      data: { status: 'Done', error: null },
+    });
+    heldLease = null;
+    if (finished.count === 0) return await currentJobState(job.id, args);
     const final = (await getMissionDetail(args.missionId, args.userId, args.isAdmin)) ?? updated;
     return { status: 'Done', detail: final };
   } catch (err) {
     console.error('[forge] advanceSoftwareBuildJob failed:', err);
-    await prisma.softwareBuildJob
-      .update({ where: { id: job.id }, data: { status: 'Failed', error: 'Unexpected error' } })
-      .catch(() => {});
+    if (heldLease) {
+      await prisma.softwareBuildJob
+        .updateMany({
+          where: { id: job.id, error: heldLease },
+          data: { status: 'Failed', error: 'Unexpected error' },
+        })
+        .catch(() => {});
+    }
     return {
       status: 'Failed',
       error: 'CariForge could not continue this build right now. Try again shortly.',

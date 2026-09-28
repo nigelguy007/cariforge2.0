@@ -11,7 +11,8 @@
 // The database, AI client and handoff/review services are all faked.
 
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { advanceSoftwareBuildJob } from '@/lib/business/forge/build-job';
+import { advanceSoftwareBuildJob, type BuildJobResult } from '@/lib/business/forge/build-job';
+import { runMarker } from '@/lib/business/forge/build-job-markers';
 
 vi.mock('server-only', () => ({}));
 
@@ -66,7 +67,7 @@ const db = vi.hoisted(() => {
     // Conditional write: only rows matching every `where` field are updated.
     updateMany: vi.fn(
       async (args: {
-        where: { id: string; status?: string; nextFileIndex?: number };
+        where: { id: string; status?: string; nextFileIndex?: number; error?: string | null };
         data: Partial<FakeJob>;
       }) => {
         const { id, status, nextFileIndex } = args.where;
@@ -74,7 +75,9 @@ const db = vi.hoisted(() => {
           (j) =>
             j.id === id &&
             (status === undefined || j.status === status) &&
-            (nextFileIndex === undefined || j.nextFileIndex === nextFileIndex),
+            (nextFileIndex === undefined || j.nextFileIndex === nextFileIndex) &&
+            // Prisma semantics: `error: null` matches IS NULL; absent = any.
+            (!('error' in args.where) || j.error === args.where.error),
         );
         for (const j of hits) Object.assign(j, args.data);
         return { count: hits.length };
@@ -199,7 +202,43 @@ function call(n: number): ParseCall {
   return c;
 }
 
+/** Seed a job still in Planning, e.g. with another request's plan lease. */
+function seedPlanningJob(error: string | null) {
+  const job: FakeJob = {
+    id: 'seeded',
+    missionId: MISSION,
+    createdById: 'user-1',
+    status: 'Planning',
+    plan: null,
+    files: [],
+    nextFileIndex: 0,
+    error,
+    createdAt: new Date(),
+  };
+  db.jobs.push(job);
+  return job;
+}
+
+/** No marker (lease or retry) may ever leak into a response. */
+function expectNoMarker(result: BuildJobResult) {
+  expect(JSON.stringify(result)).not.toMatch(/\b(run|retry):/);
+}
+
+function deferred<T>() {
+  let resolve!: (value: T) => void;
+  const promise = new Promise<T>((r) => {
+    resolve = r;
+  });
+  return { promise, resolve };
+}
+
+/** Let pending promise chains (fake DB + fake AI calls) run to completion. */
+async function flush() {
+  for (let i = 0; i < 20; i++) await Promise.resolve();
+}
+
 beforeEach(() => {
+  vi.useRealTimers();
   db.jobs.length = 0;
   ai.calls.length = 0;
   ai.parse.mockReset();
@@ -378,6 +417,7 @@ describe('advanceSoftwareBuildJob — Generating retries across polls', () => {
     for (const [i, [script, maxTokens, timeout]] of steps.entries()) {
       script();
       const result = await advanceSoftwareBuildJob({ ...ARGS });
+      expectNoMarker(result);
       expect(ai.calls).toHaveLength(i + 1);
       expect(call(i).body.max_tokens).toBe(maxTokens);
       expect(call(i).options.timeout).toBe(timeout);
@@ -470,5 +510,331 @@ describe('advanceSoftwareBuildJob — overlapping requests', () => {
 
     expect(result).toEqual({ status: 'Generating', progress: { current: 0, total: 9 } });
     expect((onlyJob().plan as { files: unknown[] }).files).toHaveLength(9);
+  });
+});
+
+describe('advanceSoftwareBuildJob — single-flight lease per step', () => {
+  const T0 = 1_800_000_000_000;
+
+  function useClock(at = T0) {
+    vi.useFakeTimers({ toFake: ['Date', 'setTimeout'] });
+    vi.setSystemTime(at);
+  }
+
+  it('records a run lease while the attempt is in flight', async () => {
+    useClock();
+    seedGeneratingJob({ fileCount: 3, nextFileIndex: 1 });
+    const release = deferred<{ parsed_output: unknown }>();
+    ai.parse.mockImplementationOnce(
+      async (body: ParseCall['body'], options: ParseCall['options']) => {
+        ai.calls.push({ body, options });
+        return release.promise;
+      },
+    );
+    const pending = advanceSoftwareBuildJob({ ...ARGS });
+    await flush();
+    expect(onlyJob().error).toBe(runMarker(1, 1, T0));
+
+    release.resolve({ parsed_output: { content: 'ok' } });
+    const result = await pending;
+    expect(result).toEqual({ status: 'Generating', progress: { current: 2, total: 3 } });
+    expect(onlyJob().error).toBeNull();
+  });
+
+  it('a second request during an in-flight attempt makes no AI call and returns once the job moves', async () => {
+    useClock();
+    seedGeneratingJob({ fileCount: 3, nextFileIndex: 1, error: runMarker(1, 1, T0 - 10_000) });
+    const pending = advanceSoftwareBuildJob({ ...ARGS });
+    await vi.advanceTimersByTimeAsync(6_000);
+    // The in-flight attempt (another request) saves its file.
+    const job = onlyJob();
+    job.nextFileIndex = 2;
+    job.files = [...(job.files as unknown[]), { path: 'src/file-1.ts', content: 'theirs' }];
+    job.error = null;
+    await vi.advanceTimersByTimeAsync(2_000);
+    const result = await pending;
+
+    expect(result).toEqual({ status: 'Generating', progress: { current: 2, total: 3 } });
+    expect(ai.calls).toHaveLength(0);
+    expect(Date.now() - T0).toBeLessThan(10_000);
+  });
+
+  it('a second request during an in-flight attempt returns current progress after ~25s', async () => {
+    useClock();
+    seedGeneratingJob({ fileCount: 3, nextFileIndex: 1, error: runMarker(1, 3, T0 - 150_000) });
+    const pending = advanceSoftwareBuildJob({ ...ARGS });
+    let settled = false;
+    void pending.then(() => {
+      settled = true;
+    });
+    await vi.advanceTimersByTimeAsync(20_000);
+    expect(settled).toBe(false);
+    await vi.advanceTimersByTimeAsync(6_000);
+    const result = await pending;
+
+    expect(result).toEqual({ status: 'Generating', progress: { current: 1, total: 3 } });
+    expectNoMarker(result);
+    expect(ai.calls).toHaveLength(0);
+    expect(Date.now() - T0).toBeLessThan(30_000);
+    expect(onlyJob().error).toBe(runMarker(1, 3, T0 - 150_000));
+  });
+
+  it('counts a stale run lease as a failed attempt and starts the next one', async () => {
+    useClock();
+    // Attempt 1's lease is older than its 100s timeout + 30s grace: the
+    // function holding it was killed before it could write a result.
+    seedGeneratingJob({ fileCount: 3, nextFileIndex: 1, error: runMarker(1, 1, T0 - 131_000) });
+    nextRejects(timeoutErr());
+    const result = await advanceSoftwareBuildJob({ ...ARGS });
+
+    expect(ai.calls).toHaveLength(1);
+    expect(call(0).body.max_tokens).toBe(12_000);
+    expect(result).toEqual({ status: 'Generating', progress: { current: 1, total: 3 } });
+    expect(onlyJob().error).toBe('retry:1:2');
+  });
+
+  it('a stale lease on the last attempt fails the job with the human message', async () => {
+    useClock();
+    seedGeneratingJob({ fileCount: 3, nextFileIndex: 1, error: runMarker(1, 3, T0 - 261_000) });
+    const result = await advanceSoftwareBuildJob({ ...ARGS });
+
+    expect(ai.calls).toHaveLength(0);
+    expect(result).toEqual({
+      status: 'Failed',
+      error: 'CariForge could not generate src/file-1.ts. Try again shortly.',
+    });
+    expect(onlyJob().status).toBe('Failed');
+    expect(onlyJob().error).toBe('CariForge could not generate src/file-1.ts.');
+  });
+
+  it('makes no AI call when another request wins the claim', async () => {
+    useClock();
+    seedGeneratingJob({ fileCount: 3, nextFileIndex: 1 });
+    db.prisma.softwareBuildJob.updateMany.mockImplementationOnce(async () => {
+      // Someone else claimed this step between our read and our claim.
+      onlyJob().error = runMarker(1, 1, T0 - 1);
+      return { count: 0 };
+    });
+    const result = await advanceSoftwareBuildJob({ ...ARGS });
+
+    expect(ai.calls).toHaveLength(0);
+    expect(result).toEqual({ status: 'Generating', progress: { current: 1, total: 3 } });
+    expect(onlyJob().error).toBe(runMarker(1, 1, T0 - 1));
+  });
+
+  it('attempt3-dupfail: a re-poll after a lost reply waits for the original attempt 3 instead of duplicating it', async () => {
+    useClock();
+    seedGeneratingJob({ fileCount: 3, nextFileIndex: 1, error: 'retry:1:2' });
+    const original = deferred<{ parsed_output: unknown }>();
+    ai.parse.mockImplementationOnce(
+      async (body: ParseCall['body'], options: ParseCall['options']) => {
+        ai.calls.push({ body, options });
+        return original.promise;
+      },
+    );
+    // If a duplicate attempt were ever started, it would fail.
+    ai.parse.mockImplementation(async (body: ParseCall['body'], options: ParseCall['options']) => {
+      ai.calls.push({ body, options });
+      throw timeoutErr();
+    });
+
+    const requestA = advanceSoftwareBuildJob({ ...ARGS });
+    await flush();
+    expect(call(0).body.max_tokens).toBe(20_000);
+
+    // The proxy drops A's reply at 120s; the client re-polls 45s later.
+    vi.setSystemTime(T0 + 165_000);
+    const results: BuildJobResult[] = [];
+    const requestB = advanceSoftwareBuildJob({ ...ARGS });
+    await vi.advanceTimersByTimeAsync(26_000);
+    results.push(await requestB);
+    expect(results[0]).toEqual({ status: 'Generating', progress: { current: 1, total: 3 } });
+
+    // Another re-poll while A is still running; A then succeeds.
+    const requestC = advanceSoftwareBuildJob({ ...ARGS });
+    await vi.advanceTimersByTimeAsync(4_000);
+    original.resolve({ parsed_output: { content: 'good' } });
+    results.push(await requestA);
+    await vi.advanceTimersByTimeAsync(2_000);
+    results.push(await requestC);
+
+    expect(ai.calls).toHaveLength(1);
+    expect(results[1]).toEqual({ status: 'Generating', progress: { current: 2, total: 3 } });
+    expect(results[2]).toEqual({ status: 'Generating', progress: { current: 2, total: 3 } });
+    for (const r of results) expectNoMarker(r);
+    const job = onlyJob();
+    expect(job.status).toBe('Generating');
+    expect(job.error).toBeNull();
+    expect((job.files as { content: string }[])[1]?.content).toBe('good');
+  });
+
+  it('discards a successful result when its lease was taken over as stale', async () => {
+    useClock();
+    seedGeneratingJob({ fileCount: 3, nextFileIndex: 1 });
+    const takeover = runMarker(1, 2, T0 + 200_000);
+    ai.parse.mockImplementationOnce(
+      async (body: ParseCall['body'], options: ParseCall['options']) => {
+        ai.calls.push({ body, options });
+        onlyJob().error = takeover; // a later request judged our lease stale
+        return { parsed_output: { content: 'late' } };
+      },
+    );
+    const result = await advanceSoftwareBuildJob({ ...ARGS });
+
+    expect(result).toEqual({ status: 'Generating', progress: { current: 1, total: 3 } });
+    expect(onlyJob().nextFileIndex).toBe(1);
+    expect(onlyJob().files).toHaveLength(1);
+    expect(onlyJob().error).toBe(takeover);
+  });
+
+  it('plan step: a second request during an in-flight plan makes no AI call', async () => {
+    useClock();
+    seedPlanningJob(runMarker('plan', 1, T0 - 5_000));
+    const timedOut = advanceSoftwareBuildJob({ ...ARGS });
+    await vi.advanceTimersByTimeAsync(26_000);
+    expect(await timedOut).toEqual({ status: 'Planning' });
+
+    const moved = advanceSoftwareBuildJob({ ...ARGS });
+    await vi.advanceTimersByTimeAsync(1_000);
+    const job = onlyJob();
+    job.status = 'Generating';
+    job.plan = planWith(9);
+    job.error = null;
+    await vi.advanceTimersByTimeAsync(2_000);
+    expect(await moved).toEqual({ status: 'Generating', progress: { current: 0, total: 9 } });
+    expect(ai.calls).toHaveLength(0);
+  });
+
+  it('plan step: a stale plan lease counts as the first attempt', async () => {
+    useClock();
+    seedPlanningJob(runMarker('plan', 1, T0 - 146_000));
+    nextRejects(timeoutErr());
+    const result = await advanceSoftwareBuildJob({ ...ARGS });
+
+    expect(ai.calls).toHaveLength(1);
+    expect(result).toEqual({
+      status: 'Failed',
+      error: 'CariForge could not plan this build right now. Try again shortly.',
+    });
+    expect(onlyJob().error).toBe('CariForge could not plan this build right now.');
+  });
+
+  it("F1: a waiter whose DB read throws leaves the job (and the holder's lease) untouched", async () => {
+    useClock();
+    const lease = runMarker(1, 1, T0 - 5_000);
+    seedGeneratingJob({ fileCount: 3, nextFileIndex: 1, error: lease });
+    db.prisma.softwareBuildJob.findUnique.mockRejectedValueOnce(new Error('db blip'));
+    const pending = advanceSoftwareBuildJob({ ...ARGS });
+    await vi.advanceTimersByTimeAsync(3_000);
+    const result = await pending;
+
+    expect(result).toEqual({
+      status: 'Failed',
+      error: 'CariForge could not continue this build right now. Try again shortly.',
+    });
+    expect(onlyJob().status).toBe('Generating');
+    expect(onlyJob().error).toBe(lease);
+  });
+
+  it('F1: a lease holder whose write throws marks the job Failed', async () => {
+    useClock();
+    seedGeneratingJob({ fileCount: 3, nextFileIndex: 1 });
+    const real = db.prisma.softwareBuildJob.updateMany.getMockImplementation();
+    if (!real) throw new Error('expected a fake updateMany');
+    db.prisma.softwareBuildJob.updateMany
+      .mockImplementationOnce(real) // the claim
+      .mockImplementationOnce(async () => {
+        throw new Error('db blip');
+      });
+    nextResolves({ content: 'ok' });
+    const result = await advanceSoftwareBuildJob({ ...ARGS });
+
+    expect(result.status).toBe('Failed');
+    expect(onlyJob().status).toBe('Failed');
+    expect(onlyJob().error).toBe('Unexpected error');
+  });
+
+  it('F1: a former lease holder whose write throws does not fail a job someone else now holds', async () => {
+    useClock();
+    seedGeneratingJob({ fileCount: 3, nextFileIndex: 1 });
+    const takeover = runMarker(1, 2, T0 + 1);
+    const real = db.prisma.softwareBuildJob.updateMany.getMockImplementation();
+    if (!real) throw new Error('expected a fake updateMany');
+    db.prisma.softwareBuildJob.updateMany
+      .mockImplementationOnce(real)
+      .mockImplementationOnce(async () => {
+        throw new Error('db blip');
+      });
+    ai.parse.mockImplementationOnce(
+      async (body: ParseCall['body'], options: ParseCall['options']) => {
+        ai.calls.push({ body, options });
+        onlyJob().error = takeover;
+        return { parsed_output: { content: 'late' } };
+      },
+    );
+    const result = await advanceSoftwareBuildJob({ ...ARGS });
+
+    expect(result.status).toBe('Failed');
+    expect(onlyJob().status).toBe('Generating');
+    expect(onlyJob().error).toBe(takeover);
+  });
+
+  it('F1: an error after the job is Done never flips it back to Failed', async () => {
+    useClock();
+    seedGeneratingJob({ fileCount: 1, nextFileIndex: 1 });
+    onlyJob().status = 'Finalizing';
+    service.submitHandoff.mockResolvedValueOnce({ handoffs: [] });
+    service.getMissionDetail.mockRejectedValueOnce(new Error('db blip'));
+    const result = await advanceSoftwareBuildJob({ ...ARGS });
+
+    expect(result.status).toBe('Failed');
+    expect(onlyJob().status).toBe('Done');
+  });
+
+  it('F3: a second concurrent finalize makes no submitHandoff call and returns Done once the first finishes', async () => {
+    useClock();
+    seedGeneratingJob({ fileCount: 2, nextFileIndex: 2 });
+    onlyJob().status = 'Finalizing';
+    service.submitHandoff.mockReset();
+    service.getMissionDetail.mockReset();
+    service.getMissionDetail.mockResolvedValue({ mission: { id: MISSION } });
+    const handoff = deferred<{ handoffs: unknown[] }>();
+    service.submitHandoff.mockReturnValueOnce(handoff.promise);
+
+    const first = advanceSoftwareBuildJob({ ...ARGS });
+    await flush();
+    expect(onlyJob().error).toBe(runMarker('finalize', 1, T0));
+
+    const second = advanceSoftwareBuildJob({ ...ARGS });
+    await vi.advanceTimersByTimeAsync(4_000);
+    handoff.resolve({ handoffs: [] });
+    const firstResult = await first;
+    await vi.advanceTimersByTimeAsync(2_000);
+    const secondResult = await second;
+
+    expect(service.submitHandoff).toHaveBeenCalledTimes(1);
+    expect(firstResult).toEqual({ status: 'Done', detail: { mission: { id: MISSION } } });
+    expect(secondResult).toEqual({ status: 'Done', detail: { mission: { id: MISSION } } });
+    expect(onlyJob().status).toBe('Done');
+    expect(onlyJob().error).toBeNull();
+  });
+
+  it('F3: a stale finalize lease fails the job instead of submitting twice', async () => {
+    useClock();
+    seedGeneratingJob({
+      fileCount: 1,
+      nextFileIndex: 1,
+      error: runMarker('finalize', 1, T0 - 181_000),
+    });
+    onlyJob().status = 'Finalizing';
+    service.submitHandoff.mockReset();
+    const result = await advanceSoftwareBuildJob({ ...ARGS });
+
+    expect(service.submitHandoff).not.toHaveBeenCalled();
+    expect(result).toEqual({
+      status: 'Failed',
+      error: 'CariForge could not continue this build right now. Try again shortly.',
+    });
+    expect(onlyJob().status).toBe('Failed');
   });
 });
