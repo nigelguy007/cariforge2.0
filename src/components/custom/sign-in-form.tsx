@@ -5,6 +5,7 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { withBasePath } from '@/lib/api-href';
 import { signIn } from '@/lib/auth-client';
 
 // Email + password sign-in. Composes the template's base shadcn primitives
@@ -39,7 +40,7 @@ export function SignInForm() {
     // recent projects, Needs you) — /dashboard still redirects to /missions
     // for old bookmarks, and /missions still shows BriefConversionCard for
     // an open, unconverted brief.
-    window.location.assign('/home');
+    window.location.assign(withBasePath('/home'));
   }
 
   return (

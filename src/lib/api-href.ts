@@ -15,7 +15,14 @@
 // NEXT_BASE_PATH — both must be set to the same value on any deployment
 // that also sets NEXT_BASE_PATH, since Next's own basePath config has no
 // runtime-readable equivalent this file can reuse directly.
-export function apiHref(path: string): string {
+//
+// withBasePath is the same prefixing for every other hand-built same-origin
+// URL: window.location navigations and raw fetch() calls, which Next never
+// prefixes either (only <Link>/router do). On the root deployment the var is
+// unset and both return the path unchanged.
+export function withBasePath(path: string): string {
   const base = process.env.NEXT_PUBLIC_BASE_PATH ?? '';
   return `${base}${path}`;
 }
+
+export const apiHref = withBasePath;

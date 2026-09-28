@@ -2,6 +2,7 @@
 
 import { SignInForm } from '@/components/custom/sign-in-form';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { withBasePath } from '@/lib/api-href';
 
 export default function LoginPage() {
   return (
@@ -21,7 +22,7 @@ export default function LoginPage() {
           <p className="mt-4 text-center text-small text-muted-foreground">
             Don&apos;t have an account?{' '}
             <a
-              href="/signup"
+              href={withBasePath('/signup')}
               className="text-brand-600 font-medium hover:text-brand-700 hover:underline underline-offset-2 transition-colors"
             >
               Create one

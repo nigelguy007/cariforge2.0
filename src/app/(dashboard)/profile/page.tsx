@@ -11,6 +11,7 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
+import { withBasePath } from '@/lib/api-href';
 import { signOut, useSession } from '@/lib/auth-client';
 
 export default function ProfilePage() {
@@ -31,7 +32,7 @@ export default function ProfilePage() {
 
   async function handleSignOut() {
     await signOut();
-    window.location.assign('/login');
+    window.location.assign(withBasePath('/login'));
   }
 
   return (

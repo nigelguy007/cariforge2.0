@@ -5,6 +5,7 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { withBasePath } from '@/lib/api-href';
 import { signUp } from '@/lib/auth-client';
 
 // Email + password sign-up. Composes the template's base shadcn primitives
@@ -51,11 +52,13 @@ export function SignUpForm() {
     const intake = params.get('intake');
     if (lead && intake) {
       window.location.assign(
-        `/missions/new?intake=${encodeURIComponent(intake)}&lead=${encodeURIComponent(lead)}`,
+        withBasePath(
+          `/missions/new?intake=${encodeURIComponent(intake)}&lead=${encodeURIComponent(lead)}`,
+        ),
       );
       return;
     }
-    window.location.assign('/dashboard');
+    window.location.assign(withBasePath('/dashboard'));
   }
 
   return (

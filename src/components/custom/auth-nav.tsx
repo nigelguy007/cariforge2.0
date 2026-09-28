@@ -1,7 +1,9 @@
 // @polsia:user-owned — seeded by polsia/modules/better-auth; restyle freely.
 'use client';
 
+import Link from 'next/link';
 import { Button } from '@/components/ui/button';
+import { withBasePath } from '@/lib/api-href';
 import { signOut, useSession } from '@/lib/auth-client';
 
 export function AuthNav() {
@@ -14,10 +16,10 @@ export function AuthNav() {
     return (
       <nav className="flex items-center gap-2">
         <Button asChild variant="ghost">
-          <a href="/login">Sign in</a>
+          <Link href="/login">Sign in</Link>
         </Button>
         <Button asChild>
-          <a href="/signup">Sign up</a>
+          <Link href="/signup">Sign up</Link>
         </Button>
       </nav>
     );
@@ -26,13 +28,13 @@ export function AuthNav() {
   return (
     <nav className="flex items-center gap-2">
       <Button asChild variant="ghost">
-        <a href="/profile">Profile</a>
+        <Link href="/profile">Profile</Link>
       </Button>
       <Button
         variant="secondary"
         onClick={async () => {
           await signOut();
-          window.location.assign('/');
+          window.location.assign(withBasePath('/'));
         }}
       >
         Sign out
