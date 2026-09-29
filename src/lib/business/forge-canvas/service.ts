@@ -54,7 +54,7 @@ export async function saveBlueprint(
   userId: string,
   save: BlueprintSaveT,
   // UX review C2: mission link. Explicit when creating from a mission's
-  // Software Build gate; omitted on ordinary saves, where it's carried
+  // Prototype build gate; omitted on ordinary saves, where it's carried
   // forward from the prior version so a mission-linked blueprint never
   // silently loses its mission on re-save.
   missionId?: string,
@@ -212,9 +212,9 @@ export async function getBlueprint(slug: string, version?: number) {
 }
 
 // UX review C2 (wireframe v2, screen 2d): create — or return — the blueprint
-// linked to a mission's Software Build gate. Guarded: only the mission's
+// linked to a mission's Prototype build gate. Guarded: only the mission's
 // owner (or an admin) may call it, and only once the mission has actually
-// reached gate 5 (Software Build approved). The seeded workflow is
+// reached gate 5 (Prototype build approved). The seeded workflow is
 // deliberately minimal but VALID and honest: the mission's intake as the
 // start input and its authority boundary as a mandatory human-approval
 // node — the governance constraint carries into the builder instead of

@@ -6,7 +6,7 @@ import { friendlyLeadReference } from '@/lib/contracts/leads';
 
 export const metadata: Metadata = {
   title: 'Start a project',
-  description: 'Describe a business need in plain language to start a new CariForge project.',
+  description: 'Describe a business need in plain language to start a new CARIForge project.',
 };
 
 export default async function NewMissionPage({
@@ -39,7 +39,7 @@ export default async function NewMissionPage({
         </nav>
         <h1 className="app-h1 mt-2 text-[var(--app-text)]">Start a project</h1>
         <p className="app-body mt-1.5 max-w-prose text-[var(--app-text-muted)]">
-          Describe the need as you would to a colleague. CariForge drafts, reviews and advances each
+          Describe the need as you would to a colleague. CARIForge drafts, reviews and advances each
           of the five steps on its own, pulling you in only when a step genuinely needs your
           judgment. The project ends in an approved, finished, ready-to-use solution package — a
           solution with its plan, operating guide and evidence — not a production deployment.

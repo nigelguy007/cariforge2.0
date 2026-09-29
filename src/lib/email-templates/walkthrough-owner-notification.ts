@@ -26,7 +26,7 @@ export interface FormatWalkthroughOptions {
 
 export function formatWalkthroughEmail(opts: FormatWalkthroughOptions): EmailContent {
   const { leadId, capturedAtIso, payload } = opts;
-  const subject = `New CARI Forge walkthrough request — ${payload.segment}`;
+  const subject = `New CARIForge walkthrough request — ${payload.segment}`;
   const bodyLines = [
     `A procurement-grade buyer just requested a council walkthrough on cariforge.com — segment: ${payload.segment}.`,
     '',

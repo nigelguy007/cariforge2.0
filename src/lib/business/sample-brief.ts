@@ -1,11 +1,11 @@
 // @polsia:user-owned — static dataset for the /sample-brief worked-example
 // page. Server-only: imported by /api/sample-brief/route.ts, which parses it
 // through the shared SampleBrief contract. Holds the editorial narrative of
-// one complete CARI Forge run — a regulated European insurer's claims-triage
+// one complete CARIForge run — a regulated European insurer's claims-triage
 // brief, the council debate on it, the chairman's reconciled ruling, the
 // five-stage pipeline of stage handoffs operated by the seven-agent core
-// (Agents 1..5 run Stages 1..5; Agent 5 is "AI Build", not "Software Build",
-// because "Software Build" is the name of the stage AI Build operates; Agents
+// (Agents 1..5 run Stages 1..5; Agent 5 is "AI Build", not "Prototype build",
+// because "Prototype build" is the name of the stage AI Build operates; Agents
 // 6..7 — Partner and Impact — wrap around delivery), and Agent 5's working
 // solution at the end. The worked example exercises every domain token
 // in the contract; no DB, no live AI call.
@@ -16,7 +16,7 @@ import type { SampleBrief } from '@/lib/contracts/sample-brief';
 
 export const SAMPLE_BRIEF: SampleBrief = {
   productionDisclaimer:
-    'Editorial worked example. Nothing here runs in production. The CouncilRun, audit-trail model, and claims/queue route handlers are described — they are not deployed for this URL. The hand-off is the case file at the bottom.',
+    'Illustrative worked example: the insurer, people and case are fictional. The council, named-human gates and audit trail it walks through are the same engine that runs live at cariforge.com/888; this page itself does not start a run. The hand-off is the case file at the bottom.',
   brief: {
     industry:
       'Insurance — non-life property claims, EU regulated. Buyer operates across IE, FR, DE under EIOPA supervision; GDPR + Solvency II reporting in scope.',
@@ -64,7 +64,7 @@ export const SAMPLE_BRIEF: SampleBrief = {
       roleLong: 'Growth agent',
       stance: 'Qualifies',
       objection:
-        'The brief names a downstream capability that is real but undersold — the same triage-shape runs against the broker onboarding pipeline (new-broker KYC packets), the renewals pipeline (policyholder renewal evidence packs), and the SIU retrospective already in place. The objection is that the brief’s "faster triage" framing is a one-off ask that ends at the Software Build, and the buyer has not asked whether the same loop would unlock the renewals queue, the broker queue, or the SIU retrospective automation. This is not a blocker. The build case still stands. But the buyer should be told — during the workflow design stage, not after delivery — that the first run is the wedge and that the next two pipelines reuse the same audit-trail shape with a different input schema.',
+        'The brief names a downstream capability that is real but undersold — the same triage-shape runs against the broker onboarding pipeline (new-broker KYC packets), the renewals pipeline (policyholder renewal evidence packs), and the SIU retrospective already in place. The objection is that the brief’s "faster triage" framing is a one-off ask that ends at the Prototype build, and the buyer has not asked whether the same loop would unlock the renewals queue, the broker queue, or the SIU retrospective automation. This is not a blocker. The build case still stands. But the buyer should be told — during the workflow design stage, not after delivery — that the first run is the wedge and that the next two pipelines reuse the same audit-trail shape with a different input schema.',
       evidenceAskedFor:
         'A short typed note attached to the workflow design stage by the Workflow agent identifying the two next-pipeline candidates (renewals evidence packs, broker onboarding KYC) and what reuse percentage they would carry from the claims-triage build, so the buyer can decide whether to scope them in or out of this run.',
     },
@@ -91,7 +91,7 @@ export const SAMPLE_BRIEF: SampleBrief = {
   ruling: {
     verdict: 'Build',
     reconciliation:
-      'Two of the five advisors land on a contested point — Risk’s objection that the proposed approach lacks the separation between the model’s recommendation and the officer’s click, and Growth’s qualification that the buyer has not been told the run is a wedge for the renewals and broker-onboarding pipelines. These are not the same shape of objection and the chair rules on them separately. On the Risk objection: the Elder Oracle sides with Risk. The workflow design stage must include a named human-only assertion step with a typed reason recorded per claim, distinct from the model’s recommendation, so that a click to advance is recorded as a reviewed and confirmed action and not a rubber-stamp action. The cost of compliance here is small (one workflow column, one append-only log row per claim) and the cost of non-compliance is a mis-aligned Article 22 posture that the buyer cannot justify. On the Growth qualification: the Elder Oracle sides with Growth. The growth case is real and must be surfaced to the buyer during the workflow design stage by way of a typed note — not as a scoping change to this run, but as an honest statement of what the build unlocks. The case advances to the Software Build with the Risk objection carried forward as a binding design constraint on the workflow design stage, and the Growth statement carried forward as a typed note to the buyer.',
+      'Two of the five advisors land on a contested point — Risk’s objection that the proposed approach lacks the separation between the model’s recommendation and the officer’s click, and Growth’s qualification that the buyer has not been told the run is a wedge for the renewals and broker-onboarding pipelines. These are not the same shape of objection and the chair rules on them separately. On the Risk objection: the Elder Oracle sides with Risk. The workflow design stage must include a named human-only assertion step with a typed reason recorded per claim, distinct from the model’s recommendation, so that a click to advance is recorded as a reviewed and confirmed action and not a rubber-stamp action. The cost of compliance here is small (one workflow column, one append-only log row per claim) and the cost of non-compliance is a mis-aligned Article 22 posture that the buyer cannot justify. On the Growth qualification: the Elder Oracle sides with Growth. The growth case is real and must be surfaced to the buyer during the workflow design stage by way of a typed note — not as a scoping change to this run, but as an honest statement of what the build unlocks. The case advances to the Prototype build with the Risk objection carried forward as a binding design constraint on the workflow design stage, and the Growth statement carried forward as a typed note to the buyer.',
     carriedDissent: [
       'Risk objection (carried into the Workflow Design and Governance Check stages): the workflow must enforce — by structure, not by policy — that a Flag / Refer-to-SIU recommendation cannot be acted on until a named officer has reviewed the pack and recorded a typed reason. The Elder Oracle did not overrule this objection; it is binding on the Workflow Design stage and re-read at the Governance Check stage.',
       'Growth qualification (carried into the Workflow Design stage as a typed note to the buyer): the renewals evidence-packs pipeline and the broker-onboarding KYC pipeline reuse the same audit-trail shape with a different input schema. The Elder Oracle treats this as a carry-forward note, not a scoping change. The buyer decides during workflow design whether to include them, in writing, signed by the named human approver attached to this case file.',
@@ -161,13 +161,13 @@ export const SAMPLE_BRIEF: SampleBrief = {
       output:
         'A logging/oversight control matrix: per-claim record shape (inbound packet SHA-256, model version, model recommendation, named reviewer, two-step assertion reason, final disposition, timestamp, immutable hash chain), EIOPA / Solvency II reporting hooks preserved unchanged, the four must-not-happen clauses mapped one-to-one to runtime checks, the vulnerable-customer escalation preserved, and a stop-the-line escalation path to the named CRO (E. Okwuosa).',
       downstreamHandoff:
-        'The control matrix is handed to Agent 5 — AI Build — which operates Stage 5 (Software Build) — as the binding spec for the audit trail: every route handler and the prisma model below are derived from this matrix.',
+        'The control matrix is handed to Agent 5 — AI Build — which operates Stage 5 (Prototype build) — as the binding spec for the audit trail: every route handler and the prisma model below are derived from this matrix.',
       supervisor: {
         name: 'E. Okwuosa',
         role: 'Group Chief Risk Officer',
         decision: 'Approve',
         typedReason:
-          'The control matrix covers all four must-not-happen clauses with runtime checks, the immutable hash chain closes the Article 12 logging loop, and the named human-only assertion step is wired in. Approve to advance to the Software Build stage. Final approve releases the Software Build.',
+          'The control matrix covers all four must-not-happen clauses with runtime checks, the immutable hash chain closes the Article 12 logging loop, and the named human-only assertion step is wired in. Approve to advance to the Prototype build stage. Final approve releases the Prototype build.',
         signedAt: '2026-05-08T10:30:00Z',
       },
     },
@@ -179,7 +179,7 @@ export const SAMPLE_BRIEF: SampleBrief = {
       output:
         'A per-claim review queue at /claims/queue with a human-in-the-loop approve / request-info / refer-to-SIU workflow. Every officer action is recorded with the model input hash, the model version, the recommendation, the two-step typed assertion, and the disposition timestamp. The audit trail is persisted as the ClaimsAuditTrail prisma model with append-only semantics — the officer who took the action cannot amend the row after it is written, and the row is anchored in the immutable per-case hash chain. The build ships the following surface: GET /api/claims/queue (claims officer inbox), POST /api/claims/[id]/review (the two-step assertion + advance), POST /api/claims/[id]/refer-siu (SIU referral gate), and the ClaimsAuditTrail prisma model with inputHash, modelVersion, recommendation, reviewerId, assertionReason, disposition, createdAt. Runtime checks enforced: no auto-deny, no auto-pay, no skip-the-human on flagged, no third-party data enrichment. The named CRO retains a stop-the-line escalation in the audit-trail dashboard.',
       // COPY ACCURACY (2026-09-03, rebuild-brief review, same evidence as
-      // agents.ts's ai-build entry): "a runnable Software Build" overclaimed
+      // agents.ts's ai-build entry): "a runnable Prototype build" overclaimed
       // against GATE_DEFS[4]'s own documented output (a spec, not code).
       // NOTE: the `output` field above this one still describes concrete
       // generated API surface (endpoint paths, Prisma field names) as
@@ -194,7 +194,7 @@ export const SAMPLE_BRIEF: SampleBrief = {
         role: 'Group Chief Information Officer',
         decision: 'Approve',
         typedReason:
-          'The Software Build spec matches the Governance Check control matrix one-to-one, the four must-not-happen clauses are enforced as runtime checks, and the two-step assertion (Risk carry-forward) is wired in. The ClaimsAuditTrail prisma model is append-only with the immutable hash chain. Final approve — the case is released to the buyer’s claims team as an approved build spec with the audit-trail receipt attached.',
+          'The Prototype build spec matches the Governance Check control matrix one-to-one, the four must-not-happen clauses are enforced as runtime checks, and the two-step assertion (Risk carry-forward) is wired in. The ClaimsAuditTrail prisma model is append-only with the immutable hash chain. Final approve — the case is released to the buyer’s claims team as an approved build spec with the audit-trail receipt attached.',
         signedAt: '2026-05-21T16:55:00Z',
       },
     },

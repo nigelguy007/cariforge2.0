@@ -44,9 +44,9 @@ const ADVISORS = [
     argues:
       'Whether solving this unlocks anything downstream, or whether it is a one-off ask that the forge will spend its runway on and the buyer will discard after delivery.',
     dissent:
-      'A brief whose only measure of success is the Software Build being shipped — no downstream capability, no reuse, no second problem it unlocks — is treated as one-off work and a poor forge target.',
+      'A brief whose only measure of success is the Prototype build being shipped — no downstream capability, no reuse, no second problem it unlocks — is treated as one-off work and a poor forge target.',
     default: 'Qualifies',
-    quote: 'Does solving this unlock a second thing, or does it end at the Software Build?',
+    quote: 'Does solving this unlock a second thing, or does it end at the Prototype build?',
   },
   {
     id: 'competition',
@@ -111,13 +111,13 @@ const TIEBREAK = [
     ordinal: 1,
     rule: 'When the council cannot settle the case after one round of debate, the chair stops the run.',
     mechanism:
-      'The chair halts the forge at the current stage and surfaces the case to the named human approver — the run does not advance, the Software Build is not produced, and the next stage does not start.',
+      'The chair halts the forge at the current stage and surfaces the case to the named human approver — the run does not advance, the Prototype build is not produced, and the next stage does not start.',
     whoSigns:
       'The human approver named on the case file — the named human attached to the brief from intake. The chairman never signs, and no other voice on the council signs in their place.',
     whatTheyAttach:
       'A typed reason, recorded verbatim alongside the stage advance. The ruling — approve, return, or refuse — is filed with the reason attached, before any next stage begins.',
     appliesTo:
-      'The five stage gates of the 21-day delivery pipeline — Stage 1: Discovery, Stage 2: Readiness, Stage 3: Workflow, Stage 4: Governance, Stage 5: Software Build — not just the chair’s tie-break block. Every stage advance requires the same named-human approval with a typed reason attached. The seven-agent core (Agents 1..7: Discovery, Readiness, Workflow, Governance, AI Build, Partner, Impact) operates these stages — Agent 5 (AI Build) runs Stage 5 (Software Build); Agents 6 (Partner) and 7 (Impact) wrap around delivery. The named-human gate is per stage, not per agent.',
+      'The five stage gates of the 21-day delivery pipeline — Stage 1: Discovery, Stage 2: Readiness, Stage 3: Workflow, Stage 4: Governance, Stage 5: Prototype build — not just the chair’s tie-break block. Every stage advance requires the same named-human approval with a typed reason attached. The seven-agent core (Agents 1..7: Discovery, Readiness, Workflow, Governance, AI Build, Partner, Impact) operates these stages — Agent 5 (AI Build) runs Stage 5 (Prototype build); Agents 6 (Partner) and 7 (Impact) wrap around delivery. The named-human gate is per stage, not per agent.',
   },
   {
     id: 'no-silent-drop',

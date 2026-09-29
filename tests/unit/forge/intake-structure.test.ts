@@ -11,7 +11,7 @@ const valid = {
   retentionPolicy: 'Seven years for claim evidence.',
   acceptanceCriteria: 'Regulator sign-off confirmed in IE/FR/DE.',
   nonGoals: 'No broker onboarding in v1. No third-party data enrichment.',
-  missionOwner: 'Cari Forge Operator',
+  missionOwner: 'CARIForge Operator',
 };
 
 describe('MissionIntakeStructure', () => {

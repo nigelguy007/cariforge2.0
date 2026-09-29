@@ -83,7 +83,7 @@ export const STAGE_UI: Readonly<Record<StageName, StageUi>> = {
     // "solution package" -> "MVP", and dropped the old "not a production
     // deployment" hedge on the BUILD itself (2026-09-05, direct user
     // correction: "I want the real build to be created so it's
-    // production ready and able to be expanded"). CariForge still never
+    // production ready and able to be expanded"). CARIForge still never
     // hosts/launches it live for you — that stays the team's own later
     // action — but the code itself is meant to be production-quality
     // from this gate on, not just "a starting point."
@@ -400,7 +400,7 @@ const TERM_MAP: readonly (readonly [RegExp, string])[] = [
   [/\bmissions\b/g, 'projects'],
   [/\bMission\b/g, 'Project'],
   [/\bmission\b/g, 'project'],
-  [/\bAgent [1-7]\b/g, 'CariForge'],
+  [/\bAgent [1-7]\b/g, 'CARIForge'],
 ];
 
 /** "Gate 2" (zero-based) → "Step 3". */
@@ -445,11 +445,11 @@ export function humanise(value: string): string {
 // production ready and able to be expanded") — "solution package" ->
 // "MVP", and the code itself now targets production-quality (see
 // ai-draft.ts's draftSoftwareBuildFiles / build-job.ts's system prompts).
-// CariForge still doesn't host/launch it live for you; that boundary
+// CARIForge still doesn't host/launch it live for you; that boundary
 // stays intentional, just reworded below.
 /** Step 8 of the brief: what step 5 actually produces. Never "deployable build". */
 export const PROTOTYPE_PACKAGE = 'approved, production-ready MVP';
 export const PROTOTYPE_PACKAGE_CONTENTS =
   'a production-ready MVP, the Project plan, the Operating guide and an evidence receipt';
 export const PROTOTYPE_BOUNDARY =
-  'This is a production-ready MVP for review. CariForge does not host or launch it live for you — putting it into production is a separate, later decision made by your own team.';
+  'This is a production-ready MVP for review. CARIForge does not host or launch it live for you — putting it into production is a separate, later decision made by your own team.';

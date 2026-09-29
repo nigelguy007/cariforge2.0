@@ -15,7 +15,7 @@ import { siteDescription, siteName, siteUrl } from '@/lib/site';
 export const metadata: Metadata = {
   title: { absolute: `Request a council walkthrough — ${siteName}` },
   description:
-    'A deeper-intent form for procurement-grade buyers — regulated sectors (financial services, insurance, public sector, health), named role, organisation, and a 2–3 sentence problem statement. Each request fires an email to the CARI Forge operator and lands a row in the leads dashboard.',
+    'A deeper-intent form for procurement-grade buyers — regulated sectors (financial services, insurance, public sector, health), named role, organisation, and a 2–3 sentence problem statement. Each request fires an email to the CARIForge operator and lands a row in the leads dashboard.',
   alternates: { canonical: '/request-walkthrough' },
   openGraph: {
     title: `Request a council walkthrough — ${siteName}`,
@@ -45,7 +45,7 @@ export default function RequestWalkthroughPage() {
           <GlassSectionHeader
             eyebrow="Procurement-grade — for buyers who have moved past the front door"
             title="Request a council walkthrough."
-            lede="The one-line brief on the home page is the front door — about what you would tell the chairman before the council kicked off. This form is for buyers who are past that and ready to start a real procurement engagement: a segment choice from the four pre-approved engagement tracks, a named role, an organisation, and a 2–3 sentence problem statement. Each submission lands on the leads dashboard and fires a notification email to a CARI Forge operator; a named human replies within 48 hours during the working week."
+            lede="The one-line brief on the home page is the front door — about what you would tell the chairman before the council kicked off. This form is for buyers who are past that and ready to start a real procurement engagement: a segment choice from the four pre-approved engagement tracks, a named role, an organisation, and a 2–3 sentence problem statement. Each submission lands on the leads dashboard and fires a notification email to a CARIForge operator; a named human replies within 48 hours during the working week."
           />
 
           <div className="grid gap-8 lg:grid-cols-[1.4fr_1fr]">
@@ -67,7 +67,7 @@ export default function RequestWalkthroughPage() {
                   </span>
                   <span>
                     A row lands in the leads dashboard with <code>source: walkthrough</code> and the
-                    segment you chose, so a CARI Forge operator can route it without paging.
+                    segment you chose, so a CARIForge operator can route it without paging.
                   </span>
                 </li>
                 <li className="flex gap-3">

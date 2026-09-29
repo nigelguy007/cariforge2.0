@@ -242,7 +242,7 @@ export async function reviewAndMaybeAdvance(args: {
       gateIndex: args.gateIndex,
       decision: 'Approve',
       reasonCode: 'Approved',
-      reasonText: `Automatically advanced by CariForge: ${review.verdicts.length} specialist reviewers found no concerns, confidence ${Math.round(args.draftConfidence * 100)}%.`,
+      reasonText: `Automatically advanced by CARIForge: ${review.verdicts.length} specialist reviewers found no concerns, confidence ${Math.round(args.draftConfidence * 100)}%.`,
       stageHandoffId: args.handoffId,
     });
     return { reviewed: true, advanced: true, concernCount: 0 };

@@ -36,7 +36,7 @@ export function tagOracleGateDecisionEmail(input: TagOracleGateDecisionInput): E
           ? 'Workflow Design'
           : input.gateIndex === 3
             ? 'Governance Check'
-            : 'Software Build';
+            : 'Prototype build';
   const decisionLabel = DECISION_LABEL[input.decision];
   const { html, text } = renderEmail({
     heading: `Gate ${input.gateIndex} (${stage}) — ${decisionLabel}`,
@@ -46,7 +46,7 @@ export function tagOracleGateDecisionEmail(input: TagOracleGateDecisionInput): E
       `Reason: ${input.reasonText}`,
     ],
     cta: input.missionUrl ? { label: 'Open the mission', url: input.missionUrl } : undefined,
-    footer: 'Sent by the TAG Caribbean pilot Oracle Council.',
+    footer: 'Sent by the CARIForge Oracle Council (TAG Caribbean use case).',
   });
   return {
     subject: `[TAG pilot] Gate ${input.gateIndex} (${stage}) ${decisionLabel} — ${input.missionName}`,

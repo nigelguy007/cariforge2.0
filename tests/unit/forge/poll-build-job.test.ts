@@ -91,7 +91,7 @@ describe('pollBuildJob', () => {
   });
 
   it('throws an HTTP error with a JSON body immediately, cause intact', async () => {
-    const body = { status: 'Failed', error: 'CariForge could not plan this build right now.' };
+    const body = { status: 'Failed', error: 'CARIForge could not plan this build right now.' };
     const err = httpError(503, body);
     const h = harness([err, done]);
 
@@ -102,12 +102,12 @@ describe('pollBuildJob', () => {
   });
 
   it('throws a Failed reply (HTTP 200) with cause { error }', async () => {
-    const h = harness([{ status: 'Failed', error: 'CariForge could not generate a.ts.' }, done]);
+    const h = harness([{ status: 'Failed', error: 'CARIForge could not generate a.ts.' }, done]);
     const rejection = await pollBuildJob(h).catch((e: unknown) => e);
 
     expect(rejection).toBeInstanceOf(Error);
-    expect((rejection as Error).message).toBe('CariForge could not generate a.ts.');
-    expect((rejection as Error).cause).toEqual({ error: 'CariForge could not generate a.ts.' });
+    expect((rejection as Error).message).toBe('CARIForge could not generate a.ts.');
+    expect((rejection as Error).cause).toEqual({ error: 'CARIForge could not generate a.ts.' });
     expect(h.wait).not.toHaveBeenCalled();
   });
 

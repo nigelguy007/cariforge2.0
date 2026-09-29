@@ -291,10 +291,10 @@ describe('advanceSoftwareBuildJob — Planning', () => {
 
     expect(result).toEqual({
       status: 'Failed',
-      error: 'CariForge could not plan this build right now. Try again shortly.',
+      error: 'CARIForge could not plan this build right now. Try again shortly.',
     });
     expect(onlyJob().status).toBe('Failed');
-    expect(onlyJob().error).toBe('CariForge could not plan this build right now.');
+    expect(onlyJob().error).toBe('CARIForge could not plan this build right now.');
   });
 
   it('plans with max_tokens 8000, a 115s timeout, and asks for 8-15 files', async () => {
@@ -352,10 +352,10 @@ describe('advanceSoftwareBuildJob — Generating retries across polls', () => {
 
     expect(result).toEqual({
       status: 'Failed',
-      error: 'CariForge could not generate src/file-1.ts. Try again shortly.',
+      error: 'CARIForge could not generate src/file-1.ts. Try again shortly.',
     });
     expect(onlyJob().status).toBe('Failed');
-    expect(onlyJob().error).toBe('CariForge could not generate src/file-1.ts.');
+    expect(onlyJob().error).toBe('CARIForge could not generate src/file-1.ts.');
     expect(ai.calls).toHaveLength(3);
     expect(call(2).body.max_tokens).toBe(20_000);
     expect(call(2).options.timeout).toBe(230_000);
@@ -475,14 +475,14 @@ describe('advanceSoftwareBuildJob — overlapping requests', () => {
       async (body: ParseCall['body'], options: ParseCall['options']) => {
         ai.calls.push({ body, options });
         onlyJob().status = 'Failed';
-        onlyJob().error = 'CariForge could not generate src/file-1.ts.';
+        onlyJob().error = 'CARIForge could not generate src/file-1.ts.';
         throw timeoutErr();
       },
     );
     const result = await advanceSoftwareBuildJob({ ...ARGS });
 
     expect(result.status).toBe('Failed');
-    expect(onlyJob().error).toBe('CariForge could not generate src/file-1.ts.');
+    expect(onlyJob().error).toBe('CARIForge could not generate src/file-1.ts.');
   });
 
   it('returns the finished mission when another request already completed the build', async () => {
@@ -601,10 +601,10 @@ describe('advanceSoftwareBuildJob — single-flight lease per step', () => {
     expect(ai.calls).toHaveLength(0);
     expect(result).toEqual({
       status: 'Failed',
-      error: 'CariForge could not generate src/file-1.ts. Try again shortly.',
+      error: 'CARIForge could not generate src/file-1.ts. Try again shortly.',
     });
     expect(onlyJob().status).toBe('Failed');
-    expect(onlyJob().error).toBe('CariForge could not generate src/file-1.ts.');
+    expect(onlyJob().error).toBe('CARIForge could not generate src/file-1.ts.');
   });
 
   it('makes no AI call when another request wins the claim', async () => {
@@ -714,9 +714,9 @@ describe('advanceSoftwareBuildJob — single-flight lease per step', () => {
     expect(ai.calls).toHaveLength(1);
     expect(result).toEqual({
       status: 'Failed',
-      error: 'CariForge could not plan this build right now. Try again shortly.',
+      error: 'CARIForge could not plan this build right now. Try again shortly.',
     });
-    expect(onlyJob().error).toBe('CariForge could not plan this build right now.');
+    expect(onlyJob().error).toBe('CARIForge could not plan this build right now.');
   });
 
   it("F1: a waiter whose DB read throws leaves the job (and the holder's lease) untouched", async () => {
@@ -730,7 +730,7 @@ describe('advanceSoftwareBuildJob — single-flight lease per step', () => {
 
     expect(result).toEqual({
       status: 'Failed',
-      error: 'CariForge could not continue this build right now. Try again shortly.',
+      error: 'CARIForge could not continue this build right now. Try again shortly.',
     });
     expect(onlyJob().status).toBe('Generating');
     expect(onlyJob().error).toBe(lease);
@@ -833,7 +833,7 @@ describe('advanceSoftwareBuildJob — single-flight lease per step', () => {
     expect(service.submitHandoff).not.toHaveBeenCalled();
     expect(result).toEqual({
       status: 'Failed',
-      error: 'CariForge could not continue this build right now. Try again shortly.',
+      error: 'CARIForge could not continue this build right now. Try again shortly.',
     });
     expect(onlyJob().status).toBe('Failed');
   });

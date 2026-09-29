@@ -73,10 +73,9 @@ export default function TestimonialsPage() {
                 /pricing
               </Link>{' '}
               maps the same council, the same five-stage pipeline, and the same evidence package
-              across three tiers. The full disclosure of what is and is not delivered by the
-              Software Build sits at{' '}
+              across three tiers. The scope of each pilot is set out in{' '}
               <Link href="/why-this-is-a-scaffold" className="link-brand">
-                /why-this-is-a-scaffold
+                what a 21-day pilot delivers, and what it doesn’t
               </Link>
               .
             </p>

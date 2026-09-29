@@ -17,12 +17,12 @@ import { siteDescription, siteName, siteUrl } from '@/lib/site';
 export const metadata: Metadata = {
   title: { absolute: `Sample brief — ${siteName}` },
   description:
-    'One concrete worked example: a regulated EU insurer’s 14-person claims-department asks CARI Forge to triage 3,200 monthly property claims faster without lowering the fraud-detection rate. Read the verbatim brief, the Oracles’ five objections, the Elder Oracle’s reconciled ruling, the five-agent pipeline of stage handoffs, and Agent 5’s working solution — every stage named human approver and typed reason attached.',
+    'An illustrative worked example: a regulated EU insurer’s 14-person claims-department asks CARIForge to triage 3,200 monthly property claims faster without lowering the fraud-detection rate. Read the verbatim brief, the Oracles’ five objections, the Elder Oracle’s reconciled ruling, the seven-agent pipeline of stage handoffs, and Agent 5’s working solution — every stage named human approver and typed reason attached.',
   alternates: { canonical: '/sample-brief' },
   openGraph: {
     title: `Sample brief — ${siteName}`,
     description:
-      'One concrete worked example: a regulated EU insurer’s 14-person claims-department asks CARI Forge to triage 3,200 monthly property claims faster without lowering the fraud-detection rate. Read the verbatim brief, the Oracles’ five objections, the Elder Oracle’s reconciled ruling, the five-agent pipeline of stage handoffs, and Agent 5’s working solution — every stage named human approver and typed reason attached.',
+      'An illustrative worked example: a regulated EU insurer’s 14-person claims-department asks CARIForge to triage 3,200 monthly property claims faster without lowering the fraud-detection rate. Read the verbatim brief, the Oracles’ five objections, the Elder Oracle’s reconciled ruling, the seven-agent pipeline of stage handoffs, and Agent 5’s working solution — every stage named human approver and typed reason attached.',
     images: ['/opengraph-image'],
   },
 };
@@ -55,7 +55,7 @@ export default function SampleBriefPage() {
                 <p className="text-eyebrow text-brand-700">Audit trail · one-page export</p>
                 <p className="text-small text-muted-foreground">
                   Download this worked example as a single-page PDF for your compliance officer —
-                  brief, council, ruling, sign-off, and the scaffold disclaimer in one sheet.
+                  brief, council, ruling, sign-off, and the pilot scope limits in one sheet.
                 </p>
               </div>
               <DownloadAuditTrailButton />

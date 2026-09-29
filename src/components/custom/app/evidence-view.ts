@@ -277,7 +277,7 @@ function mayDoQuestion(detail: MissionDetailT): EvidenceQuestion {
       id: 'generated-files',
       label: 'Files generated',
       value: files.map((f) => f.path).join(', '),
-      meta: `${plural(files.length, 'file')} in the Software Build step output — see the project page to view or copy each one`,
+      meta: `${plural(files.length, 'file')} in the Prototype build step output — see the project page to view or copy each one`,
     });
   }
   if (governance) {

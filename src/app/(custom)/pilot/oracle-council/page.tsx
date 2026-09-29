@@ -11,12 +11,12 @@ import { siteDescription, siteName, siteUrl } from '@/lib/site';
 export const metadata: Metadata = {
   title: { absolute: `TAG pilot — Oracle Council — ${siteName}` },
   description:
-    'The five named human gates of The Oracles + the Elder Oracle: visible, attributable, enforceable. No specialist or model can skip the gate that closes a TAG Caribbean pilot mission.',
+    'Five gates, each signed by a named human. The Oracles, the five-voice review council inside the 7-agent engine, argue each gate first. No specialist or model can skip the gate that closes a TAG Caribbean pilot mission.',
   alternates: { canonical: '/pilot/oracle-council' },
   openGraph: {
     title: `TAG pilot — Oracle Council — ${siteName}`,
     description:
-      'Five named human gates of The Oracles + the named Elder Oracle. Gates 0 and 4 require the Elder; every gate requires at least one specialist attester on the handoff.',
+      'Five gates, each signed by a named human, argued first by The Oracles. Gates 0 and 4 require the named Elder Oracle; every gate requires at least one specialist attester on the handoff.',
     images: ['/opengraph-image'],
   },
 };
@@ -38,12 +38,13 @@ export default function PilotOracleCouncilPage() {
       <section className="section relative overflow-hidden">
         <div className="container-page flex flex-col gap-8">
           <header className="flex flex-col gap-3">
-            <p className="text-eyebrow text-brand-700">TAG Caribbean pilot · Oracle Council</p>
+            <p className="text-eyebrow text-brand-700">TAG Caribbean use case · Oracle Council</p>
             <h1 className="text-h1 text-foreground">Five named gates, one Elder Oracle.</h1>
             <p className="max-w-3xl text-body text-muted-foreground">
-              The Oracles visible. Every gate has a named human approver. Gates{' '}
-              <strong>0 (Need Discovery)</strong> and <strong>4 (Software Build)</strong> can only
-              be approved by the appointed Elder Oracle — no specialist or model can skip that
+              The Oracles are the five-voice review council inside CARIForge&rsquo;s 7-agent engine.
+              They argue each of the five gates before the named human signs. Gates{' '}
+              <strong>0 (Need Discovery)</strong> and <strong>4 (Prototype build)</strong> can only
+              be approved by the appointed Elder Oracle. No specialist or model can skip that
               signature. Every gate also requires at least one specialist attester on the handoff
               before the decision can land.
             </p>

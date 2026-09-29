@@ -69,7 +69,7 @@ describe('STAGE_UI', () => {
     // "solution" -> "MVP" (2026-09-06, direct user correction: "state an
     // mvp will be created"). The invariant above still holds with the new
     // wording: it says "ready for your team to deploy", not "deployed to
-    // production" — CariForge still never claims it did the deploying.
+    // production" — CARIForge still never claims it did the deploying.
     expect(STAGE_UI.SoftwareBuild.sentence).toMatch(/mvp/i);
   });
 
@@ -159,7 +159,7 @@ describe('humaniseCopy', () => {
       'Council Chair must sign this step output',
     );
     expect(humaniseCopy('Agent 3 raised an objection on the mission')).toBe(
-      'CariForge raised a concern on the project',
+      'CARIForge raised a concern on the project',
     );
   });
 

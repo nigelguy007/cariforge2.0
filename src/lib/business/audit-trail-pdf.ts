@@ -238,8 +238,8 @@ export async function renderAuditTrailPdf(input: AuditTrailDocument): Promise<Ui
 
   // --- §05 Disclaimer ---
   drawHeading(
-    'SECTION 05  -  WHAT THIS DELIVERABLE DOES NOT COVER',
-    'Scaffold disclaimer (identical to /why-this-is-a-scaffold)',
+    'SECTION 05  -  WHAT THE PILOT DOES NOT COVER',
+    'Pilot scope boundaries (identical to /why-this-is-a-scaffold)',
   );
   for (const row of input.disclaimer) {
     cursor.y -= 2;
@@ -257,7 +257,7 @@ export async function renderAuditTrailPdf(input: AuditTrailDocument): Promise<Ui
     color: RULE,
   });
   drawText(
-    `CARI Forge audit trail  |  ${input.header.caseId}  |  rendered ${new Date().toISOString().slice(0, 10)}`,
+    `CARIForge audit trail  |  ${input.header.caseId}  |  rendered ${new Date().toISOString().slice(0, 10)}`,
     { size: 7, color: MUTED },
   );
 

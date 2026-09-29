@@ -17,12 +17,12 @@ import { siteName, siteUrl } from '@/lib/site';
 export const metadata: Metadata = {
   title: { absolute: `Pricing — ${siteName}` },
   description:
-    'Three inquiry-only engagement tiers: Pilot (one brief, one council, one Software Build), Procurement (a programme of briefs, one evidence package), and Public Sector (longer timelines, supplementary evidentiary artefacts). Each inquiry begins at the brief intake form.',
+    'Three inquiry-only engagement tiers: Pilot (21 days, ending in a Decision Pack the client owns, including a working prototype), Procurement (a programme of briefs, one evidence package), and Public Sector (longer timelines, supplementary evidentiary artefacts). Each inquiry begins at the brief intake form.',
   alternates: { canonical: '/pricing' },
   openGraph: {
     title: `Pricing — ${siteName}`,
     description:
-      'Three inquiry-only engagement tiers: Pilot (one brief, one council, one Software Build), Procurement (a programme of briefs, one evidence package), and Public Sector (longer timelines, supplementary evidentiary artefacts). Each inquiry begins at the brief intake form.',
+      'Three inquiry-only engagement tiers: Pilot (21 days, ending in a Decision Pack the client owns, including a working prototype), Procurement (a programme of briefs, one evidence package), and Public Sector (longer timelines, supplementary evidentiary artefacts). Each inquiry begins at the brief intake form.',
     images: ['/opengraph-image'],
   },
 };
@@ -30,16 +30,16 @@ export const metadata: Metadata = {
 const product = {
   '@context': 'https://schema.org',
   '@type': 'Product',
-  name: 'CARI Forge Pilot',
+  name: 'CARIForge Pilot',
   description:
-    'One brief. One council. One Software Build. A single, contained engagement: one one-line brief, one council ruling, one runnable Next.js + TypeScript Software Build, with a five-stage pipeline (Need Discovery → Readiness Review → Workflow Design → Governance Check → Software Build) and a named human approval at every gate.',
+    'A 21-day governed pilot that ends in a Decision Pack the client owns: problem brief, readiness score, workflow map, governance review, working prototype (a runnable Next.js + TypeScript codebase) and full audit trail. Seven specialist agents run a five-stage pipeline (Need Discovery → Readiness Review → Workflow Design → Governance Check → Prototype build), with a named human approval at every gate.',
   provider: { '@type': 'Organization', name: siteName, url: siteUrl },
   offers: [
     {
       '@type': 'Offer',
       name: 'Pilot',
       description:
-        'One one-line brief, one council ruling, one runnable Software Build. Includes the audit-trail bundle per run, persisted as a SHA-256 hash chain, and a 90-day retention minimum on every artefact.',
+        'A 21-day pilot ending in a Decision Pack the client owns, including a working prototype. Includes the audit-trail bundle per run, persisted as a SHA-256 hash chain, and a 90-day retention minimum on every artefact.',
       category: 'Engagement tier',
       availability: 'https://schema.org/PreOrder',
       eligibleCustomerType: 'https://schema.org/BusinessEntity',
@@ -77,7 +77,7 @@ export default function PricingPage() {
         <div className="container-page flex flex-col gap-10">
           <GlassSectionHeader
             eyebrow="Inquiry only — no payment flow at this stage"
-            title="Three ways to commission a CARI Forge run."
+            title="Three ways to commission a CARIForge run."
             lede="Every tier is the same council, the same five-stage pipeline, and the same audit-trail evidence. What changes is the scope — one brief, a procurement programme, or a timeline that spans quarters. Each card below lists what is included; each inquiry begins at the same one-line brief form on the home page."
           />
 
@@ -91,7 +91,7 @@ export default function PricingPage() {
             <GlassSectionHeader
               eyebrow="Before you commit"
               title="What's this worth, roughly, to the team doing it today?"
-              lede="A quick, honest estimate — every number below comes directly from what you enter, not an industry benchmark CARI Forge has no basis to claim."
+              lede="A quick, honest estimate — every number below comes directly from what you enter, not an industry benchmark CARIForge has no basis to claim."
             />
             <div className="mt-6">
               <RoiCalculator />
@@ -103,7 +103,7 @@ export default function PricingPage() {
           <GlassPanel tone="surface" padding="lg" backdrop="soft">
             <p className="text-small">
               Every tier above begins as an inquiry, not a transaction. There is no payment flow on
-              this page yet, and a real human from CARI Forge will reply within 48 hours during
+              this page yet, and a real human from CARIForge will reply within 48 hours during
               working weeks.{' '}
               <Link href="/how-it-works#front-door" className="link-brand">
                 Tell us what you want to build
@@ -112,20 +112,16 @@ export default function PricingPage() {
               <Link href="/faq" className="link-brand">
                 the FAQ
               </Link>{' '}
-              for what a regulated buyer asks first. See the procurement verification matrix at{' '}
+              for what a regulated buyer asks first. See{' '}
               <Link href="/compare" className="link-brand">
                 /compare
               </Link>{' '}
-              for an honest, source-cited comparison with five other AI-build platforms, and what
-              approved buyers from regulated sectors say about the deliverables at{' '}
-              <Link href="/testimonials" className="link-brand">
-                /testimonials
-              </Link>
-              . See the full pipeline on a real case file at{' '}
+              for how CARIForge compares with the alternatives buyers consider, and{' '}
               <Link href="/sample-brief" className="link-brand">
                 the /sample-brief worked example
               </Link>{' '}
-              — one buyer brief, five agents, one named human approver at every gate.
+              for the full pipeline on one case: one buyer brief, seven specialist agents, five
+              gated stages and a named human approver at every gate.
             </p>
           </GlassPanel>
         </div>

@@ -67,10 +67,10 @@ function getClient(): Anthropic | null {
 const MAX_INTAKE_QUESTIONS = 4;
 
 function buildSystemPrompt(questionsAsked: number): string {
-  return `You are CariForge, talking with a Caribbean business owner or team member who
-wants to start a new project. CariForge's mission: help Caribbean businesses
+  return `You are CARIForge, talking with a Caribbean business owner or team member who
+wants to start a new project. CARIForge's mission: help Caribbean businesses
 adopt AI by turning a plain-language business need into a governed,
-human-approved, production-quality MVP — CariForge doesn't host/launch it
+human-approved, production-quality MVP — CARIForge doesn't host/launch it
 live for you, that stays your own team's later decision — in as little as
 21 days. AI agents do the drafting and review; a named human only steers
 and approves at each gate.

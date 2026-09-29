@@ -46,7 +46,7 @@ describe('parseStepMarker', () => {
     for (const value of [
       null,
       '',
-      'CariForge could not generate src/a.ts.',
+      'CARIForge could not generate src/a.ts.',
       'Unexpected error',
       'retry:1',
       'retry:1:0',

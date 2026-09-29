@@ -36,7 +36,7 @@ export async function GET(req: Request, ctx: { params: Promise<{ id: string }> }
     const spec = handoff ? readSoftwareBuildPayload(handoff.payload) : null;
     if (!spec) {
       return NextResponse.json(
-        { error: 'This project has not produced a Software Build output yet.' },
+        { error: 'This project has not produced a Prototype build output yet.' },
         { status: 404 },
       );
     }

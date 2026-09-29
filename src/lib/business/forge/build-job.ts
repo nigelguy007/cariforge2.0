@@ -118,7 +118,7 @@ async function planSoftwareBuild(args: {
       ? `\n\nEvidence already attached to this project (reference it where relevant):\n${args.evidence.map((e, i) => `${i + 1}. ${e.label} (${e.kind})`).join('\n')}`
       : '';
 
-  const system = `You are CariForge, PLANNING the "SoftwareBuild" step of a governed project —
+  const system = `You are CARIForge, PLANNING the "SoftwareBuild" step of a governed project —
 the point where an approved plan becomes a real, production-quality MVP:
 a genuine Next.js (App Router) + TypeScript implementation, not a generic
 template or a placeholder. This is a planning pass only: decide the file
@@ -287,7 +287,7 @@ async function generateFileContent(args: {
       : '';
   const allPathsBlock = `\n\nThe full planned file list for this build (for context on what exists elsewhere, even if not shown above):\n${args.plan.files.map((f) => `- ${f.path}: ${f.purpose}`).join('\n')}`;
 
-  const system = `You are CariForge, writing ONE real file for the "SoftwareBuild" step of a
+  const system = `You are CARIForge, writing ONE real file for the "SoftwareBuild" step of a
 governed project — a production-quality MVP, not a placeholder or a
 "hello world". Build it to production-quality standards for its scope:
 real input validation, real error handling (no swallowed errors, no
@@ -357,7 +357,7 @@ async function currentJobState(
   const current = await prisma.softwareBuildJob.findUnique({ where: { id: jobId } });
   const generic: BuildJobResult = {
     status: 'Failed',
-    error: 'CariForge could not continue this build right now. Try again shortly.',
+    error: 'CARIForge could not continue this build right now. Try again shortly.',
   };
   if (!current) return generic;
   switch (current.status) {
@@ -455,7 +455,7 @@ export async function advanceSoftwareBuildJob(args: {
   // `return promise` would let its rejection skip the catch below.
   try {
     if (job.status === 'Planning') {
-      const planFailed = 'CariForge could not plan this build right now.';
+      const planFailed = 'CARIForge could not plan this build right now.';
       const observed = { id: job.id, status: 'Planning' as const, error: job.error };
       const step = assessStep(job.error, 'plan', PLAN_ATTEMPT_TIMEOUTS, Date.now());
       if (step.kind === 'in-flight') return await waitWhileInFlight(job, args);
@@ -513,7 +513,7 @@ export async function advanceSoftwareBuildJob(args: {
         });
         return { status: 'Finalizing' };
       }
-      const fileFailed = `CariForge could not generate ${target.path}.`;
+      const fileFailed = `CARIForge could not generate ${target.path}.`;
       const fileStep: BuildStep = job.nextFileIndex;
       // Every write below is conditional on the job still being on THIS
       // file with the marker we observed/claimed, so a slow, overlapping
@@ -609,7 +609,7 @@ export async function advanceSoftwareBuildJob(args: {
     const step = assessStep(job.error, 'finalize', FINALIZE_ATTEMPT_TIMEOUTS, Date.now());
     if (step.kind === 'in-flight') return await waitWhileInFlight(job, args);
     if (step.kind === 'exhausted') {
-      return await markFailed(observed, 'CariForge could not continue this build right now.', args);
+      return await markFailed(observed, 'CARIForge could not continue this build right now.', args);
     }
     const lease = runMarker('finalize', step.attempt, Date.now());
     const claimed = await prisma.softwareBuildJob.updateMany({
@@ -671,7 +671,7 @@ export async function advanceSoftwareBuildJob(args: {
     }
     return {
       status: 'Failed',
-      error: 'CariForge could not continue this build right now. Try again shortly.',
+      error: 'CARIForge could not continue this build right now. Try again shortly.',
     };
   }
 }

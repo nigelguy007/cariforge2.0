@@ -87,7 +87,7 @@ export function WalkthroughForm() {
         </div>
         <p className="text-small text-card-foreground/80">
           {submitted.notified
-            ? `Logged for the ${submitted.segment} segment and forwarded to the team — a CARI Forge operator from ${submitted.organisation} will reply within 48 hours.`
+            ? `Logged for the ${submitted.segment} segment and forwarded to the team — a CARIForge operator from ${submitted.organisation} will reply within 48 hours.`
             : `Logged. We're still in pilot — expect a slower reply from a named human while we set up the inbox for the ${submitted.segment} segment.`}
         </p>
         <p className="text-caption text-muted-foreground">

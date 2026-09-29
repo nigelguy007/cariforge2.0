@@ -61,7 +61,7 @@ const STAGES: Array<{
   },
   {
     ordinal: 'V',
-    name: 'Software Build',
+    name: 'Prototype build',
     goal: 'Produce the approved Blueprint and Runbook — the schema-versioned build spec Agent 5 (AI Build) hands off.',
     gate: 'Approve · Return · Refuse — final approve releases the spec.',
     agentBadge: 'Agent 5 · AI Build',
@@ -80,7 +80,7 @@ export default function PipelineDetailPage() {
         </h1>
         <p className="max-w-2xl text-body text-muted-foreground">
           This is the detail that used to sit on the public how-it-works page — moved here so it's
-          visible to people building on CARI Forge, not to anyone who happens to visit.
+          visible to people building on CARIForge, not to anyone who happens to visit.
         </p>
       </header>
 
@@ -164,7 +164,7 @@ export default function PipelineDetailPage() {
               </p>
               <p className="text-small text-card-foreground/80">
                 Agents 1&ndash;5 cannot approve their own gate, and AI Build cannot ship without the
-                Software Build gate&rsquo;s final approval.
+                Prototype build gate&rsquo;s final approval.
               </p>
             </div>
             <div>
@@ -186,7 +186,7 @@ export default function PipelineDetailPage() {
           Systems of record
         </GlassChip>
         <h2 className="font-display text-h3 tracking-tight text-foreground">
-          CARI Forge doesn&rsquo;t ask you to replace what you already run.
+          CARIForge doesn&rsquo;t ask you to replace what you already run.
         </h2>
         <p className="text-body text-muted-foreground">
           Your systems stay authoritative &mdash; the pipeline works with what you already have, not

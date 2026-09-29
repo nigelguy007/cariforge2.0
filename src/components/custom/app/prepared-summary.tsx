@@ -1,4 +1,4 @@
-// @polsia:user-owned — at most three facts CariForge has already prepared
+// @polsia:user-owned — at most three facts CARIForge has already prepared
 // for the current step (brief, Step 4). Labelled so the reader knows who
 // wrote it; rendered as a plain definition list, not a card grid.
 
@@ -9,7 +9,7 @@ export function PreparedSummary({ items }: { items: readonly SummaryItem[] }) {
   return (
     <section aria-labelledby="prepared-summary-heading" className="app-panel p-5">
       <h2 id="prepared-summary-heading" className="app-caption text-[var(--app-text-muted)]">
-        Prepared by CariForge
+        Prepared by CARIForge
       </h2>
       <dl className="mt-2 divide-y divide-[var(--app-border)]">
         {items.slice(0, 3).map((item) => (

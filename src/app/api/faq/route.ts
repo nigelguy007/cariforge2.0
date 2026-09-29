@@ -13,9 +13,9 @@ const FAQ = [
     id: 'eu-ai-act-articles-12-14',
     ordinal: 1,
     question:
-      'How does CARI Forge align with EU AI Act Articles 12 and 14, and what does the timeline look like?',
+      'How does CARIForge align with EU AI Act Articles 12 and 14, and what does the timeline look like?',
     answer:
-      "Articles 12 (record-keeping for high-risk AI) and 14 (effective oversight by natural persons) reach high-risk systems from 2 August 2026, with the Commission's biennial review starting 2 August 2027. CARI Forge's pipeline is shaped for them: every stage emits a timestamped, named-human approval record so the Article 12 logging and Article 14 human-in-the-loop expectations are produced as a by-product of the work, not added afterwards.",
+      "Articles 12 (record-keeping for high-risk AI) and 14 (effective oversight by natural persons) reach high-risk systems from 2 August 2026, with the Commission's biennial review starting 2 August 2027. CARIForge's pipeline is shaped for them: every stage emits a timestamped, named-human approval record so the Article 12 logging and Article 14 human-in-the-loop expectations are produced as a by-product of the work, not added afterwards.",
   },
   {
     id: 'audit-trail-evidence',
@@ -27,23 +27,23 @@ const FAQ = [
   {
     id: 'hallucination-council',
     ordinal: 3,
-    question: 'How do you stop hallucinated claims from reaching the Software Build?',
+    question: 'How do you stop unsupported claims from reaching the working prototype?',
     answer:
-      'No claim is allowed to stand on one voice. Each agent opens objections by default and is tuned to a single angle — Risk, Demand, Growth, Competition, Money — and a chairman rules only when at least two opposing voices have weighed in on the same point. Any unresolved objection is escalated to the named human, never silently dropped. This is structural disagreement, not confidence scoring: the model is asked to argue, not to declare certainty.',
+      'No claim is allowed to stand on one voice. Inside the 7-agent engine, a five-voice review council (Risk, Demand, Growth, Competition and Money, known as the Oracles) argues each gate before the named human signs. Each voice opens objections by default, and a chairman rules only when at least two opposing voices have weighed in on the same point. Any unresolved objection is escalated to the named human, never silently dropped. The model is asked to argue the case, and no confidence score replaces that argument.',
   },
   {
     id: 'scaffold-vs-product',
     ordinal: 4,
-    question: 'What does CARI Forge actually hand over — and what does it not?',
+    question: 'What does CARIForge actually hand over — and what does it not?',
     answer:
-      "CARI Forge delivers a runnable, fully-typed Next.js Software Build from a one-line brief; it does not deliver a production-deployable system, ongoing maintenance, regulatory certification, or any acceptance that the Software Build meets the buyer's specific audit regime. Each hand-off says plainly what is in the box and what is not, the runway ends at the Software Build receipt, and the handover note names the named humans who would own the next steps.",
+      'A 21-day pilot ends in a Decision Pack the client owns: problem brief, readiness score, workflow map, governance review, working prototype and full audit trail. The working prototype is a runnable codebase that the client owns and operates. The pilot does not include production hosting, an uptime SLA, 24/7 support, regulatory certification or liability for downstream deployment. CARIForge’s responsibility ends at the hand-off receipt, and the handover note names the people who would own the next steps.',
   },
   {
     id: 'why-a-council',
     ordinal: 5,
     question: 'Why is a council shape needed at all?',
     answer:
-      'A single model asked to be careful under load converges to hedging rather than honesty, which a compliance audit later catches as fabricated certainty. Five voices with opposing defaults force the disagreement to surface in the artefact, and a human tiebreaker keeps an unattended edge case from being averaged away. The shape exists because the failure mode of solo AI judgement on regulated work is well understood, not because it is decorative.',
+      'A single model asked to be careful under load converges to hedging rather than honesty, which a compliance audit later catches as fabricated certainty. Five voices with opposing defaults force the disagreement to surface in the artefact, and a human tiebreaker keeps an unattended edge case from being averaged away. Solo AI judgement on regulated work fails in a known way, and the council is there to catch it.',
   },
 ] as const;
 

@@ -244,7 +244,7 @@ export async function draftStepOutput(args: {
       ? `\n\nEvidence already attached to this project (reference it where relevant instead of treating this as unverified):\n${args.evidence.map((e, i) => `${i + 1}. ${e.label} (${e.kind})`).join('\n')}`
       : '';
 
-  const system = `You are CariForge, drafting the "${args.stage}" step of a governed project for
+  const system = `You are CARIForge, drafting the "${args.stage}" step of a governed project for
 a real business. This step's purpose: ${gate?.purpose ?? 'Advance the project to its next gate.'}
 
 You are producing a DRAFT for a named human to review and approve, correct,
@@ -330,7 +330,7 @@ async function draftSoftwareBuildFiles(
       ? `\n\nEvidence already attached to this project (reference it where relevant):\n${args.evidence.map((e, i) => `${i + 1}. ${e.label} (${e.kind})`).join('\n')}`
       : '';
 
-  const system = `You are CariForge, building the "SoftwareBuild" step of a governed project —
+  const system = `You are CARIForge, building the "SoftwareBuild" step of a governed project —
 the point where an approved plan becomes a real, RUNNABLE Next.js +
 TypeScript implementation and a proper technical specification, not
 another one-paragraph document. A named human reviews and approves,

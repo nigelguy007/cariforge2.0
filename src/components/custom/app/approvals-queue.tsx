@@ -260,7 +260,7 @@ export function ApprovalsQueue() {
                 <div className="min-w-0 flex-1">
                   <p className="app-body truncate font-medium text-[var(--app-text)]">{m.name}</p>
                   <p className="app-small mt-0.5 text-[var(--app-text-muted)]">
-                    {approvalNameForIndex(m.currentStageIndex)} · Prepared by CariForge · Waiting
+                    {approvalNameForIndex(m.currentStageIndex)} · Prepared by CARIForge · Waiting
                     since {whenLine(m.updatedAt)}
                   </p>
                 </div>

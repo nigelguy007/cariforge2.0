@@ -1,6 +1,6 @@
 // @polsia:user-owned — UX review C2 (wireframe v2, screen 2d): Gate 5's
 // handoff into the Forge. Renders only once the mission has reached the
-// Software Build gate (Governance approved → currentStageIndex 4). If a
+// Prototype build gate (Governance approved → currentStageIndex 4). If a
 // blueprint is already linked to this mission it deep-links into the
 // canvas (and the latest run); otherwise one click creates a seeded,
 // mission-scoped blueprint whose authority boundary arrives as a
@@ -83,7 +83,7 @@ export function MissionBuildPanel({
 
   return (
     <section className="glass-panel rounded-2xl border border-brand-300/60 p-6">
-      <p className="text-eyebrow text-brand-700">Software Build</p>
+      <p className="text-eyebrow text-brand-700">Prototype build</p>
       <h2 className="text-h3 text-foreground">Build</h2>
       {blueprint === 'loading' ? (
         <p className="mt-2 text-body text-muted-foreground">Checking for a linked blueprint…</p>

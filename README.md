@@ -1,4 +1,4 @@
-# CariForge
+# CARIForge
 
 A governed, seven-agent AI implementation platform, built by the Caribbean, for
 the Caribbean. A user states one business goal in plain language; a seven-agent
@@ -15,7 +15,7 @@ human gates, so a named person decides every consequential transition.
 
 ## What it does
 
-CariForge closes the **Implementation Void**: organisations across the region
+CARIForge closes the **Implementation Void**: organisations across the region
 already have the AI ideas, pilots, and workshop follow-ups — what they lack is
 a repeatable, governed route from idea to something deployed and trusted. One
 goal moves through five gates. Each gate has exactly one owning agent, one
@@ -28,13 +28,19 @@ gate cannot be skipped.
 | 2 | Readiness Review | Readiness | A buildability score across five dimensions (data, process, people, technology, governance) | Proceed / Hold / Reject |
 | 3 | Workflow Design | Workflow | A current-state and future-state map — who does what, where AI helps, where a human must stay in control | Approve target workflow |
 | 4 | Governance Check | Governance | A privacy, bias, safety and legal review — any risk rated critical cannot be approved, with or without controls | Approve (w/ controls) / Return / Stop |
-| 5 | Prototype Build | Prototype | A scoped 21-day MVP spec, then a real deployable code scaffold once approved | Accept pilot / Request fixes / Scale / Retire |
+| 5 | Prototype Build | Prototype | A scoped 21-day MVP spec, then a working prototype once approved: a runnable codebase the client owns and operates | Accept pilot / Request fixes / Scale / Retire |
 
 Two more agents complete the seven: **Partner & Enabler** matches real
 delivery partners (never sharing a contact until explicitly approved, with a
 written reason), and **Impact** sets the numbers that define success at year
 one, three, and five. Every gate, reply, and reason is written into an audit
 trail nobody — including the people who built the platform — can quietly edit.
+
+Before each gate, a five-voice review council inside the engine (Risk, Demand,
+Growth, Competition and Money, known as the Oracles) argues the case, so the
+named approver sees the objections before signing. A pilot runs 21 days and
+ends in a Decision Pack the client owns: problem brief, readiness score,
+workflow map, governance review, working prototype and full audit trail.
 
 ## Who it's for
 
@@ -85,6 +91,6 @@ bootstrap lives in `db/`.
 
 ## License
 
-Copyright © 2026 CariForge. All rights reserved.
+Copyright © 2026 CARIForge. All rights reserved.
 
 MIT. See [LICENSE](./LICENSE).

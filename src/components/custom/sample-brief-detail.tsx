@@ -4,7 +4,7 @@
 // renders it in six vertical sections: the brief as submitted, the council
 // debate, the chairman's reconciled ruling, the five-stage pipeline of stage
 // handoffs (operated by the seven-agent core; Agent 5 = AI Build, which
-// operates Stage 5 = Software Build), Agent 5's working solution, and the
+// operates Stage 5 = Prototype build), Agent 5's working solution, and the
 // supervisor sign-off footer. Loading / empty / error guards mirror the
 // CouncilSections and FaqAccordion patterns.
 
@@ -332,9 +332,9 @@ function SolutionCard({ solution }: { solution: Solution }) {
 
 function ProductionDisclaimerBanner({ text }: { text: string }) {
   return (
-    <GlassPanel tone="surface" padding="lg" backdrop="soft" aria-label="Production disclaimer">
+    <GlassPanel tone="surface" padding="lg" backdrop="soft" aria-label="About this example">
       <p className="text-[10px] font-semibold uppercase tracking-[0.1em] text-brand-700">
-        Production disclaimer
+        About this example
       </p>
       <p className="text-small leading-relaxed text-card-foreground/90">{text}</p>
     </GlassPanel>
@@ -463,7 +463,7 @@ function SampleBriefDetailLoading() {
         <GlassSectionHeader
           eyebrow="§ 01 · The brief as submitted"
           title="One concrete case: an EU insurer, 3,200 monthly claims, a four-line guard-rail."
-          lede="What follows is a verbatim worked example — the buyer's brief, the oracles' reading, the Elder Oracle's reconciled ruling, and the five agents that turn it into a runnable Software Build. No abstraction, no fictional narrative."
+          lede="What follows is a verbatim worked example — the buyer's brief, the oracles' reading, the Elder Oracle's reconciled ruling, and the seven specialist agents that turn it into a working prototype. This is an illustrative example, not a client engagement."
         />
         <BriefSkeleton />
       </section>
@@ -483,7 +483,7 @@ function SampleBriefDetailLoading() {
         <GlassSectionHeader
           eyebrow="§ 03 · The Elder Oracle's reconciled ruling"
           title="Build — with two carried-forward items, not silently dropped."
-          lede="The Elder Oracle sides with Risk (a named human-only assertion step is added to the workflow, by structure) and with Growth (a typed note goes to the buyer on what the build unlocks downstream). The case advances to the Software Build."
+          lede="The Elder Oracle sides with Risk (a named human-only assertion step is added to the workflow, by structure) and with Growth (a typed note goes to the buyer on what the build unlocks downstream). The case advances to the Prototype build."
         />
         <GlassCard tone="highlight" padding="lg">
           <Skeleton className="h-6 w-1/3" />
@@ -498,7 +498,7 @@ function SampleBriefDetailLoading() {
         <GlassSectionHeader
           eyebrow="§ 04 · The pipeline"
           title="Five named approvals, no hidden steps — operated by the seven-agent core."
-          lede="Each stage advance (1..5; stage 5 = Software Build) requires a human approval by name, with a typed reason attached verbatim. The seven-agent core — Discovery, Readiness, Workflow, Governance, AI Build, Partner, Impact — operates the pipeline; AI Build (Agent 5) runs the Software Build stage (Stage 5). Returns are cheap; stops are free. Nothing jumps a gate."
+          lede="Each stage advance (1..5; stage 5 = Prototype build) requires a human approval by name, with a typed reason attached verbatim. The seven-agent core — Discovery, Readiness, Workflow, Governance, AI Build, Partner, Impact — operates the pipeline; AI Build (Agent 5) runs the Prototype build stage (Stage 5). Returns are cheap; stops are free. Nothing jumps a gate."
         />
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-5">
           {['01', '02', '03', '04', '05'].map((k) => (
@@ -510,7 +510,7 @@ function SampleBriefDetailLoading() {
         <GlassSectionHeader
           eyebrow="§ 05 · Agent 5 · AI Build · working solution"
           title="The runnable output — the audit trail is the warranty."
-          lede="What Stage 5 (Software Build) actually ships: a per-claim review queue with a human-in-the-loop approve / request-info / refer-to-SIU workflow, an append-only prisma audit-trail model, and an immutable per-case hash chain. Not a video. A receipt."
+          lede="What Stage 5 (Prototype build) actually ships: a per-claim review queue with a human-in-the-loop approve / request-info / refer-to-SIU workflow, an append-only prisma audit-trail model, and an immutable per-case hash chain. Not a video. A receipt."
         />
         <GlassCard tone="highlight" padding="lg">
           <Skeleton className="h-6 w-1/3" />
@@ -552,7 +552,7 @@ function SampleBriefDetailLoaded({ data }: { data: SampleBriefType }) {
         <GlassSectionHeader
           eyebrow="§ 01 · The brief as submitted"
           title="One concrete case: an EU insurer, 3,200 monthly claims, a four-line guard-rail."
-          lede="What follows is a verbatim worked example — the buyer's brief, the oracles' reading, the Elder Oracle's reconciled ruling, and the five agents that turn it into a runnable Software Build. No abstraction, no fictional narrative."
+          lede="What follows is a verbatim worked example — the buyer's brief, the oracles' reading, the Elder Oracle's reconciled ruling, and the seven specialist agents that turn it into a working prototype. This is an illustrative example, not a client engagement."
         />
         <BriefCard
           brief={data.brief}
@@ -578,7 +578,7 @@ function SampleBriefDetailLoaded({ data }: { data: SampleBriefType }) {
         <GlassSectionHeader
           eyebrow="§ 03 · The Elder Oracle's reconciled ruling"
           title="Build — with two carried-forward items, not silently dropped."
-          lede="The Elder Oracle sides with Risk (a named human-only assertion step is added to the workflow, by structure) and with Growth (a typed note goes to the buyer on what the build unlocks downstream). The case advances to the Software Build."
+          lede="The Elder Oracle sides with Risk (a named human-only assertion step is added to the workflow, by structure) and with Growth (a typed note goes to the buyer on what the build unlocks downstream). The case advances to the Prototype build."
         />
         <RulingCard ruling={data.ruling} />
       </section>
@@ -587,7 +587,7 @@ function SampleBriefDetailLoaded({ data }: { data: SampleBriefType }) {
         <GlassSectionHeader
           eyebrow="§ 04 · The pipeline"
           title="Five named approvals, no hidden steps — operated by the seven-agent core."
-          lede="Each stage advance (1..5; stage 5 = Software Build) requires a human approval by name, with a typed reason attached verbatim. The seven-agent core — Discovery, Readiness, Workflow, Governance, AI Build, Partner, Impact — operates the pipeline; AI Build (Agent 5) runs the Software Build stage (Stage 5). Returns are cheap; stops are free. Nothing jumps a gate."
+          lede="Each stage advance (1..5; stage 5 = Prototype build) requires a human approval by name, with a typed reason attached verbatim. The seven-agent core — Discovery, Readiness, Workflow, Governance, AI Build, Partner, Impact — operates the pipeline; AI Build (Agent 5) runs the Prototype build stage (Stage 5). Returns are cheap; stops are free. Nothing jumps a gate."
         />
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-5">
           {data.stages.map((stage, idx) => (
@@ -604,7 +604,7 @@ function SampleBriefDetailLoaded({ data }: { data: SampleBriefType }) {
         <GlassSectionHeader
           eyebrow="§ 05 · Agent 5 · AI Build · working solution"
           title="The runnable output — the audit trail is the warranty."
-          lede="What Stage 5 (Software Build) actually ships: a per-claim review queue with a human-in-the-loop approve / request-info / refer-to-SIU workflow, an append-only prisma audit-trail model, and an immutable per-case hash chain. Not a video. A receipt."
+          lede="What Stage 5 (Prototype build) actually ships: a per-claim review queue with a human-in-the-loop approve / request-info / refer-to-SIU workflow, an append-only prisma audit-trail model, and an immutable per-case hash chain. Not a video. A receipt."
         />
         <SolutionCard solution={data.solution} />
       </section>

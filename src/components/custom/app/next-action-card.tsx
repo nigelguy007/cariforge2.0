@@ -6,7 +6,7 @@
 // again, a task to assign) opens the matching section of Supporting detail
 // where the existing governance component does the work. Terminal states
 // say what was produced — an approved, production-quality MVP — without
-// claiming CariForge itself deployed it live.
+// claiming CARIForge itself deployed it live.
 
 'use client';
 
@@ -67,8 +67,8 @@ function planFor(view: ProjectWorkspaceView, isAdmin: boolean, canDraft: boolean
         return {
           heading: step.title,
           sentence: canDraft
-            ? 'CariForge has not produced a step output for this step yet. Have it draft one now — it will keep working through the following steps on its own for as long as it can, and only stop here for you when a step genuinely needs your judgment.'
-            : 'CariForge has not produced a step output for this step yet, so there is nothing to approve yet. Check back soon.',
+            ? 'CARIForge has not produced a step output for this step yet. Have it draft one now — it will keep working through the following steps on its own for as long as it can, and only stop here for you when a step genuinely needs your judgment.'
+            : 'CARIForge has not produced a step output for this step yet, so there is nothing to approve yet. Check back soon.',
           button: canDraft ? { label: 'Draft with AI', draftWithAi: true } : undefined,
         };
       }
@@ -79,7 +79,7 @@ function planFor(view: ProjectWorkspaceView, isAdmin: boolean, canDraft: boolean
       };
     }
     // User's own flow (2026-09-05): "If they don't approve then ask for
-    // more info - simple step I add more and then resubmit." CariForge
+    // more info - simple step I add more and then resubmit." CARIForge
     // redrafts the step itself, addressing the reviewer's own feedback
     // (shown below) — reusing the same "Draft with AI" mechanism and its
     // auto-chaining, just aimed at a returned step instead of a fresh
@@ -169,7 +169,7 @@ function planFor(view: ProjectWorkspaceView, isAdmin: boolean, canDraft: boolean
         heading: 'Nothing needs you right now',
         sentence:
           humaniseCopy(action.title) ||
-          'CariForge will surface the next step here when there is one.',
+          'CARIForge will surface the next step here when there is one.',
       };
   }
 }
@@ -213,7 +213,7 @@ export function NextActionCard({
   // build." Before this, one click only ever drafted+reviewed ONE stage —
   // even a fully clean auto-advance left the person to come back and
   // click again for every remaining stage. Now one click chains straight
-  // through every consecutive stage CariForge can clear on its own
+  // through every consecutive stage CARIForge can clear on its own
   // (drafted, reviewed, auto-advanced with no concerns), stopping the
   // instant a stage genuinely needs a human: a concern to answer, low
   // confidence, or the project reaching a terminal state. nextActionFor
@@ -296,14 +296,14 @@ export function NextActionCard({
       }
       toast.success(
         stepsDrafted > 1
-          ? `CariForge worked through ${stepsDrafted} steps on its own — review below.`
-          : 'CariForge drafted this step — review it below.',
+          ? `CARIForge worked through ${stepsDrafted} steps on its own — review below.`
+          : 'CARIForge drafted this step — review it below.',
       );
       await onWritten();
     } catch (err) {
       // apiFetch's own thrown Error.message is always the generic
       // "apiFetch <path> failed (<status>)" — the route's actual, more
-      // useful message (e.g. "CariForge could not draft this step right
+      // useful message (e.g. "CARIForge could not draft this step right
       // now...") only ever lands in .cause.
       const cause = (err as { cause?: { error?: string } }).cause;
       toast.error(cause?.error ?? 'Could not draft this step. Try again shortly.');

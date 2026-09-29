@@ -1116,9 +1116,9 @@ export async function decideGate(args: {
   // Best-effort decline notification to the pilot contact inbox. Email failure
   // must NOT roll back a ratified decision — the audit row is already written,
   // so we swallow proxy/transport errors. The TAG pilot contact inbox is the
-  // brief's declared `cari-forge@polsia.app` alias.
+  // founders' contact address (source of truth F15) unless overridden by env.
   try {
-    const recipient = process.env.POLSIA_COMPANY_EMAIL ?? 'cari-forge@polsia.app';
+    const recipient = process.env.POLSIA_COMPANY_EMAIL ?? 'nigelguy@iyansan.com';
     const message = tagOracleGateDecisionEmail({
       missionName: mission.name,
       gateIndex: args.gateIndex,

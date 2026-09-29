@@ -43,9 +43,9 @@ function TierCard({ tier }: { tier: Tier }) {
           </ul>
         </div>
         <p className="text-small text-muted-foreground">
-          Scope and limits are defined at{' '}
+          Scope and limits are set out in{' '}
           <Link href="/why-this-is-a-scaffold" className="link-brand">
-            /why-this-is-a-scaffold
+            what a 21-day pilot delivers
           </Link>
           .
         </p>

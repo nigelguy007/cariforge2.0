@@ -28,13 +28,13 @@
 
    COLOUR — the constraint that shaped everything else. The reference's
    signature is a two-tone amber-to-blue gradient (its orbs, its card glows,
-   its CTA border ring). CariForge's brand seed is --brand-h: 169, vivid
+   its CTA border ring). CARIForge's brand seed is --brand-h: 169, vivid
    aquamarine, and the instruction was to RETAIN it. Introducing the
    reference's amber would have meant introducing a second, foreign brand
-   colour. So the two-tone gradient here is built from CariForge's own hue
+   colour. So the two-tone gradient here is built from CARIForge's own hue
    ramped along the wheel instead: aquamarine (169) -> indigo (169+96=265).
    It gives the orbs and glows the same two-tone depth the reference gets
-   from amber-to-blue, while every stop remains a CariForge colour.
+   from amber-to-blue, while every stop remains a CARIForge colour.
    --brand-h is read live (never hardcoded to 169 here) so a future
    brand-seed change still recolours this route with the rest of the site.
 
@@ -56,7 +56,7 @@ body {
   /* === FIELD ===============================================================
      Near-black. The reference is pure rgb(0,0,0); this keeps a trace of
      chroma on the brand hue (L 0.09 / C 0.022) so the field still reads as
-     CariForge's aquamarine-cast black rather than a neutral void — the
+     CARIForge's aquamarine-cast black rather than a neutral void — the
      retain-the-colours half of the instruction. Visually it is black. */
   --cq-bg: oklch(0.09 0.022 var(--brand-h, 169));
 
@@ -69,7 +69,7 @@ body {
   --cq-line-strong: oklch(1 0 0 / 0.18);
 
   /* === THE TWO-TONE ACCENT =================================================
-     CariForge aquamarine -> indigo. Used for every orb, glow, ring and
+     CARIForge aquamarine -> indigo. Used for every orb, glow, ring and
      gradient on the page; nothing else carries colour, which is what keeps
      a near-black page from looking merely grey. */
   --cq-accent: oklch(0.74 0.15 var(--brand-h, 169));
@@ -172,12 +172,12 @@ body {
 
      shallow turquoise   oklch(0.95 0.07 185)  — the bright core
      vivid aquamarine    oklch(0.80 0.15 178)
-     CariForge brand     oklch(0.72 0.16 169)  — --brand-h, unchanged
+     CARIForge brand     oklch(0.72 0.16 169)  — --brand-h, unchanged
      sea green / teal    oklch(0.58 0.15 200)
      deep ocean blue     oklch(0.42 0.16 240)  — the outer falloff
 
    The brand hue sits in the middle of that ramp rather than beside it, so
-   "retain the CariForge colours" and "Caribbean sea" are the same
+   "retain the CARIForge colours" and "Caribbean sea" are the same
    instruction here, not competing ones. Every stop is read live off
    --brand-h with a fixed offset, so re-seeding the brand still moves the
    whole sunrise together. */
@@ -725,7 +725,7 @@ body {
 }
 
 /* === STAT ROW ===============================================================
-   Replaces the reference's greyed partner-logo strip. CariForge has no
+   Replaces the reference's greyed partner-logo strip. CARIForge has no
    partner logos to show, and inventing some would be fabrication — these are
    the product's three real, already-published facts instead, in the same
    structural slot. */

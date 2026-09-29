@@ -3,7 +3,7 @@
 // creates the blueprint linked to a mission — seeded from the mission's
 // intake and authority boundary — or idempotently returns the one already
 // linked. Guarded to the mission owner (or admin) and to missions that
-// have actually reached the Software Build gate.
+// have actually reached the Prototype build gate.
 
 import 'server-only';
 import { NextResponse } from 'next/server';
@@ -30,7 +30,7 @@ export async function POST(req: Request) {
   } catch (err) {
     if ((err as Error).message === 'FORGE_CONFLICT') {
       return NextResponse.json(
-        { error: 'The mission has not reached the Software Build gate yet.' },
+        { error: 'The mission has not reached the Prototype build gate yet.' },
         { status: 409 },
       );
     }

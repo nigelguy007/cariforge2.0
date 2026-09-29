@@ -1,6 +1,6 @@
 // @polsia:user-owned — POST /api/forge/intake-chat. One turn of the
 // chat-based project-intake flow: takes the conversation so far, returns
-// CariForge's next reply plus whatever structured intake fields it has
+// CARIForge's next reply plus whatever structured intake fields it has
 // extracted. No mission exists yet at this point — any signed-in user may
 // call this (requireForgeAuth, not an ownership check).
 import 'server-only';
@@ -36,7 +36,7 @@ export async function POST(req: Request) {
   const result = await intakeChatTurn({ messages: parsed.data.messages });
   if (result.status === 'unavailable') {
     return NextResponse.json(
-      { error: 'CariForge could not continue the conversation right now. Try again shortly.' },
+      { error: 'CARIForge could not continue the conversation right now. Try again shortly.' },
       { status: 503 },
     );
   }

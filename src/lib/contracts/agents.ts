@@ -45,7 +45,7 @@ export const CoreAgent = z.object({
     'Readiness',
     'Workflow',
     'Governance',
-    'Software Build',
+    'Prototype build',
     'Wraparound',
   ]),
   scope: z.enum(['Pipeline', 'Wraparound']),

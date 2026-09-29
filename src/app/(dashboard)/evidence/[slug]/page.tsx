@@ -11,7 +11,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const { slug } = await params;
   return {
     title: `Proof — ${slug}`,
-    description: `The proof record for project ${slug} on CariForge.`,
+    description: `The proof record for project ${slug} on CARIForge.`,
   };
 }
 
