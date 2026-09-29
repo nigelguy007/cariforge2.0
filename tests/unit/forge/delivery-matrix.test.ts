@@ -21,7 +21,7 @@ const DELIVERY_LINES = [
   'Mission Control: state / next-action / blockers / approvals / evidence / decisions / outcome',
 ];
 
-describe('CariForge delivery matrix', () => {
+describe('CARIForge delivery matrix', () => {
   it('includes every required delivery line as a string', () => {
     for (const expected of DELIVERY_LINES) {
       // Any delivery line should appear in code: gap entries, route /api names, or schemas.
@@ -56,7 +56,7 @@ describe('CariForge delivery matrix', () => {
   });
 });
 
-describe('CariForge delivery matrix — telemetry slice smoke', () => {
+describe('CARIForge delivery matrix — telemetry slice smoke', () => {
   it('honest unknown: model key missing from COST_TABLE returns HONEST marker', () => {
     const r = modelUsageCostCents('gpt-99-future-unknown', 1000, 1000);
     expect(r.cents).toBe(0);

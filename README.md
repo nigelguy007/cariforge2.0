@@ -1,4 +1,4 @@
-# CariForge
+# CARIForge
 
 A governed, seven-agent AI implementation platform, built by the Caribbean, for
 the Caribbean. A user states one business goal in plain language; a seven-agent
@@ -15,7 +15,7 @@ human gates, so a named person decides every consequential transition.
 
 ## What it does
 
-CariForge closes the **Implementation Void**: organisations across the region
+CARIForge closes the **Implementation Void**: organisations across the region
 already have the AI ideas, pilots, and workshop follow-ups — what they lack is
 a repeatable, governed route from idea to something deployed and trusted. One
 goal moves through five gates. Each gate has exactly one owning agent, one
@@ -91,6 +91,6 @@ bootstrap lives in `db/`.
 
 ## License
 
-Copyright © 2026 CariForge. All rights reserved.
+Copyright © 2026 CARIForge. All rights reserved.
 
 MIT. See [LICENSE](./LICENSE).

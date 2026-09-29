@@ -77,7 +77,7 @@ export function formatBriefAckEmail(opts: FormatBriefAckOptions): EmailContent {
     heading: 'Brief received.',
     body,
     cta: { label: 'Create an account to track it', url: signupUrl },
-    footer: `You're receiving this because you left a brief with an email address at CariForge. Reference: ${reference}.`,
+    footer: `You're receiving this because you left a brief with an email address at CARIForge. Reference: ${reference}.`,
   });
 
   return { subject: `We've got your brief — ${reference}`, html, text };

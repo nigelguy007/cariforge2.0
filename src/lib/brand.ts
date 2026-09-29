@@ -1,13 +1,13 @@
 // @polsia:user-owned — brand identity. Edit freely. `site.ts` re-exports
 // siteName/siteDescription; `manifest.ts` + `opengraph-image.tsx` read `brandVisual`.
 
-export const siteName = 'CariForge';
+export const siteName = 'CARIForge';
 export const siteDescription =
   'A 21-day governed AI pilot that ends in a Decision Pack you own, including a working prototype. Every stage is signed by a named human.';
 
 // PWA + social-share colors. HEX only (the oklch() tokens in globals.css aren't
 // readable here) — set to match your brand seed.
-// CariForge: vivid aquamarine accent on a dark field (mirrors
+// CARIForge: vivid aquamarine accent on a dark field (mirrors
 // --brand-h=169, --brand-c=0.19, --brand-l=0.55 for the accent, and the
 // .dark.dark --background formula for the dark swatches — computed via
 // the standard OKLCH->sRGB conversion at each swatch's own step, not
@@ -17,7 +17,7 @@ export const siteDescription =
 // aquamarine-tinted field with the vivid aquamarine as the accent, near-
 // white ink for highest contrast.
 export const brandVisual = {
-  /** PWA browser-UI / status-bar color — CariForge aquamarine engine. */
+  /** PWA browser-UI / status-bar color — CARIForge aquamarine engine. */
   themeColor: '#00915e',
   /** PWA splash + install background — the same near-black dark-mode field. */
   backgroundColor: '#000602',

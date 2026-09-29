@@ -81,7 +81,7 @@ export async function POST(req: Request, ctx: { params: Promise<{ id: string }> 
       return NextResponse.json(
         {
           error:
-            'CariForge could not draft this step right now. Try again shortly, or ask an admin to add it directly.',
+            'CARIForge could not draft this step right now. Try again shortly, or ask an admin to add it directly.',
         },
         { status: 503 },
       );

@@ -49,7 +49,7 @@ export interface SendEmailResult {
 // Overridable via env so upgrading to a branded "from" address later (once
 // a real domain is verified in the Resend dashboard) needs a Vercel env
 // change, not a code change.
-const DEFAULT_FROM = 'CariForge <onboarding@resend.dev>';
+const DEFAULT_FROM = 'CARIForge <onboarding@resend.dev>';
 
 export async function sendEmail(input: SendEmailInput): Promise<SendEmailResult> {
   const apiKey = process.env.RESEND_API_KEY;

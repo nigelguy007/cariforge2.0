@@ -16,7 +16,7 @@ interface CostEntry {
 }
 
 export const COST_TABLE: Readonly<Record<string, CostEntry>> = {
-  // Anthropic Claude family used by the CariForge council + operator agents.
+  // Anthropic Claude family used by the CARIForge council + operator agents.
   'claude-opus-4-7': { inPerMillionCents: 1500, outPerMillionCents: 7500, chatMsgsPerCent: 5 },
   'claude-sonnet-4-6': { inPerMillionCents: 300, outPerMillionCents: 1500, chatMsgsPerCent: 2 },
   'claude-haiku-4-5-20251001': {

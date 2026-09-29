@@ -22,7 +22,7 @@ export default function TemplatesPage() {
       </header>
       <div className="app-panel p-6">
         <p className="app-body text-[var(--app-text-muted)]">
-          There are no templates yet. For now, describe your need in your own words and CariForge
+          There are no templates yet. For now, describe your need in your own words and CARIForge
           will draft the right project from scratch.
         </p>
         <Button asChild className="mt-4 min-h-11">

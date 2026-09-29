@@ -1,4 +1,4 @@
-// @polsia:user-owned — pure lifecycle state machine for CariForge.
+// @polsia:user-owned — pure lifecycle state machine for CARIForge.
 // No DB. The /api/forge/* handlers call into these helpers; the unit tests
 // cover every cell of the transition table deterministically.
 

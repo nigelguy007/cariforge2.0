@@ -190,7 +190,7 @@ export function CouncilSections() {
         <GlassSectionHeader
           eyebrow="§ 01 · The council"
           title="Five voices with fixed remits, opening objections by default."
-          lede="The council is the five-voice review council inside CariForge's 7-agent engine. It argues each gate before the named human signs. Each voice is tuned to a single angle: it raises objections first, asks for evidence next, and only then supports. The five voices keep opposing defaults by design."
+          lede="The council is the five-voice review council inside CARIForge's 7-agent engine. It argues each gate before the named human signs. Each voice is tuned to a single angle: it raises objections first, asks for evidence next, and only then supports. The five voices keep opposing defaults by design."
         />
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
           {isLoading

@@ -67,7 +67,7 @@ function TestimonialCard({ item }: { item: Item }) {
         {contact ? (
           <p className="text-small text-muted-foreground">
             {isEmailLike(contact) ? (
-              <a href={`mailto:${contact}?subject=CariForge%20-%20referral`} className="link-brand">
+              <a href={`mailto:${contact}?subject=CARIForge%20-%20referral`} className="link-brand">
                 Reach out: {contact}
               </a>
             ) : (

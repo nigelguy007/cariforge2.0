@@ -8,7 +8,7 @@ import { requireAdminOnPage } from '@/lib/admin-page-guard';
 
 export const metadata: Metadata = {
   title: 'Admin · Missions',
-  description: 'Admin-only view of every CariForge mission.',
+  description: 'Admin-only view of every CARIForge mission.',
 };
 
 export default async function AdminMissionsPage() {
@@ -19,7 +19,7 @@ export default async function AdminMissionsPage() {
         <p className="app-caption text-[var(--app-text-muted)]">Admin</p>
         <h1 className="app-h1 mt-1 text-[var(--app-text)]">All missions</h1>
         <p className="app-body mt-2 text-[var(--app-text-muted)]">
-          Every mission recorded by the CariForge control plane.
+          Every mission recorded by the CARIForge control plane.
         </p>
       </header>
       <div className="app-panel mt-8 p-6">

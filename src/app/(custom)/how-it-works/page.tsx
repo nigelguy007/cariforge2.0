@@ -271,7 +271,7 @@ export default function HowItWorksPage() {
         <div className="container-page flex flex-col gap-10">
           <GlassSectionHeader
             eyebrow="The Oracles"
-            title="The Oracles of CariForge — five voices, fixed remits, opposing defaults."
+            title="The Oracles of CARIForge — five voices, fixed remits, opposing defaults."
             lede="The Oracles are the five-voice review council inside the 7-agent engine. They argue each gate before the named human signs, each from a single angle. They open objections by default, not by exception. If The Oracles cannot settle the case after one round of debate, the Elder Oracle stops the run and asks you, the human."
           />
 
@@ -416,7 +416,7 @@ export default function HowItWorksPage() {
             <p className="mt-4 text-small text-muted-foreground">
               Need to reach a named human before submitting?{' '}
               <a
-                href="mailto:nigelguy@iyansan.com?subject=CariForge%20pilot%20enquiry"
+                href="mailto:nigelguy@iyansan.com?subject=CARIForge%20pilot%20enquiry"
                 className="link-brand"
               >
                 nigelguy@iyansan.com

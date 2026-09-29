@@ -378,7 +378,7 @@ export function MissionIntakeForm({
             <span className="app-h3 text-[var(--app-text)]">Still unknown</span>
           </legend>
           <p className="app-small text-[var(--app-text-muted)]">
-            Note anything you do not know yet. CariForge will ask you about it before work proceeds.
+            Note anything you do not know yet. CARIForge will ask you about it before work proceeds.
           </p>
           <div className="space-y-3">
             <Label htmlFor="missing">Unknown facts (one per line)</Label>

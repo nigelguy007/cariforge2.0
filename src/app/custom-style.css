@@ -3,7 +3,7 @@
  * tw-animate-css for motion (animate-in, fade-in, slide-in-from-bottom-N,
  * duration-*). globals.css is framework-owned — edit HERE.
  *
- * CariForge — deep-ocean blue identity, applied site-wide per explicit
+ * CARIForge — deep-ocean blue identity, applied site-wide per explicit
  * user request ("give it a deep ocean contrast the entire site .. with a
  * lighter version in liquid glass effect"). This supersedes an earlier
  * decision in this same file's history that had deliberately moved AWAY
@@ -967,11 +967,11 @@
 }
 
 /* === SIMPLIFIED WORKSPACE (app routes) =======================================
-   Redesign 2026-09-04 (see the "CariForge simplification brief"): the
+   Redesign 2026-09-04 (see the "CARIForge simplification brief"): the
    authenticated app — /missions, /approvals, /evidence, /forge, /admin,
    /profile — moves to small, quiet surfaces: white 1px-bordered panels on
    the existing near-white field, no glass/blur/aurora/lift, one accent.
-   Explicit user constraint: KEEP the current CariForge colours. So every
+   Explicit user constraint: KEEP the current CARIForge colours. So every
    token below is derived from the same --brand-h / role tokens the rest of
    the site already uses — nothing here introduces a new hue. The old
    tokens and .glass-* classes are untouched for the public/marketing routes.
@@ -1030,7 +1030,7 @@
      behind them for backdrop-filter to actually read as glass — a flat
      single-colour background makes blur invisible. Same hue/chroma tokens
      the rest of the site already uses (--brand-h/--brand-c/--brand-l); no
-     new colour introduced, per the standing "keep CariForge colours" rule. */
+     new colour introduced, per the standing "keep CARIForge colours" rule. */
   background-image:
     radial-gradient(
       1100px 620px at 12% -12%,
@@ -1086,7 +1086,7 @@
    the home page's sunrise hero. Rather than the flat single-hue glow this
    used before, each blob now carries the SAME five-stop Caribbean-sea ramp
    as cosmoq-home.css's .cq-sunrise::before (shallow turquoise -> vivid
-   aquamarine -> CariForge brand hue -> sea green/teal -> deep ocean blue),
+   aquamarine -> CARIForge brand hue -> sea green/teal -> deep ocean blue),
    plus a small warm sun-core accent layered on the primary blob the way
    .cq-sun sits on top of .cq-sunrise there. Every stop still reads off
    --brand-h with the same fixed offsets cosmoq-home.css uses, so a future

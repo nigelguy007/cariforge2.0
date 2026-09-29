@@ -25,7 +25,7 @@
 // wobble or a 3D transform), driven by the exact same NodeStatus the
 // earlier attempts used — no fabricated telemetry, nothing here is a
 // second source of truth. The reusable pattern (not the
-// CariForge-specific data wiring) is written up as the
+// CARIForge-specific data wiring) is written up as the
 // `agent-office-visualization` skill for future projects.
 //
 // Clicking a character reveals the same real detail agent-activity-
@@ -151,8 +151,8 @@ export function MissionOfficeView({ missionSlug }: { missionSlug: string }) {
       }
       toast.success(
         stepsDrafted > 1
-          ? `CariForge worked through ${stepsDrafted} steps on its own — watch the office above.`
-          : 'CariForge drafted this step.',
+          ? `CARIForge worked through ${stepsDrafted} steps on its own — watch the office above.`
+          : 'CARIForge drafted this step.',
       );
       await refresh();
     } catch (err) {

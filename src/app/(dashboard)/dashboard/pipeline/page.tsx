@@ -80,7 +80,7 @@ export default function PipelineDetailPage() {
         </h1>
         <p className="max-w-2xl text-body text-muted-foreground">
           This is the detail that used to sit on the public how-it-works page — moved here so it's
-          visible to people building on CariForge, not to anyone who happens to visit.
+          visible to people building on CARIForge, not to anyone who happens to visit.
         </p>
       </header>
 
@@ -186,7 +186,7 @@ export default function PipelineDetailPage() {
           Systems of record
         </GlassChip>
         <h2 className="font-display text-h3 tracking-tight text-foreground">
-          CariForge doesn&rsquo;t ask you to replace what you already run.
+          CARIForge doesn&rsquo;t ask you to replace what you already run.
         </h2>
         <p className="text-body text-muted-foreground">
           Your systems stay authoritative &mdash; the pipeline works with what you already have, not

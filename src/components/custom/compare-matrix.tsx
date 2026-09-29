@@ -2,7 +2,7 @@
 // from /api/compare through apiFetch + the shared Compare contract, then
 // renders the assessment note and one table: category of alternative,
 // named examples, and where each falls short for a Caribbean buyer. The
-// CariForge row is visually distinguished. Loading / error guards match the
+// CARIForge row is visually distinguished. Loading / error guards match the
 // council-detail + pricing-tiers pattern.
 
 'use client';
@@ -30,7 +30,7 @@ function AssessmentNote({ text }: { text: string }) {
       aria-label="Assessment note"
     >
       <p className="text-[10px] font-semibold uppercase tracking-[0.1em] text-brand-700">
-        A note from CariForge
+        A note from CARIForge
       </p>
       <p className="text-small leading-relaxed text-card-foreground/85">{text}</p>
     </GlassPanel>
@@ -136,11 +136,11 @@ export function CompareMatrix() {
       <section className="flex flex-col gap-6" aria-labelledby="compare-table">
         <GlassSectionHeader
           eyebrow="The alternatives"
-          title="What a Caribbean buyer weighs CariForge against."
+          title="What a Caribbean buyer weighs CARIForge against."
           lede="Four kinds of alternative, with named examples of each, and where each falls short for a Caribbean buyer."
         />
         <h2 id="compare-table" className="sr-only">
-          Alternatives to CariForge
+          Alternatives to CARIForge
         </h2>
         <AlternativesTable rows={data.rows} />
         <AssessmentNote text={data.disclaimer} />

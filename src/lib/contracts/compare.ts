@@ -3,8 +3,8 @@
 // <CompareMatrix/> island (client). Static catalog copy: the categories of
 // alternative a Caribbean buyer actually weighs (global consultancies, AI
 // governance platforms, agent builders, general AI assistants), named
-// examples of each, and where each falls short, plus the CariForge row.
-// Positions are CariForge's own assessment. Keep client-importable: zod only,
+// examples of each, and where each falls short, plus the CARIForge row.
+// Positions are CARIForge's own assessment. Keep client-importable: zod only,
 // no server-only imports.
 
 import { z } from 'zod';
@@ -17,9 +17,9 @@ export const Alternative = z.object({
   /** Named examples of the category, as one display line. */
   examples: z.string().min(1),
   /** Where the category falls short for a Caribbean buyer (or, for the
-   *  subject row, what CariForge offers instead). */
+   *  subject row, what CARIForge offers instead). */
   position: z.string().min(1),
-  /** True only for the CariForge row. */
+  /** True only for the CARIForge row. */
   isSubject: z.boolean(),
 });
 

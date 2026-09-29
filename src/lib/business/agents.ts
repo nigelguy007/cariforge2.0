@@ -1,7 +1,7 @@
 // @polsia:user-owned — static dataset for the seven-agent core model. Server-only:
 // imported by /api/agents/route.ts, which parses it through the shared
 // CoreAgents contract. Lists the canonical seven agents that operate the
-// CariForge pipeline and wraparound: 1 Discovery, 2 Readiness, 3 Workflow,
+// CARIForge pipeline and wraparound: 1 Discovery, 2 Readiness, 3 Workflow,
 // 4 Governance, 5 AI Build, 6 Partner, 7 Impact. Agents 1..5 are the
 // pipeline runtime — Agent 1..5 operate Stage 1..5 of the 21-day delivery
 // pipeline respectively (notably Agent 5 = AI Build operates Stage 5, whose
@@ -239,7 +239,7 @@ export const CORE_AGENTS: CoreAgents = {
         ],
         prohibited: [
           'Cannot bypass the Prototype build gate',
-          'Cannot keep operating the build on CariForge-controlled infrastructure indefinitely — the point of this agent is a buyer-run system',
+          'Cannot keep operating the build on CARIForge-controlled infrastructure indefinitely — the point of this agent is a buyer-run system',
         ],
         humanApproval:
           "The buyer's own operations owner signs off that the build is live on their infrastructure and their people can run it.",

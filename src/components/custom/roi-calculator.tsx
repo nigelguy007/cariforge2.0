@@ -106,7 +106,7 @@ export function RoiCalculator() {
             onValueChange={([v]) => set('estimatedTimeSavedPct')(v ?? 0)}
           />
           <p className="text-caption text-muted-foreground">
-            Your own estimate — CariForge has no basis to claim a universal automation percentage,
+            Your own estimate — CARIForge has no basis to claim a universal automation percentage,
             and the Readiness agent audits the real number before any code is written.
           </p>
         </div>

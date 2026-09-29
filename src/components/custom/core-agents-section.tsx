@@ -153,7 +153,7 @@ function AgentSkeleton({ ordinal }: { ordinal: string }) {
 function SectionLede() {
   return (
     <>
-      CariForge runs on a 7-agent engine that moves a brief through five gated stages in a 21-day
+      CARIForge runs on a 7-agent engine that moves a brief through five gated stages in a 21-day
       pilot. Inside that engine, the Oracles are the five-voice review council: they argue each gate
       before the named human signs. The seven agents:{' '}
       <span className="font-semibold text-foreground">
@@ -172,7 +172,7 @@ function FooterNote() {
   return (
     <p className="text-small text-card-foreground/85">
       <span className="font-semibold text-foreground">
-        How this maps back to the rest of CariForge.
+        How this maps back to the rest of CARIForge.
       </span>{' '}
       The seven agents run the case through five gated stages. The Oracles are the five-voice review
       council inside the same engine (Risk, Demand, Growth, Competition and Money): they argue each

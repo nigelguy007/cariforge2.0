@@ -18,7 +18,7 @@ export default function MissionsIndexPage() {
         <div>
           <h1 className="app-h1 text-[var(--app-text)]">Projects</h1>
           <p className="app-body mt-1 text-[var(--app-text-muted)]">
-            Each project moves through five steps. CariForge drafts and reviews every one, and
+            Each project moves through five steps. CARIForge drafts and reviews every one, and
             brings you in only when a step needs your judgment.
           </p>
         </div>

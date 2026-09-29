@@ -304,7 +304,7 @@ export default function Home() {
         <section className="cq-section cq-container">
           <div className="cq-eyebrow">
             <GridIcon />
-            Why CariForge
+            Why CARIForge
           </div>
           <div className="cq-rule" />
           <div className="cq-section-head">
@@ -345,7 +345,7 @@ export default function Home() {
         <section className="cq-section cq-container">
           <div className="cq-split">
             <p className="cq-statement">
-              Most AI tools ask you to trust the output. CariForge assumes you can&rsquo;t &mdash;
+              Most AI tools ask you to trust the output. CARIForge assumes you can&rsquo;t &mdash;
               so it puts a named human in front of every stage, and keeps the record that proves it.
             </p>
             <div className="cq-orb-wrap">
@@ -379,7 +379,7 @@ export default function Home() {
               <div>
                 <h3 className="cq-row-title">Describe it, then draw it</h3>
                 <p className="cq-row-text">
-                  Write what you want in plain English and CariForge drafts the workflow for you.
+                  Write what you want in plain English and CARIForge drafts the workflow for you.
                   From there it&rsquo;s a drag-and-drop canvas &mdash; add a step and it connects
                   itself to the one you had selected.
                 </p>
@@ -592,7 +592,7 @@ export default function Home() {
           <div className="cq-split" style={{ marginTop: '2.75rem' }}>
             <div>
               <p className="cq-row-text" style={{ marginTop: 0 }}>
-                CariForge is built for buyers who will be asked to justify an automated decision
+                CARIForge is built for buyers who will be asked to justify an automated decision
                 after the fact &mdash; procurement, public sector, regulated industries. That means
                 the audit trail can&rsquo;t be a log file bolted on afterwards; it has to be the
                 thing the workflow produces.
@@ -704,7 +704,7 @@ export default function Home() {
             The reference's other signature moment (2026-09-03 addition): a
             huge, glowing, semi-transparent brand wordmark sitting right
             above the footer. aria-hidden — it's decoration, the real
-            "CariForge" name is already in the header/footer text; a screen
+            "CARIForge" name is already in the header/footer text; a screen
             reader doesn't need it announced a third time. */}
         <div className="cq-wordmark-wrap" aria-hidden="true">
           <span className="cq-wordmark">CARI FORGE</span>
@@ -716,7 +716,7 @@ export default function Home() {
             <div className="cq-footer-grid">
               <div>
                 <span className="cq-logo">
-                  <span>CariForge</span>
+                  <span>CARIForge</span>
                 </span>
                 <p className="cq-footer-tagline">{siteDescription}</p>
               </div>

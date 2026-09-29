@@ -55,7 +55,7 @@ async function uploadEvidenceFile(missionId: string, file: File): Promise<boolea
 const ATTACHMENT_TYPES_LABEL = 'PDF, Word, text, CSV, image, or video';
 
 const OPENING_MESSAGE =
-  "Hi, I'm CariForge. Tell me about the business problem you're trying to solve — " +
+  "Hi, I'm CARIForge. Tell me about the business problem you're trying to solve — " +
   "in your own words, no need to structure it. What's not working today, and for whom?";
 
 // Labels reused verbatim from mission-intake-form.tsx's INTAKE_GROUPS, so the
@@ -141,7 +141,7 @@ export function MissionIntakeChat({
       setMessages([...nextMessages, { role: 'assistant', content: response.reply }]);
       setExtraction(response);
     } catch (err) {
-      toast.error(apiErrorMessage(err, 'CariForge could not continue the conversation'));
+      toast.error(apiErrorMessage(err, 'CARIForge could not continue the conversation'));
     } finally {
       setSending(false);
     }
@@ -251,7 +251,7 @@ export function MissionIntakeChat({
           {sending ? (
             <div className="mr-auto max-w-[85%] rounded-[var(--app-radius-sm)] bg-[var(--app-surface-muted)] px-3.5 py-2.5">
               <p className="app-small italic text-[var(--app-text-muted)]">
-                CariForge is thinking…
+                CARIForge is thinking…
               </p>
             </div>
           ) : null}
@@ -335,7 +335,7 @@ export function MissionIntakeChat({
           <div>
             <h3 className="app-h3 text-[var(--app-text)]">Ready to start</h3>
             <p className="app-small mt-1 text-[var(--app-text-muted)]">
-              Here&rsquo;s what CariForge gathered from the conversation. Keep chatting above if
+              Here&rsquo;s what CARIForge gathered from the conversation. Keep chatting above if
               anything needs a change, or start the project now.
             </p>
           </div>

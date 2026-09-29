@@ -10,7 +10,7 @@ export const SCAFFOLD_DISCLAIMER: { headline: string; detail: string }[] = [
   {
     headline: 'No production hosting.',
     detail:
-      'CariForge does not host the working prototype. It is handed over as a runnable codebase the client owns and operates. CariForge provides no hosting environment, DNS or certificates for it.',
+      'CARIForge does not host the working prototype. It is handed over as a runnable codebase the client owns and operates. CARIForge provides no hosting environment, DNS or certificates for it.',
   },
   {
     headline: 'No uptime SLA.',
@@ -25,6 +25,6 @@ export const SCAFFOLD_DISCLAIMER: { headline: string; detail: string }[] = [
   {
     headline: 'No liability for downstream deployment.',
     detail:
-      'Once the Decision Pack is handed over, the client decides what ships to production and owns how it is operated, certified and maintained. CariForge’s responsibility ends at the hand-off receipt.',
+      'Once the Decision Pack is handed over, the client decides what ships to production and owns how it is operated, certified and maintained. CARIForge’s responsibility ends at the hand-off receipt.',
   },
 ] as const;

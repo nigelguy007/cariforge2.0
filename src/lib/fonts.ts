@@ -1,4 +1,4 @@
-// @polsia:user-owned — typography choices for CariForge.
+// @polsia:user-owned — typography choices for CARIForge.
 //
 // We deliberately use Google Fonts via a CSS @import in custom-style.css
 // rather than next/font, because src/app/layout.tsx is framework-owned and

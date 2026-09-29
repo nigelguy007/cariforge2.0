@@ -78,7 +78,7 @@ describe('intakeChatTurn — happy path', () => {
     const { intakeChatTurn } = await import('@/lib/business/forge/intake-chat');
     const result = await intakeChatTurn({
       messages: [
-        { role: 'assistant', content: "Hi, I'm CariForge. What's not working today?" },
+        { role: 'assistant', content: "Hi, I'm CARIForge. What's not working today?" },
         { role: 'user', content: 'A compliance team manually checks each claim by hand.' },
       ],
     });
@@ -88,7 +88,7 @@ describe('intakeChatTurn — happy path', () => {
     const call = parseMock.mock.calls[0]?.[0];
     expect(call.model).toBe('anthropic/claude-sonnet-5');
     expect(call.messages).toEqual([
-      { role: 'assistant', content: "Hi, I'm CariForge. What's not working today?" },
+      { role: 'assistant', content: "Hi, I'm CARIForge. What's not working today?" },
       { role: 'user', content: 'A compliance team manually checks each claim by hand.' },
     ]);
   });
@@ -131,7 +131,7 @@ describe('intakeChatTurn — happy path', () => {
     // model must read "asked 2 of a maximum 4".
     await intakeChatTurn({
       messages: [
-        { role: 'assistant', content: "Hi, I'm CariForge. What's not working today?" },
+        { role: 'assistant', content: "Hi, I'm CARIForge. What's not working today?" },
         { role: 'user', content: 'A compliance team manually checks each claim by hand.' },
         { role: 'assistant', content: 'Got it — who needs to approve this before it ships?' },
         { role: 'user', content: 'Our compliance lead, Maria.' },

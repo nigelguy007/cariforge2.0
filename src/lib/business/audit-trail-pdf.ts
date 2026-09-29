@@ -257,7 +257,7 @@ export async function renderAuditTrailPdf(input: AuditTrailDocument): Promise<Ui
     color: RULE,
   });
   drawText(
-    `CariForge audit trail  |  ${input.header.caseId}  |  rendered ${new Date().toISOString().slice(0, 10)}`,
+    `CARIForge audit trail  |  ${input.header.caseId}  |  rendered ${new Date().toISOString().slice(0, 10)}`,
     { size: 7, color: MUTED },
   );
 

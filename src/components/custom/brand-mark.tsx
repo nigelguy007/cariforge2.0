@@ -1,4 +1,4 @@
-// @polsia:user-owned — the CariForge logo mark, as an inline SVG component
+// @polsia:user-owned — the CARIForge logo mark, as an inline SVG component
 // so it renders crisply wherever it's used (nav bars, drawers) without an
 // extra image request. Same artwork as src/app/icon.svg (the favicon/PWA
 // icon) — kept in sync deliberately; if the mark changes, update both.
@@ -17,7 +17,7 @@ export function BrandMark({ size = 24, className }: { size?: number; className?:
       height={size}
       viewBox="0 0 64 64"
       role="img"
-      aria-label="CariForge mark"
+      aria-label="CARIForge mark"
       className={className}
     >
       <rect width="64" height="64" rx="14" fill="#0a0a0a" />

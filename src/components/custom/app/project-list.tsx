@@ -84,7 +84,7 @@ export function ProjectList({ showEmptyCta = true }: { showEmptyCta?: boolean } 
       <section className="app-panel p-6">
         <h2 className="app-h3 text-[var(--app-text)]">No projects yet</h2>
         <p className="app-body mt-1 max-w-prose text-[var(--app-text-muted)]">
-          Describe what the business needs in plain language. CariForge prepares each step and you
+          Describe what the business needs in plain language. CARIForge prepares each step and you
           approve it before the next one starts.
         </p>
         {showEmptyCta ? (

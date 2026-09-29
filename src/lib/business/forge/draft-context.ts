@@ -55,7 +55,7 @@ export function resolveDraftContext(detail: MissionDetailT): DraftContext {
       ok: false,
       status: 409,
       error:
-        'Something else needs attention on this project before CariForge can draft the next step — check the project workspace for what it is.',
+        'Something else needs attention on this project before CARIForge can draft the next step — check the project workspace for what it is.',
     };
   }
   const gate = detail.gates.find((g) => g.gateIndex === view.gateIndex);

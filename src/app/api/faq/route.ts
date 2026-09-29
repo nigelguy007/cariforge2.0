@@ -13,9 +13,9 @@ const FAQ = [
     id: 'eu-ai-act-articles-12-14',
     ordinal: 1,
     question:
-      'How does CariForge align with EU AI Act Articles 12 and 14, and what does the timeline look like?',
+      'How does CARIForge align with EU AI Act Articles 12 and 14, and what does the timeline look like?',
     answer:
-      "Articles 12 (record-keeping for high-risk AI) and 14 (effective oversight by natural persons) reach high-risk systems from 2 August 2026, with the Commission's biennial review starting 2 August 2027. CariForge's pipeline is shaped for them: every stage emits a timestamped, named-human approval record so the Article 12 logging and Article 14 human-in-the-loop expectations are produced as a by-product of the work, not added afterwards.",
+      "Articles 12 (record-keeping for high-risk AI) and 14 (effective oversight by natural persons) reach high-risk systems from 2 August 2026, with the Commission's biennial review starting 2 August 2027. CARIForge's pipeline is shaped for them: every stage emits a timestamped, named-human approval record so the Article 12 logging and Article 14 human-in-the-loop expectations are produced as a by-product of the work, not added afterwards.",
   },
   {
     id: 'audit-trail-evidence',
@@ -34,9 +34,9 @@ const FAQ = [
   {
     id: 'scaffold-vs-product',
     ordinal: 4,
-    question: 'What does CariForge actually hand over — and what does it not?',
+    question: 'What does CARIForge actually hand over — and what does it not?',
     answer:
-      'A 21-day pilot ends in a Decision Pack the client owns: problem brief, readiness score, workflow map, governance review, working prototype and full audit trail. The working prototype is a runnable codebase that the client owns and operates. The pilot does not include production hosting, an uptime SLA, 24/7 support, regulatory certification or liability for downstream deployment. CariForge’s responsibility ends at the hand-off receipt, and the handover note names the people who would own the next steps.',
+      'A 21-day pilot ends in a Decision Pack the client owns: problem brief, readiness score, workflow map, governance review, working prototype and full audit trail. The working prototype is a runnable codebase that the client owns and operates. The pilot does not include production hosting, an uptime SLA, 24/7 support, regulatory certification or liability for downstream deployment. CARIForge’s responsibility ends at the hand-off receipt, and the handover note names the people who would own the next steps.',
   },
   {
     id: 'why-a-council',

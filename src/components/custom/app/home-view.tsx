@@ -73,7 +73,7 @@ function GoalInput() {
         value={text}
         onChange={(e) => setText(e.target.value)}
         rows={3}
-        placeholder="Describe the business problem you want CariForge to solve…"
+        placeholder="Describe the business problem you want CARIForge to solve…"
         className="resize-none"
         aria-label="What do you want to get done?"
       />
@@ -209,7 +209,7 @@ export function HomeView() {
       <header className="space-y-1.5">
         <h1 className="app-h1 text-[var(--app-text)]">What do you want to get done?</h1>
         <p className="app-body max-w-prose text-[var(--app-text-muted)]">
-          Describe a business need in plain language. CariForge drafts, reviews and advances each
+          Describe a business need in plain language. CARIForge drafts, reviews and advances each
           step on its own, bringing you in only when a step needs your judgment.
         </p>
       </header>

@@ -12,7 +12,7 @@ import { JsonLd } from '@/components/custom/json-ld';
 import { siteDescription, siteName, siteUrl } from '@/lib/site';
 
 const pageDescription =
-  "How CariForge compares with the alternatives a Caribbean buyer weighs: global consultancies (Big Four Caribbean practices), AI governance platforms (Credo AI, Holistic AI, IBM watsonx.governance, OneTrust), agent builders (Microsoft Copilot Studio, UiPath) and general AI assistants (ChatGPT, Gemini, Copilot). Positions are CariForge's own assessment.";
+  "How CARIForge compares with the alternatives a Caribbean buyer weighs: global consultancies (Big Four Caribbean practices), AI governance platforms (Credo AI, Holistic AI, IBM watsonx.governance, OneTrust), agent builders (Microsoft Copilot Studio, UiPath) and general AI assistants (ChatGPT, Gemini, Copilot). Positions are CARIForge's own assessment.";
 
 export const metadata: Metadata = {
   title: { absolute: `Compare to alternatives | ${siteName}` },
@@ -59,7 +59,7 @@ export default function ComparePage() {
           <GlassSectionHeader
             eyebrow="Compare · For buyers and procurement teams"
             title="Fast like a tool, accountable like a consultancy, local by design."
-            lede="Buyers in the Caribbean usually weigh four kinds of alternative: global consultancies, AI governance platforms, agent builders and general AI assistants. CariForge combines governed agents, a named human approver at every gate and local delivery, and ends each 21-day pilot with a working prototype the client owns."
+            lede="Buyers in the Caribbean usually weigh four kinds of alternative: global consultancies, AI governance platforms, agent builders and general AI assistants. CARIForge combines governed agents, a named human approver at every gate and local delivery, and ends each 21-day pilot with a working prototype the client owns."
           />
 
           <CompareMatrix />

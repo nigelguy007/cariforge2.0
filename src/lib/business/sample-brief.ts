@@ -1,7 +1,7 @@
 // @polsia:user-owned — static dataset for the /sample-brief worked-example
 // page. Server-only: imported by /api/sample-brief/route.ts, which parses it
 // through the shared SampleBrief contract. Holds the editorial narrative of
-// one complete CariForge run — a regulated European insurer's claims-triage
+// one complete CARIForge run — a regulated European insurer's claims-triage
 // brief, the council debate on it, the chairman's reconciled ruling, the
 // five-stage pipeline of stage handoffs operated by the seven-agent core
 // (Agents 1..5 run Stages 1..5; Agent 5 is "AI Build", not "Prototype build",

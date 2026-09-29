@@ -30,7 +30,7 @@ export const metadata: Metadata = {
 const product = {
   '@context': 'https://schema.org',
   '@type': 'Product',
-  name: 'CariForge Pilot',
+  name: 'CARIForge Pilot',
   description:
     'A 21-day governed pilot that ends in a Decision Pack the client owns: problem brief, readiness score, workflow map, governance review, working prototype (a runnable Next.js + TypeScript codebase) and full audit trail. Seven specialist agents run a five-stage pipeline (Need Discovery → Readiness Review → Workflow Design → Governance Check → Prototype build), with a named human approval at every gate.',
   provider: { '@type': 'Organization', name: siteName, url: siteUrl },
@@ -77,7 +77,7 @@ export default function PricingPage() {
         <div className="container-page flex flex-col gap-10">
           <GlassSectionHeader
             eyebrow="Inquiry only — no payment flow at this stage"
-            title="Three ways to commission a CariForge run."
+            title="Three ways to commission a CARIForge run."
             lede="Every tier is the same council, the same five-stage pipeline, and the same audit-trail evidence. What changes is the scope — one brief, a procurement programme, or a timeline that spans quarters. Each card below lists what is included; each inquiry begins at the same one-line brief form on the home page."
           />
 
@@ -91,7 +91,7 @@ export default function PricingPage() {
             <GlassSectionHeader
               eyebrow="Before you commit"
               title="What's this worth, roughly, to the team doing it today?"
-              lede="A quick, honest estimate — every number below comes directly from what you enter, not an industry benchmark CariForge has no basis to claim."
+              lede="A quick, honest estimate — every number below comes directly from what you enter, not an industry benchmark CARIForge has no basis to claim."
             />
             <div className="mt-6">
               <RoiCalculator />
@@ -103,7 +103,7 @@ export default function PricingPage() {
           <GlassPanel tone="surface" padding="lg" backdrop="soft">
             <p className="text-small">
               Every tier above begins as an inquiry, not a transaction. There is no payment flow on
-              this page yet, and a real human from CariForge will reply within 48 hours during
+              this page yet, and a real human from CARIForge will reply within 48 hours during
               working weeks.{' '}
               <Link href="/how-it-works#front-door" className="link-brand">
                 Tell us what you want to build
@@ -116,7 +116,7 @@ export default function PricingPage() {
               <Link href="/compare" className="link-brand">
                 /compare
               </Link>{' '}
-              for how CariForge compares with the alternatives buyers consider, and{' '}
+              for how CARIForge compares with the alternatives buyers consider, and{' '}
               <Link href="/sample-brief" className="link-brand">
                 the /sample-brief worked example
               </Link>{' '}

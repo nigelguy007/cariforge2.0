@@ -5,7 +5,7 @@
 // no auth gate. The route still parses through the shared Compare contract so
 // the page can rely on the same shape on both ends of the wire.
 //
-// Positions are CariForge's own assessment. Do not add per-vendor claims
+// Positions are CARIForge's own assessment. Do not add per-vendor claims
 // beyond these category-level lines without a cited source.
 
 import 'server-only';
@@ -45,14 +45,14 @@ const ROWS = [
   },
   {
     id: 'cariforge',
-    category: 'CariForge',
+    category: 'CARIForge',
     examples: 'Governed agents, human gates and local delivery',
     position: 'A governed, working prototype in 21 days, priced for local budgets.',
     isSubject: true,
   },
 ] as const;
 
-const DISCLAIMER = "Positions are CariForge's own assessment.";
+const DISCLAIMER = "Positions are CARIForge's own assessment.";
 
 export async function GET() {
   return NextResponse.json(Compare.parse({ rows: ROWS, disclaimer: DISCLAIMER }));

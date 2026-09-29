@@ -14,7 +14,7 @@ import { siteDescription, siteName, siteUrl } from '@/lib/site';
 
 const pageTitle = 'What a 21-day pilot delivers, and what it doesn’t';
 const pageDescription =
-  'A CariForge pilot runs 21 days and ends in a Decision Pack the client owns: problem brief, readiness score, workflow map, governance review, working prototype (a runnable codebase) and full audit trail. It does not include production hosting, an uptime SLA, 24/7 support or liability for downstream deployment.';
+  'A CARIForge pilot runs 21 days and ends in a Decision Pack the client owns: problem brief, readiness score, workflow map, governance review, working prototype (a runnable codebase) and full audit trail. It does not include production hosting, an uptime SLA, 24/7 support or liability for downstream deployment.';
 
 export const metadata: Metadata = {
   title: { absolute: `${pageTitle} | ${siteName}` },
@@ -69,7 +69,7 @@ export default function PilotScopePage() {
           <GlassSectionHeader
             eyebrow="Pilot scope for procurement and compliance reviewers"
             title="What a 21-day pilot delivers, and what it doesn’t."
-            lede="A CariForge pilot runs for 21 days and ends in a Decision Pack the client owns, including a working prototype delivered as a runnable codebase. This page lists what the pilot covers and where its scope stops. The same scope appears in the FAQ and on /pricing."
+            lede="A CARIForge pilot runs for 21 days and ends in a Decision Pack the client owns, including a working prototype delivered as a runnable codebase. This page lists what the pilot covers and where its scope stops. The same scope appears in the FAQ and on /pricing."
           />
 
           <div className="flex flex-col gap-4">

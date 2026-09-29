@@ -101,7 +101,7 @@ export function AppShell({ children }: AppShellProps) {
         <div className="mx-auto flex h-12 w-full max-w-[1200px] items-center justify-between gap-3 px-4 sm:px-6">
           <Link href="/missions" className="flex min-w-0 items-center gap-2">
             <BrandMark size={26} />
-            <span className="truncate font-semibold text-[var(--app-text)]">CariForge</span>
+            <span className="truncate font-semibold text-[var(--app-text)]">CARIForge</span>
           </Link>
           <div className="flex items-center gap-1">
             <DropdownMenu>

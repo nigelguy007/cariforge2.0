@@ -38,10 +38,10 @@ export default function PilotOracleCouncilPage() {
       <section className="section relative overflow-hidden">
         <div className="container-page flex flex-col gap-8">
           <header className="flex flex-col gap-3">
-            <p className="text-eyebrow text-brand-700">TAG Caribbean pilot · Oracle Council</p>
+            <p className="text-eyebrow text-brand-700">TAG Caribbean use case · Oracle Council</p>
             <h1 className="text-h1 text-foreground">Five named gates, one Elder Oracle.</h1>
             <p className="max-w-3xl text-body text-muted-foreground">
-              The Oracles are the five-voice review council inside CariForge&rsquo;s 7-agent engine.
+              The Oracles are the five-voice review council inside CARIForge&rsquo;s 7-agent engine.
               They argue each of the five gates before the named human signs. Gates{' '}
               <strong>0 (Need Discovery)</strong> and <strong>4 (Prototype build)</strong> can only
               be approved by the appointed Elder Oracle. No specialist or model can skip that

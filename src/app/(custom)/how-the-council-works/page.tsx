@@ -13,12 +13,12 @@ import { siteDescription, siteName, siteUrl } from '@/lib/site';
 export const metadata: Metadata = {
   title: { absolute: `How the council works — ${siteName}` },
   description:
-    "How CariForge's five-voice review council works inside the 7-agent engine: the five voices (Risk, Demand, Growth, Competition, Money) and what each argues before the named human signs each gate, the chairman's three rulings (Build, Test first, Walk away) and how dissent is written into the case file, and the rule that ties the run back to the named human with a typed reason attached.",
+    "How CARIForge's five-voice review council works inside the 7-agent engine: the five voices (Risk, Demand, Growth, Competition, Money) and what each argues before the named human signs each gate, the chairman's three rulings (Build, Test first, Walk away) and how dissent is written into the case file, and the rule that ties the run back to the named human with a typed reason attached.",
   alternates: { canonical: '/how-the-council-works' },
   openGraph: {
     title: `How the council works — ${siteName}`,
     description:
-      "How CariForge's five-voice review council works inside the 7-agent engine: the five voices (Risk, Demand, Growth, Competition, Money) and what each argues before the named human signs each gate, the chairman's three rulings (Build, Test first, Walk away) and how dissent is written into the case file, and the rule that ties the run back to the named human with a typed reason attached.",
+      "How CARIForge's five-voice review council works inside the 7-agent engine: the five voices (Risk, Demand, Growth, Competition, Money) and what each argues before the named human signs each gate, the chairman's three rulings (Build, Test first, Walk away) and how dissent is written into the case file, and the rule that ties the run back to the named human with a typed reason attached.",
     images: ['/opengraph-image'],
   },
 };
@@ -42,7 +42,7 @@ export default function HowTheCouncilWorksPage() {
           <GlassSectionHeader
             eyebrow="Governance · Depth page — for buyers who want the mechanics spelled out"
             title="How the council works."
-            lede="The council is the five-voice review council inside CariForge's 7-agent engine. It argues each of the five gates before the named human signs. Below: the five voices and what each argues, the three rulings the chair can issue and what happens to dissent on each, and the rule that ties the run back to you — the named human on the case file — with a typed reason attached before any stage advance."
+            lede="The council is the five-voice review council inside CARIForge's 7-agent engine. It argues each of the five gates before the named human signs. Below: the five voices and what each argues, the three rulings the chair can issue and what happens to dissent on each, and the rule that ties the run back to you — the named human on the case file — with a typed reason attached before any stage advance."
           />
 
           <CouncilSections />

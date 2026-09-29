@@ -1,5 +1,5 @@
 // @polsia:user-owned — /pilot-intro. Server Component that exports metadata. A
-// static positioning page for the TAG Caribbean pilot initiative: who the
+// static positioning page for TAG Caribbean, CARIForge's own creative-commerce use case: who the
 // audience is (regulatory, partner, internal sponsor), what the pilot covers
 // in region / buyer / scope / timebox, and the explicit GO/NO-GO claims a
 // procurement reviewer can read deterministically. No data-fetch in the page
@@ -19,14 +19,14 @@ import { JsonLd } from '@/components/custom/json-ld';
 import { siteDescription, siteName, siteUrl } from '@/lib/site';
 
 export const metadata: Metadata = {
-  title: { absolute: `TAG Caribbean pilot — ${siteName}` },
+  title: { absolute: `TAG Caribbean: our creative-commerce use case — ${siteName}` },
   description:
-    'A positioning page for the TAG Caribbean pilot initiative: the region, the named regulated buyer profile, the scope envelope (which stage gates and which tier), the timebox, and the explicit GO/NO-GO claims a procurement reviewer can read deterministically.',
+    'TAG Caribbean is CARIForge’s own creative-commerce use case, run on the same engine as every other pilot. This page sets out the region, the named regulated buyer profile, the scope envelope (which stage gates and which tier), the timebox, and the explicit GO/NO-GO claims a procurement reviewer can read deterministically.',
   alternates: { canonical: '/pilot-intro' },
   openGraph: {
-    title: `TAG Caribbean pilot — ${siteName}`,
+    title: `TAG Caribbean: our creative-commerce use case — ${siteName}`,
     description:
-      'A positioning page for the TAG Caribbean pilot initiative: the region, the named regulated buyer profile, the scope envelope (which stage gates and which tier), the timebox, and the explicit GO/NO-GO claims a procurement reviewer can read deterministically.',
+      'TAG Caribbean is CARIForge’s own creative-commerce use case, run on the same engine as every other pilot. This page sets out the region, the named regulated buyer profile, the scope envelope (which stage gates and which tier), the timebox, and the explicit GO/NO-GO claims a procurement reviewer can read deterministically.',
     images: ['/opengraph-image'],
   },
 };
@@ -56,7 +56,7 @@ const whatItIs = [
   {
     headline: 'Scope envelope — one tier, one stage-gate sweep.',
     detail:
-      'The pilot exercises a single CariForge tier across all five stage gates on a single brief. The brief itself is chosen so the workflow has a real regulated problem to argue about. The tier to be exercised is to be confirmed with the buyer before pilot kick-off.',
+      'The pilot exercises a single CARIForge tier across all five stage gates on a single brief. The brief itself is chosen so the workflow has a real regulated problem to argue about. The tier to be exercised is to be confirmed with the buyer before pilot kick-off.',
   },
   {
     headline: 'Timebox — bounded run, measured at hand-off.',
@@ -162,7 +162,7 @@ export default function PilotIntroPage() {
         <div className="container-page flex flex-col gap-10">
           <GlassSectionHeader
             eyebrow="Pilot initiative · /pilot-intro is a positioning page for procurement and partners"
-            title="The TAG Caribbean pilot, in plain language."
+            title="TAG Caribbean: our creative-commerce use case, in plain language."
             lede="This page is for the regulated buyer, the partner and the internal sponsor. It lays out what the pilot is in region / buyer / scope / timebox, why Caribbean comes first and not later, and the explicit GO/NO-GO list a procurement reviewer can read deterministically. The same promises made here are verifiable against the case file at hand-off, or they do not appear here."
             as="h1"
           />
