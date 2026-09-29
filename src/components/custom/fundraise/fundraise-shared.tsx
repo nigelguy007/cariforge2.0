@@ -115,6 +115,10 @@ const BATCH_STATUS: Record<BatchStatus, { label: string; className: string }> = 
     className:
       'border-[var(--app-accent-border)] bg-[var(--app-accent-soft)] text-[var(--app-accent-strong)]',
   },
+  SENDING: {
+    label: 'Sending in progress',
+    className: 'border-sky-300 bg-sky-50 text-sky-900 dark:bg-sky-500/15 dark:text-sky-200',
+  },
   REJECTED: {
     label: 'Rejected',
     className: 'border-[var(--app-border)] bg-transparent text-[var(--app-text-muted)]',

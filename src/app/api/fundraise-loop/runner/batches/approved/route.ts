@@ -1,6 +1,7 @@
 // @polsia:user-owned — GET /api/fundraise-loop/runner/batches/approved.
-// Approved batches (cold, queued prospects only) ready to send — empty unless
-// the global kill switch is on.
+// APPROVED batches (cold, queued prospects only) ready to CLAIM — empty unless
+// the global kill switch is on. Listing is not permission to push: the runner
+// must POST …/batches/[id]/claim first and push only what the claim returns.
 
 import 'server-only';
 import { NextResponse } from 'next/server';

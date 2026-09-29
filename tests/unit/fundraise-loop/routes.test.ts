@@ -5,6 +5,7 @@
 // state-machine conflict mapping (409).
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { ConflictError } from '@/lib/business/fundraise-loop/errors';
 import { TransitionError } from '@/lib/business/fundraise-loop/state';
 
 vi.mock('server-only', () => ({}));
@@ -16,6 +17,8 @@ vi.mock('@/lib/auth', () => ({ auth: { api: { getSession: () => getSession() } }
 const store = {
   ingestBatch: vi.fn(),
   decideBatch: vi.fn(),
+  claimBatch: vi.fn(),
+  markSent: vi.fn(),
 };
 vi.mock('@/lib/business/fundraise-loop/store', () => store);
 
@@ -89,6 +92,7 @@ describe('POST /api/fundraise-loop/runner/batches', () => {
       warm: 0,
       unknownSegment: 0,
       invalid: 0,
+      overAllocation: 0,
     };
     store.ingestBatch.mockResolvedValue(result);
     const { POST } = await import('@/app/api/fundraise-loop/runner/batches/route');
@@ -143,5 +147,101 @@ describe('PATCH /api/admin/fundraise/batches/[id]', () => {
     expect(res.status).toBe(409);
     expect((await res.json()).error).toMatch(/SENT to APPROVED/);
     expect(store.decideBatch).toHaveBeenCalledWith('b1', { action: 'approve' }, 'a@example.com');
+  });
+});
+
+const BATCH = {
+  id: 'b1',
+  status: 'SENT',
+  note: null,
+  createdAt: '2026-09-29T00:00:00.000Z',
+  decidedBy: 'a@example.com',
+  decidedAt: '2026-09-29T00:00:00.000Z',
+  sentAt: '2026-09-29T00:00:00.000Z',
+  prospects: [],
+};
+
+describe('POST /api/fundraise-loop/runner/batches/[id]/claim', () => {
+  const url = 'http://localhost/api/fundraise-loop/runner/batches/b1/claim';
+  const params = { params: Promise.resolve({ id: 'b1' }) };
+
+  it('401s without the runner token', async () => {
+    const { POST } = await import('@/app/api/fundraise-loop/runner/batches/[id]/claim/route');
+    const res = await POST(new Request(url, { method: 'POST' }), params);
+    expect(res.status).toBe(401);
+    expect(store.claimBatch).not.toHaveBeenCalled();
+  });
+
+  it('returns the claimed batch', async () => {
+    store.claimBatch.mockResolvedValue({ ...BATCH, status: 'SENDING', sentAt: null });
+    const { POST } = await import('@/app/api/fundraise-loop/runner/batches/[id]/claim/route');
+    const res = await POST(
+      new Request(url, { method: 'POST', headers: { authorization: `Bearer ${TOKEN}` } }),
+      params,
+    );
+    expect(res.status).toBe(200);
+    expect((await res.json()).status).toBe('SENDING');
+    expect(store.claimBatch).toHaveBeenCalledWith('b1');
+  });
+
+  it('409s on a second claim or with the kill switch off', async () => {
+    const { POST } = await import('@/app/api/fundraise-loop/runner/batches/[id]/claim/route');
+    for (const err of [
+      new TransitionError('SENDING', 'SENDING'),
+      new ConflictError('Sending is disabled (kill switch is off)'),
+    ]) {
+      store.claimBatch.mockRejectedValueOnce(err);
+      const res = await POST(
+        new Request(url, { method: 'POST', headers: { authorization: `Bearer ${TOKEN}` } }),
+        params,
+      );
+      expect(res.status).toBe(409);
+    }
+  });
+});
+
+describe('POST /api/fundraise-loop/runner/batches/[id]/sent', () => {
+  const url = 'http://localhost/api/fundraise-loop/runner/batches/b1/sent';
+  const params = { params: Promise.resolve({ id: 'b1' }) };
+
+  it('400s without a sentProspectIds array', async () => {
+    const { POST } = await import('@/app/api/fundraise-loop/runner/batches/[id]/sent/route');
+    for (const body of [{}, { sentProspectIds: 'p1' }, { sentProspectIds: [''] }]) {
+      const res = await POST(json(url, 'POST', body, `Bearer ${TOKEN}`), params);
+      expect(res.status).toBe(400);
+    }
+    expect(store.markSent).not.toHaveBeenCalled();
+  });
+
+  it('accepts an empty list and passes the ids through', async () => {
+    store.markSent.mockResolvedValue(BATCH);
+    const { POST } = await import('@/app/api/fundraise-loop/runner/batches/[id]/sent/route');
+    const res = await POST(json(url, 'POST', { sentProspectIds: [] }, `Bearer ${TOKEN}`), params);
+    expect(res.status).toBe(200);
+    expect(store.markSent).toHaveBeenCalledWith('b1', { sentProspectIds: [] });
+  });
+
+  it('409s when the batch was not claimed', async () => {
+    store.markSent.mockRejectedValue(new TransitionError('APPROVED', 'SENT'));
+    const { POST } = await import('@/app/api/fundraise-loop/runner/batches/[id]/sent/route');
+    const res = await POST(
+      json(url, 'POST', { sentProspectIds: ['p1'] }, `Bearer ${TOKEN}`),
+      params,
+    );
+    expect(res.status).toBe(409);
+  });
+});
+
+describe('PATCH /api/admin/fundraise/batches/[id] — release', () => {
+  it('accepts the release action from an admin', async () => {
+    getSession.mockResolvedValue({ user: { email: 'a@example.com', role: 'admin' } });
+    store.decideBatch.mockResolvedValue({ ...BATCH, status: 'APPROVED', sentAt: null });
+    const { PATCH } = await import('@/app/api/admin/fundraise/batches/[id]/route');
+    const res = await PATCH(
+      json('http://localhost/api/admin/fundraise/batches/b1', 'PATCH', { action: 'release' }),
+      { params: Promise.resolve({ id: 'b1' }) },
+    );
+    expect(res.status).toBe(200);
+    expect(store.decideBatch).toHaveBeenCalledWith('b1', { action: 'release' }, 'a@example.com');
   });
 });

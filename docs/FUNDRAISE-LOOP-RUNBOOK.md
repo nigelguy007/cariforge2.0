@@ -46,7 +46,7 @@ lead at your tier), `{{COMPANY_ONE_LINER}}`, and `{{RUN_MODE}}` (`full`).
 |---|---|---|---|
 | Mon AM | Routine | **Send** last week's approved batch (if sending is on), then **draft** this week's batch. Posts a report. | — |
 | Mon–Wed | Founder | Open `/admin/fundraise`. Skip anyone wrong, then **approve** or **reject** the batch. Handle warm intros (the `fundraise-warm-path-scout` subagent helps). | 15 min |
-| Next Mon | Routine | Pushes the approved batch into HeyReach and marks it SENT. | — |
+| Next Mon | Routine | **Claims** each approved batch (it shows as *Sending in progress*), pushes it into HeyReach, then records exactly who was pushed. Those people become SENT, anyone not pushed becomes UNSENT, and the batch becomes SENT. | — |
 | Fri | Founder | Export replies and meetings from HeyReach and your calendar, then use **CSV import** on `/admin/fundraise`. Columns: `identifier` (LinkedIn URL, email, or `Name \| Firm`), `type`, `occurredAt`, and optionally `note`. | 10 min |
 | Monthly | Founder | Ask the `fundraise-segment-analyst` subagent to explain the allocation. Decide on any pauses or new segments yourself. | 15 min |
 
@@ -56,6 +56,43 @@ optimises for.
 
 *Optional:* to send approved batches without waiting a week, add a second
 routine on Wednesday with `RUN_MODE=send-only`.
+
+### How a send works (claim → push → record)
+
+1. **Claim.** The routine calls `POST /runner/batches/{id}/claim`. The
+   server moves the batch from *Approved* to **Sending in progress** in one
+   atomic step, and only while `sendingEnabled` is on. A second claim is
+   refused, so two runs can never push the same batch.
+2. **Push.** The routine pushes only the claimed people, matched by
+   identity (LinkedIn handle), never by a whole search.
+3. **Record.** The routine calls `POST /runner/batches/{id}/sent` with the
+   exact ids it pushed. Those become **SENT**. Everyone else still queued in
+   the batch becomes **UNSENT**. The batch becomes **SENT**. This step works
+   even if you switch sending off mid-run, because it records what already
+   happened.
+
+**UNSENT** people were approved but never reached HeyReach (no LinkedIn
+URL, an ambiguous name in the search, or a HeyReach error). They stay in the
+"never contact twice" memory, so the loop never re-sources or re-pushes
+them. The decided batch shows an "*n* not pushed (unsent)" badge. Add them in
+HeyReach by hand if you still want to reach them.
+
+**Stuck in SENDING.** If a run dies between claim and record, the batch
+stays pinned at the top of the approval queue as *Sending in progress*, and
+the run report says "stuck in SENDING". Open the HeyReach campaign and
+check whether any of the batch's people were added:
+
+- **Nobody was added:** click **Release (nothing was pushed)** and confirm.
+  The batch goes back to *Approved* and the next run sends it.
+- **Some or all were added:** do **not** release, because releasing would
+  push them again. Leave the batch as it is (nobody in it will be
+  auto-sent), handle the rest by hand in HeyReach, and ask the operator to
+  record what was pushed with
+  `POST /runner/batches/{id}/sent` `{"sentProspectIds": [...]}` using the
+  runner token.
+
+A *Sending in progress* batch cannot be rejected. Release it first if you
+want to reject it.
 
 ## 3. How the allocation works (plain English)
 
@@ -73,7 +110,11 @@ Each week the batch (default **40**) is split across ACTIVE segments:
    drops to 0 unless *you* pause it. The rest of the batch goes to segments
    in proportion to P(best).
 4. **Runway cap.** A segment gets at most remaining universe ÷ **8** per
-   week, so no market is burned in under 8 weeks.
+   week, so no market is burned in under 8 weeks. Capacity freed by a capped
+   segment goes to the others until the batch is full.
+5. **Enforced on ingest.** The server rejects cold prospects beyond each
+   segment's allocation, or beyond `batchSize` overall. The run report shows
+   these as `overAllocation`, and they are not stored.
 
 | Recommendation | Meaning | Your action |
 |---|---|---|
@@ -92,11 +133,14 @@ All thresholds are editable in Config: `batchSize`, `minSegmentShare`,
 |---|---|---|
 | Report says `STOPPED (503)` | Token not set on that Vercel deployment, or the app is down | Check the env var in both projects and redeploy. Re-fire manually. |
 | `STOPPED (401/403)` | Token mismatch between the routine and Vercel | Re-copy the token into both places (see rotation) |
-| Worried someone gets contacted twice | — | Dedupe is permanent: a unique key on the LinkedIn handle, then email, then name+firm. The exclusion list is re-uploaded to 8Raise every run, and warm-path people never enter a cold batch. To check a person, search the dashboard by LinkedIn URL. |
-| Same person listed at two firms or URLs | Normaliser can't link them | Skip them in the batch before approving |
+| Worried someone gets contacted twice | — | Dedupe is permanent and multi-key: every LinkedIn handle, email, and name+firm the loop has seen for a person is stored, and a new record matching **any** of them is a duplicate. Batches must be claimed before sending, and a claimed batch can't be claimed again. The exclusion list is re-uploaded to 8Raise every run, and warm-path people never enter a cold batch. To check a person, search the dashboard by LinkedIn URL. |
+| Same person listed at two firms and two URLs, with no shared email | Nothing links the records | Skip them in the batch before approving |
+| Batch shows *Sending in progress* for more than a day, or the report says "stuck in SENDING" | Run died or `/sent` failed after the claim | See "Stuck in SENDING" in §2. Release only if HeyReach shows nobody from the batch was added. |
+| Report says "claim refused (409)" | Another run claimed it, or sending was switched off just before the claim | Nothing to do. If sending is on, the batch is either *Sending in progress* or already sent. |
+| `overAllocation` above 0 in the report | The routine returned more people than the plan allowed | Nothing to do. The extras were dropped and can be sourced in a later week. |
 | "Insufficient credits" | 8Raise monthly credits used up | Top up or wait for the reset. Lower `batchSize` if this recurs. The routine never scales down on its own. |
 | "query needs founder refinement" | 8Raise asked clarifying questions | Rewrite that segment's `query` to be more specific (one sector keyword per Basic search) |
-| Some approved people "not pushed" | No LinkedIn URL, a name mismatch, or a HeyReach error | The batch is still marked SENT so nobody gets pushed twice. Add the listed people to HeyReach by hand, or leave them. |
+| Some approved people "not pushed" / UNSENT | No LinkedIn URL, a name that is ambiguous in the 8Raise search, or a HeyReach error | They are UNSENT and never pushed automatically. Add them to HeyReach by hand, or leave them. |
 | HeyReach account limits or warnings | Too much LinkedIn volume | Keep daily volume inside HeyReach's safe limits for each sender account. LinkedIn caps weekly connection requests (commonly cited as about 100–200 per account; check HeyReach's current guidance). Lower `batchSize` or add a sender account. Never raise HeyReach's daily caps to catch up. |
 | Campaign not ACTIVE | Paused in HeyReach | Resume it. The routine won't fall back to another destination. |
 | Routine drafted twice in one week | Manual re-fire | No harm to data, because the server dedupes, but it spent credits. Reject the extra batch. Use `RUN_MODE=send-only` for manual re-fires. |
@@ -110,7 +154,9 @@ All thresholds are editable in Config: `batchSize`, `minSegmentShare`,
 The old token dies when the redeploy lands.
 
 **Kill switch:** `/admin/fundraise` → Config → `sendingEnabled` **off**.
-The next run sends nothing and still drafts. For a full stop, also disable
+No new batch can be claimed from that moment. The next run sends nothing and
+still drafts. A batch already claimed when you flip it finishes recording
+what it pushed. For a full stop, also disable
 the routine and pause the HeyReach campaign. The campaign sends on its own
 schedule once leads are in it.
 
@@ -126,12 +172,12 @@ schedule once leads are in it.
   go to `FundraiseProspect` and find the person by LinkedIn URL or email.
   - *Preferred (keeps "never contact again"):* blank `fullName` to
     `[deleted]`, and set `firm`, `title`, `linkedinUrl`, `email`, `sourceRef`,
-    and `warmPath` to null. Keep the row and its `dedupeKey` so the person is
-    never re-sourced. Then check that `/runner/exclusions` still suppresses
-    them. If it builds from `linkedinUrl` or `email` rather than `dedupeKey`,
-    the server-side dedupe still blocks re-ingestion, but 8Raise may spend a
-    credit returning them.
-  - *Full erasure:* delete the row. Its `FundraiseEvent` rows cascade. Also
+    and `warmPath` to null. Keep the row, its `dedupeKey`, and its
+    `FundraiseIdentity` rows so the person is never re-sourced.
+    `/runner/exclusions` is built from those identity keys, so it keeps
+    suppressing them in 8Raise.
+  - *Full erasure:* delete the row. Its `FundraiseEvent` and
+    `FundraiseIdentity` rows cascade. Also
     delete the lead in 8Raise and HeyReach. Note that the person could then
     be re-sourced later.
   - Log the request date and action taken outside the database.

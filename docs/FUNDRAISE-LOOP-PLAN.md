@@ -31,7 +31,7 @@ Plus one control the article omits entirely: a **global kill switch**
 
 | Objective | Measurable outcome | How we'll know |
 |---|---|---|
-| O1 Never contact the same investor twice | 0 duplicate sends | Unique `dedupeKey` constraint + exclusion upload; unit-tested normaliser |
+| O1 Never contact the same investor twice | 0 duplicate sends | Every identity key (LinkedIn, email, name+firm) unique in `FundraiseIdentity` + server-side send claim + exclusion upload; unit-tested normaliser |
 | O2 Every send is human-approved | 0 sends from a batch not in `APPROVED` | Server-enforced state machine; runner endpoint refuses otherwise |
 | O3 Aim at segments that produce *meetings* | Allocation shifts only with ≥ min matured trials | Allocation engine unit tests; dashboard shows P(best) + "insufficient data" |
 | O4 Don't exhaust the market | No segment projected to exhaust in < 8 weeks | Burn forecaster + weekly cap; dashboard runway column |
@@ -51,14 +51,30 @@ storing inferred private contact data (skill evidence standard forbids it).
  1 GET  /api/fundraise-loop/runner/plan  ───▶  allocation engine → {segment: n}
  2 8Raise search_investors per segment
    (exclusion list uploaded first)
- 3 POST /api/fundraise-loop/runner/batches ──▶ dedupe → batch PENDING_APPROVAL
+ 3 POST /api/fundraise-loop/runner/batches ──▶ multi-key dedupe (li/em/nf via
+                                               FundraiseIdentity) + per-segment
+                                               allocation cap → batch
+                                               PENDING_APPROVAL
                                                ▲
  Founder: /admin/fundraise  ── approve / skip items / reject ──┘
- 4 GET  …/runner/batches?status=APPROVED   ──▶ (only if sendingEnabled)
- 5 8Raise send_to_heyreach (cold lane only)
- 6 POST …/runner/batches/:id/sent          ──▶ batch SENT, prospects SENT
- 7 POST …/runner/events  (replies/meetings) ─▶ outcome events → posteriors
+ 4 GET  …/runner/batches/approved          ──▶ APPROVED batches (empty unless
+                                               sendingEnabled)
+ 5 POST …/runner/batches/:id/claim         ──▶ APPROVED → SENDING, atomic, only
+                                               if sendingEnabled; 2nd claim 409
+ 6 8Raise send_to_heyreach (claimed cold prospects only, by identity)
+ 7 POST …/runner/batches/:id/sent          ──▶ {sentProspectIds}: those SENT,
+    (always, even if kill switch flipped)      the rest UNSENT; batch SENT
+                                               ▲
+ Founder: stuck SENDING batch ── verify in HeyReach ── release → APPROVED
+ 8 POST …/runner/events  (replies/meetings) ─▶ outcome events → posteriors
 ```
+
+Batch states: `PENDING_APPROVAL → APPROVED | REJECTED`;
+`APPROVED → SENDING | REJECTED`; `SENDING → SENT` (runner `/sent`);
+`SENDING → APPROVED` only via the admin `release` action (a human confirmed
+nothing was pushed). `REJECTED` and `SENT` are terminal. A `SENDING` batch
+can't be listed, claimed again, or rejected, so a crash or kill-switch flip
+mid-run can never cause a double push.
 
 Runner endpoints authenticate with a bearer token (`FUNDRAISE_LOOP_TOKEN`,
 constant-time compare; endpoints return 503 when it is unset). Admin endpoints
@@ -75,7 +91,10 @@ use the existing better-auth `role === 'admin'` gate.
   segment has `minTrialsBeforeCut` matured trials, then `explorationFloor`.
   Never zero unless a human pauses the segment.
 - Cap each segment at `remaining / minWeeksRunway` and at `remaining`.
-- Largest-remainder rounding to integers; leftover capacity is redistributed.
+- Largest-remainder rounding to integers; capacity freed by capped segments is
+  redistributed pass after pass until the batch is full or every segment is
+  capped (Σ = min(batchSize, Σcaps)). Segments with a zero target get leftover
+  only once every positive-target segment is capped.
 - Recommendation `consider-pausing` only when matured trials ≥ threshold AND
   P(best) < 5% AND posterior mean < ½ of the leader's. It is a recommendation;
   pausing is a human action.

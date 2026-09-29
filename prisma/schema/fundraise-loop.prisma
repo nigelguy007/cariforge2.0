@@ -1,69 +1,75 @@
 // @polsia:user-owned — CariForge's own investor-outreach loop (admin-only).
 // find → approve → send → measure → re-aim. See docs/FUNDRAISE-LOOP-PLAN.md.
 // The database is the loop's durable memory: a prospect row is created once
-// per normalised identity (dedupeKey) and is never re-contacted.
+// per person and is never re-contacted. Every identity key derivable for the
+// person (LinkedIn handle, email, name+firm) is recorded in FundraiseIdentity,
+// so the same person arriving later under a different identifier is still a
+// duplicate.
 
 // Singleton tuning row (id = 'default'). sendingEnabled is the global kill
 // switch — default OFF, so nothing is sent until a human turns it on.
 model FundraiseLoopConfig {
-  id                  String   @id @default("default")
-  batchSize           Int      @default(40)
-  minSegmentShare     Float    @default(0.1)
-  explorationFloor    Float    @default(0.05)
-  minTrialsBeforeCut  Int      @default(100)
-  minWeeksRunway      Int      @default(8)
-  sendingEnabled      Boolean  @default(false)
-  updatedAt           DateTime @updatedAt
+  id                 String   @id @default("default")
+  batchSize          Int      @default(40)
+  minSegmentShare    Float    @default(0.1)
+  explorationFloor   Float    @default(0.05)
+  minTrialsBeforeCut Int      @default(100)
+  minWeeksRunway     Int      @default(8)
+  sendingEnabled     Boolean  @default(false)
+  updatedAt          DateTime @updatedAt
 }
 
 // One investor type the loop aims at. query is the plain-English 8Raise
 // search; estUniverse caps how fast the segment can be burned; lagDays is how
 // long a silent contact must age before it counts as a non-response.
 model FundraiseSegment {
-  key          String   @id
-  label        String
-  query        String
-  mode         String   @default("vc")   // 8Raise mode: vc | lp | real_estate | ria
-  estUniverse  Int
-  lagDays      Int      @default(21)
-  status       String   @default("ACTIVE") // ACTIVE | PAUSED
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-  prospects    FundraiseProspect[]
+  key         String              @id
+  label       String
+  query       String
+  mode        String              @default("vc") // 8Raise mode: vc | lp | real_estate | ria
+  estUniverse Int
+  lagDays     Int                 @default(21)
+  status      String              @default("ACTIVE") // ACTIVE | PAUSED
+  createdAt   DateTime            @default(now())
+  updatedAt   DateTime            @updatedAt
+  prospects   FundraiseProspect[]
 }
 
 model FundraiseBatch {
-  id           String   @id @default(cuid())
-  status       String   @default("PENDING_APPROVAL") // PENDING_APPROVAL | APPROVED | REJECTED | SENT
-  plan         Json                                   // allocation snapshot the batch was drafted from
-  note         String?
-  decidedBy    String?
-  decidedAt    DateTime?
-  sentAt       DateTime?
-  createdAt    DateTime @default(now())
-  prospects    FundraiseProspect[]
+  id        String              @id @default(cuid())
+  status    String              @default("PENDING_APPROVAL") // PENDING_APPROVAL | APPROVED | SENDING | REJECTED | SENT
+  plan      Json // allocation snapshot the batch was drafted from
+  note      String?
+  decidedBy String?
+  decidedAt DateTime?
+  sentAt    DateTime?
+  createdAt DateTime            @default(now())
+  prospects FundraiseProspect[]
+
   @@index([status, createdAt])
 }
 
 model FundraiseProspect {
-  id           String   @id @default(cuid())
-  dedupeKey    String   @unique              // li:<handle> | em:<email> | nf:<name>|<firm>
-  segmentKey   String
-  segment      FundraiseSegment @relation(fields: [segmentKey], references: [key])
-  batchId      String?
-  batch        FundraiseBatch?  @relation(fields: [batchId], references: [id], onDelete: SetNull)
-  fullName     String
-  firm         String?
-  title        String?
-  linkedinUrl  String?
-  email        String?
-  sourceRef    String?                        // 8Raise lead id, for send_to_heyreach
-  lane         String   @default("COLD")      // COLD | WARM
-  warmPath     String?                        // who can introduce — never invented
-  status       String   @default("QUEUED")    // QUEUED | SKIPPED | SENT | INTRO_REQUESTED
-  sentAt       DateTime?
-  createdAt    DateTime @default(now())
-  events       FundraiseEvent[]
+  id          String              @id @default(cuid())
+  dedupeKey   String              @unique // strongest key: li:<handle> | em:<email> | nf:<name>|<firm>
+  segmentKey  String
+  segment     FundraiseSegment    @relation(fields: [segmentKey], references: [key])
+  batchId     String?
+  batch       FundraiseBatch?     @relation(fields: [batchId], references: [id], onDelete: SetNull)
+  fullName    String
+  firm        String?
+  title       String?
+  linkedinUrl String?
+  email       String?
+  sourceRef   String? // 8Raise lead id, for send_to_heyreach
+  lane        String              @default("COLD") // COLD | WARM
+  warmPath    String? // who can introduce — never invented
+  status      String              @default("QUEUED") // QUEUED | SKIPPED | SENT | UNSENT | INTRO_REQUESTED
+  sentAt      DateTime?
+  createdAt   DateTime            @default(now())
+  events      FundraiseEvent[]
+  identities  FundraiseIdentity[]
+
   @@index([segmentKey, status])
   @@index([batchId])
 }
@@ -71,14 +77,26 @@ model FundraiseProspect {
 // Recorded interactions only (skill rule: status must come from a recorded
 // interaction). One row per (prospect, type) so re-imports are idempotent.
 model FundraiseEvent {
-  id          String   @id @default(cuid())
-  prospectId  String
-  prospect    FundraiseProspect @relation(fields: [prospectId], references: [id], onDelete: Cascade)
-  type        String   // REPLY | MEETING | SECOND_MEETING | TERM_SHEET | PASS | BOUNCE
-  occurredAt  DateTime
-  source      String   @default("manual") // manual | runner | heyreach
-  note        String?
-  createdAt   DateTime @default(now())
+  id         String            @id @default(cuid())
+  prospectId String
+  prospect   FundraiseProspect @relation(fields: [prospectId], references: [id], onDelete: Cascade)
+  type       String // REPLY | MEETING | SECOND_MEETING | TERM_SHEET | PASS | BOUNCE
+  occurredAt DateTime
+  source     String            @default("manual") // manual | runner | heyreach
+  note       String?
+  createdAt  DateTime          @default(now())
+
   @@unique([prospectId, type])
   @@index([type])
+}
+
+// Every identity key (li:/em:/nf:) of every prospect. The primary key makes
+// "never contact twice" hold across identifiers: ingest rejects a row if ANY
+// of its keys is here, and event import resolves identifiers through it.
+model FundraiseIdentity {
+  key        String            @id
+  prospectId String
+  prospect   FundraiseProspect @relation(fields: [prospectId], references: [id], onDelete: Cascade)
+
+  @@index([prospectId])
 }

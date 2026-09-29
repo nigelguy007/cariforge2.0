@@ -1,6 +1,7 @@
 // @polsia:user-owned — PATCH /api/admin/fundraise/batches/[id]. The human
-// approval gate: approve / reject a drafted batch, or skip individual
-// prospects while it is still pending. Illegal moves → 409.
+// approval gate: approve / reject a drafted batch, skip individual prospects
+// while it is still pending, or `release` a SENDING batch back to APPROVED
+// after verifying in HeyReach that nothing was pushed. Illegal moves → 409.
 
 import 'server-only';
 import { NextResponse } from 'next/server';

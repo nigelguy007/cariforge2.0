@@ -117,7 +117,15 @@ export function segmentEvidence(seg: SegmentInput, now: Date) {
 /** Record lookup that is total under noUncheckedIndexedAccess (missing → 0). */
 const at = (r: Record<string, number>, k: string) => r[k] ?? 0;
 
-/** Largest-remainder rounding of fractional targets, respecting per-key caps. */
+/**
+ * Largest-remainder rounding of fractional targets, respecting per-key caps.
+ *
+ * Loops until the total is placed or no key can take more: capacity freed by
+ * capped keys is redistributed pass after pass, however deep the cascade.
+ * Keys with a positive target are always served first; only when every one
+ * of them is capped does the leftover spill evenly onto open keys whose
+ * target is 0. Invariant: Σout = min(total, Σcaps).
+ */
 export function apportion(
   targets: Record<string, number>,
   caps: Record<string, number>,
@@ -125,14 +133,16 @@ export function apportion(
 ) {
   const keys = Object.keys(targets);
   const out: Record<string, number> = Object.fromEntries(keys.map((k) => [k, 0]));
-  let remaining = total;
-  // Iterate so capacity freed by capped segments is redistributed.
-  for (let pass = 0; pass < 5 && remaining > 0; pass++) {
+  let remaining = Math.max(0, Math.floor(total));
+  while (remaining > 0) {
     const open = keys.filter((k) => at(out, k) < at(caps, k));
-    const weight = open.reduce((s, k) => s + at(targets, k), 0);
     if (open.length === 0) break;
-    const raw = open.map((k) => {
-      const share = weight > 0 ? at(targets, k) / weight : 1 / open.length;
+    const positive = open.filter((k) => at(targets, k) > 0);
+    // Positive-target keys first; zero-target keys only once those are all capped.
+    const pool = positive.length > 0 ? positive : open;
+    const weight = pool.reduce((s, k) => s + Math.max(0, at(targets, k)), 0);
+    const raw = pool.map((k) => {
+      const share = weight > 0 ? Math.max(0, at(targets, k)) / weight : 1 / pool.length;
       const want = Math.min(share * remaining, at(caps, k) - at(out, k));
       return { k, want, floor: Math.floor(want) };
     });
@@ -141,10 +151,8 @@ export function apportion(
       out[x.k] = at(out, x.k) + x.floor;
       used += x.floor;
     }
-    let leftover = Math.min(
-      remaining - used,
-      raw.reduce((s, x) => s + (x.want - x.floor > 1e-9 ? 1 : 0), 0),
-    );
+    // Hand the rest out one at a time by largest fractional remainder.
+    let leftover = remaining - used;
     for (const x of [...raw].sort((p, q) => q.want - q.floor - (p.want - p.floor))) {
       if (leftover <= 0) break;
       if (x.want - x.floor > 1e-9 && at(out, x.k) < at(caps, x.k)) {
@@ -153,7 +161,7 @@ export function apportion(
         leftover -= 1;
       }
     }
-    if (used === 0) break;
+    if (used === 0) break; // no progress possible (defensive; see invariant)
     remaining -= used;
   }
   return out;

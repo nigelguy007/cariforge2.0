@@ -75,6 +75,14 @@ CREATE TABLE "FundraiseEvent" (
     CONSTRAINT "FundraiseEvent_pkey" PRIMARY KEY ("id")
 );
 
+-- CreateTable
+CREATE TABLE "FundraiseIdentity" (
+    "key" TEXT NOT NULL,
+    "prospectId" TEXT NOT NULL,
+
+    CONSTRAINT "FundraiseIdentity_pkey" PRIMARY KEY ("key")
+);
+
 -- CreateIndex
 CREATE INDEX "FundraiseBatch_status_createdAt_idx" ON "FundraiseBatch"("status", "createdAt");
 
@@ -93,6 +101,9 @@ CREATE INDEX "FundraiseEvent_type_idx" ON "FundraiseEvent"("type");
 -- CreateIndex
 CREATE UNIQUE INDEX "FundraiseEvent_prospectId_type_key" ON "FundraiseEvent"("prospectId", "type");
 
+-- CreateIndex
+CREATE INDEX "FundraiseIdentity_prospectId_idx" ON "FundraiseIdentity"("prospectId");
+
 -- AddForeignKey
 ALTER TABLE "FundraiseProspect" ADD CONSTRAINT "FundraiseProspect_segmentKey_fkey" FOREIGN KEY ("segmentKey") REFERENCES "FundraiseSegment"("key") ON DELETE RESTRICT ON UPDATE CASCADE;
 
@@ -101,4 +112,7 @@ ALTER TABLE "FundraiseProspect" ADD CONSTRAINT "FundraiseProspect_batchId_fkey" 
 
 -- AddForeignKey
 ALTER TABLE "FundraiseEvent" ADD CONSTRAINT "FundraiseEvent_prospectId_fkey" FOREIGN KEY ("prospectId") REFERENCES "FundraiseProspect"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "FundraiseIdentity" ADD CONSTRAINT "FundraiseIdentity_prospectId_fkey" FOREIGN KEY ("prospectId") REFERENCES "FundraiseProspect"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 

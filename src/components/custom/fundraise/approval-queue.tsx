@@ -1,13 +1,16 @@
 // @polsia:user-owned — the human approval gate. Every PENDING_APPROVAL batch
 // is listed with its prospects; the founder can skip individual prospects,
 // approve the batch, or reject it (with an optional note). Decided batches
-// are shown collapsed underneath. All decisions go through
+// are shown collapsed underneath. Batches the runner has CLAIMED (SENDING)
+// are pinned at the top: if a run died mid-send the founder verifies in
+// HeyReach and, only if nothing was pushed, releases the batch back to
+// APPROVED. All decisions go through
 // PATCH /api/admin/fundraise/batches/{id}; a 409 means the batch moved on
 // (someone else decided it) and the summary is refetched.
 
 'use client';
 
-import { ExternalLink, Loader2 } from 'lucide-react';
+import { ExternalLink, Loader2, Send } from 'lucide-react';
 import * as React from 'react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
@@ -93,7 +96,7 @@ function PendingBatch({
   onChanged: () => Promise<void>;
 }) {
   const [selected, setSelected] = React.useState<Set<string>>(new Set());
-  const [busy, setBusy] = React.useState<'approve' | 'reject' | 'skip' | null>(null);
+  const [busy, setBusy] = React.useState<BatchDecision['action'] | null>(null);
   const [rejectOpen, setRejectOpen] = React.useState(false);
   const [rejectNote, setRejectNote] = React.useState('');
 
@@ -284,6 +287,120 @@ function PendingBatch({
   );
 }
 
+function SendingBatch({
+  batch,
+  segmentLabels,
+  onChanged,
+}: {
+  batch: BatchView;
+  segmentLabels: SegmentLabels;
+  onChanged: () => Promise<void>;
+}) {
+  const [confirmOpen, setConfirmOpen] = React.useState(false);
+  const [busy, setBusy] = React.useState(false);
+  const queued = batch.prospects.filter((p) => p.status === 'QUEUED');
+  const headingId = `sending-${batch.id}`;
+
+  const release = async () => {
+    setBusy(true);
+    try {
+      await sendJson(
+        `/api/admin/fundraise/batches/${encodeURIComponent(batch.id)}`,
+        'PATCH',
+        { action: 'release' } satisfies BatchDecision,
+        BatchView,
+      );
+      toast.success('Batch released — the next run can send it again');
+      setConfirmOpen(false);
+      await onChanged();
+    } catch (err) {
+      if (apiStatus(err) === 409) {
+        toast.error(errorMessage(err, 'This batch is no longer sending.'));
+        setConfirmOpen(false);
+        await onChanged();
+      } else {
+        toast.error(errorMessage(err, 'Could not release the batch.'));
+      }
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <article
+      aria-labelledby={headingId}
+      className="flex flex-col gap-3 border-l-4 border-sky-400 bg-sky-50/60 p-4 sm:p-5 dark:bg-sky-500/10"
+    >
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+        <div className="flex flex-col gap-1">
+          <div className="flex flex-wrap items-center gap-2">
+            <Send aria-hidden className="size-4 text-sky-700 dark:text-sky-300" />
+            <h3 id={headingId} className="app-body font-semibold text-[var(--app-text)]">
+              Batch from {shortDate(batch.createdAt)}
+            </h3>
+            <BatchStatusBadge status={batch.status} />
+          </div>
+          <p className="app-small text-[var(--app-text-muted)]">
+            The runner claimed this batch and is pushing {queued.length}{' '}
+            {queued.length === 1 ? 'prospect' : 'prospects'} to HeyReach. It normally finishes
+            within the same run. If a run report says it is stuck in SENDING, check the HeyReach
+            campaign before doing anything here.
+          </p>
+        </div>
+        <Button
+          type="button"
+          size="sm"
+          variant="outline"
+          disabled={busy}
+          onClick={() => setConfirmOpen(true)}
+        >
+          Release (nothing was pushed)
+        </Button>
+      </div>
+      <details>
+        <summary className="app-small cursor-pointer text-[var(--app-text-muted)]">
+          Show {batch.prospects.length} prospects
+        </summary>
+        <ul className="mt-2 divide-y divide-[var(--app-border)] rounded-[var(--app-radius-sm)] border border-[var(--app-border)]">
+          {batch.prospects.map((p) => (
+            <li key={p.id} className="flex items-start gap-3 p-3">
+              <ProspectLine prospect={p} segmentLabels={segmentLabels} />
+            </li>
+          ))}
+        </ul>
+      </details>
+
+      <Dialog open={confirmOpen} onOpenChange={(o) => !busy && setConfirmOpen(o)}>
+        <DialogContent className="max-w-[calc(100vw-2rem)] sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Release this batch?</DialogTitle>
+            <DialogDescription>
+              Only do this after checking the HeyReach campaign and confirming that{' '}
+              <strong>none</strong> of these {queued.length} prospects were added. Releasing puts
+              the batch back to Approved, and the next run will push all of them. If anyone was
+              already pushed, they would be contacted twice.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button
+              type="button"
+              variant="outline"
+              disabled={busy}
+              onClick={() => setConfirmOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button type="button" disabled={busy} onClick={() => void release()}>
+              {busy ? <Loader2 aria-hidden className="animate-spin" /> : null}
+              Nothing was pushed — release
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </article>
+  );
+}
+
 function DecidedBatch({
   batch,
   segmentLabels,
@@ -292,6 +409,7 @@ function DecidedBatch({
   segmentLabels: SegmentLabels;
 }) {
   const sent = batch.prospects.filter((p) => p.status === 'SENT').length;
+  const unsent = batch.prospects.filter((p) => p.status === 'UNSENT').length;
   return (
     <details className="group">
       <summary className="flex cursor-pointer list-none flex-wrap items-center gap-x-3 gap-y-1 px-4 py-3 hover:bg-[var(--app-accent-soft)] sm:px-5">
@@ -303,16 +421,33 @@ function DecidedBatch({
           {batch.decidedAt ? ` · decided ${shortDate(batch.decidedAt)}` : ''}
           {batch.decidedBy ? ` by ${batch.decidedBy}` : ''}
         </span>
+        {unsent > 0 ? (
+          <span className="app-caption inline-flex items-center rounded-full border border-amber-300 bg-amber-50 px-2 py-0.5 font-medium text-amber-900 dark:bg-amber-500/15 dark:text-amber-200">
+            {unsent} not pushed (unsent)
+          </span>
+        ) : null}
       </summary>
       <div className="flex flex-col gap-2 px-4 pb-4 sm:px-5">
         {batch.note ? (
           <p className="app-small whitespace-pre-wrap text-[var(--app-text)]">{batch.note}</p>
         ) : null}
+        {unsent > 0 ? (
+          <p className="app-small text-[var(--app-text-muted)]">
+            Unsent prospects were in the batch but never reached HeyReach. They will not be
+            re-sourced or pushed automatically — add them in HeyReach by hand if you still want to
+            reach them.
+          </p>
+        ) : null}
         <ul className="divide-y divide-[var(--app-border)] rounded-[var(--app-radius-sm)] border border-[var(--app-border)]">
           {batch.prospects.map((p) => (
             <li key={p.id} className="flex items-start justify-between gap-3 p-3">
               <ProspectLine prospect={p} segmentLabels={segmentLabels} />
-              <span className="app-caption shrink-0 uppercase text-[var(--app-text-muted)]">
+              <span
+                className={cn(
+                  'app-caption shrink-0 uppercase text-[var(--app-text-muted)]',
+                  p.status === 'UNSENT' && 'font-semibold text-amber-800 dark:text-amber-200',
+                )}
+              >
                 {p.status.replace('_', ' ').toLowerCase()}
               </span>
             </li>
@@ -334,8 +469,9 @@ export function ApprovalQueue({
   sendingEnabled: boolean;
   onChanged: () => Promise<void>;
 }) {
+  const sending = batches.filter((b) => b.status === 'SENDING');
   const pending = batches.filter((b) => b.status === 'PENDING_APPROVAL');
-  const decided = batches.filter((b) => b.status !== 'PENDING_APPROVAL');
+  const decided = batches.filter((b) => b.status !== 'PENDING_APPROVAL' && b.status !== 'SENDING');
 
   return (
     <Panel
@@ -348,6 +484,18 @@ export function ApprovalQueue({
       }
       description="Nobody is contacted unless you approve their batch. Untick anyone who shouldn't get a cold message and skip them first."
     >
+      {sending.length > 0 ? (
+        <div className="divide-y divide-[var(--app-border)] border-b border-[var(--app-border)]">
+          {sending.map((b) => (
+            <SendingBatch
+              key={b.id}
+              batch={b}
+              segmentLabels={segmentLabels}
+              onChanged={onChanged}
+            />
+          ))}
+        </div>
+      ) : null}
       {pending.length === 0 ? (
         <p className="app-small p-5 text-[var(--app-text-muted)]">
           The weekly run drafts the next batch here for you to review.

@@ -4,7 +4,15 @@
 
 import { z } from 'zod';
 
-export const BATCH_STATUSES = ['PENDING_APPROVAL', 'APPROVED', 'REJECTED', 'SENT'] as const;
+export const BATCH_STATUSES = [
+  'PENDING_APPROVAL',
+  'APPROVED',
+  // Claimed by the runner: it is (or was) pushing this batch to HeyReach. Only
+  // the runner's /sent (→ SENT) or an admin `release` (→ APPROVED) leaves it.
+  'SENDING',
+  'REJECTED',
+  'SENT',
+] as const;
 export const BatchStatus = z.enum(BATCH_STATUSES);
 export type BatchStatus = z.infer<typeof BatchStatus>;
 
@@ -20,7 +28,9 @@ export const EventType = z.enum(EVENT_TYPES);
 export type EventType = z.infer<typeof EventType>;
 
 export const Lane = z.enum(['COLD', 'WARM']);
-export const ProspectStatus = z.enum(['QUEUED', 'SKIPPED', 'SENT', 'INTRO_REQUESTED']);
+// UNSENT: was in a claimed batch but the runner did not push it. Still deduped
+// (never auto-resent) and shown on the dashboard for the founder to handle.
+export const ProspectStatus = z.enum(['QUEUED', 'SKIPPED', 'SENT', 'UNSENT', 'INTRO_REQUESTED']);
 export const SegmentStatus = z.enum(['ACTIVE', 'PAUSED']);
 
 // ── Runner: batch ingest (from the scheduled Claude routine) ───────────────
@@ -53,8 +63,19 @@ export const BatchIngestResult = z.object({
   // Rows with no usable identity (no LinkedIn handle, email, or name+firm):
   // rejected, since they could never be deduped.
   invalid: z.number().int(),
+  // Cold rows beyond their segment's allocation for this batch (from the
+  // current plan), or beyond batchSize overall: rejected, not stored.
+  overAllocation: z.number().int(),
 });
 export type BatchIngestResult = z.infer<typeof BatchIngestResult>;
+
+// ── Runner: record what a claimed (SENDING) batch actually pushed ──────────
+// Exactly the prospect ids that reached HeyReach (may be empty). Every other
+// queued prospect in the batch becomes UNSENT.
+export const MarkSentInput = z
+  .object({ sentProspectIds: z.array(z.string().min(1).max(100)).max(1000) })
+  .strict();
+export type MarkSentInput = z.infer<typeof MarkSentInput>;
 
 // ── Events (runner or admin import) ────────────────────────────────────────
 // A prospect is identified by any identifier the dedupe normaliser accepts.
@@ -157,6 +178,9 @@ export const BatchDecision = z.discriminatedUnion('action', [
   z.object({ action: z.literal('approve'), note: z.string().max(2000).optional() }),
   z.object({ action: z.literal('reject'), note: z.string().max(2000).optional() }),
   z.object({ action: z.literal('skip'), prospectIds: z.array(z.string()).min(1) }),
+  // SENDING → APPROVED. Only for a human who has verified in HeyReach that
+  // nothing from this batch was pushed; the next run may then claim it again.
+  z.object({ action: z.literal('release'), note: z.string().max(2000).optional() }),
 ]);
 export type BatchDecision = z.infer<typeof BatchDecision>;
 

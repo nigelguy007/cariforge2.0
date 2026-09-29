@@ -9,9 +9,18 @@ import {
 import {
   dedupeKeyFor,
   dedupeKeyForIdentifier,
+  dedupeKeysFor,
   linkedinHandle,
 } from '@/lib/business/fundraise-loop/dedupe';
-import { canSend, canTransition, laneFor } from '@/lib/business/fundraise-loop/state';
+import {
+  canClaim,
+  canMarkSent,
+  canSend,
+  canTransition,
+  decisionTarget,
+  laneFor,
+  TransitionError,
+} from '@/lib/business/fundraise-loop/state';
 
 const NOW = new Date('2026-09-29T00:00:00Z');
 const daysAgo = (d: number) => new Date(NOW.getTime() - d * 86_400_000);
@@ -42,6 +51,38 @@ describe('dedupe', () => {
       expect(linkedinHandle(u)).toBe('jane-doe');
     }
   });
+  it('percent-decodes BEFORE lowercasing', () => {
+    // %4A is "J": lowercasing first would turn it into %4a and decode to "J".
+    expect(linkedinHandle('https://www.linkedin.com/in/%4Aohn-doe')).toBe('john-doe');
+    expect(linkedinHandle('https://www.linkedin.com/in/%4aohn-doe/')).toBe('john-doe');
+    expect(linkedinHandle('https://www.linkedin.com/in/John-Doe//')).toBe('john-doe');
+    expect(linkedinHandle('https://www.linkedin.com/in/john-doe/details/experience/')).toBe(
+      'john-doe',
+    );
+  });
+  it('treats NFC and NFD accents (and their percent-encodings) as the same handle', () => {
+    const nfc = 'https://www.linkedin.com/in/Jos\u00e9-p';
+    const nfd = 'https://www.linkedin.com/in/Jose\u0301-p';
+    expect(nfc).not.toBe(nfd);
+    expect(linkedinHandle(nfc)).toBe(linkedinHandle(nfd));
+    expect(linkedinHandle(nfc)).toBe('jos\u00e9-p');
+    expect(linkedinHandle('https://www.linkedin.com/in/jos%C3%A9-p')).toBe('jos\u00e9-p'); // NFC bytes
+    expect(linkedinHandle('https://www.linkedin.com/in/jose%CC%81-p')).toBe('jos\u00e9-p'); // NFD bytes
+  });
+  it('derives every identity key, strongest first', () => {
+    expect(
+      dedupeKeysFor({
+        linkedinUrl: 'https://linkedin.com/in/Ada/',
+        email: ' Ada@Fund.vc ',
+        fullName: 'Ada Lovelace',
+        firm: 'Fund, Inc.',
+      }),
+    ).toEqual(['li:ada', 'em:ada@fund.vc', 'nf:ada lovelace|fund inc']);
+    expect(dedupeKeysFor({ email: 'a@b.co' })).toEqual(['em:a@b.co']);
+    expect(dedupeKeysFor({ fullName: 'Only Name' })).toEqual([]);
+    // The primary key is always the first derived key.
+    expect(dedupeKeyFor({ email: 'a@b.co', fullName: 'A', firm: 'B' })).toBe('em:a@b.co');
+  });
   it('prefers LinkedIn over email over name+firm', () => {
     expect(dedupeKeyFor({ linkedinUrl: 'linkedin.com/in/a', email: 'x@y.com' })).toBe('li:a');
     expect(dedupeKeyFor({ email: ' X@Y.com ' })).toBe('em:x@y.com');
@@ -59,14 +100,32 @@ describe('dedupe', () => {
 });
 
 describe('state machine (approval gate)', () => {
-  it('cannot send without approval or with the kill switch off', () => {
+  it('cannot send without approval, a claim, or with the kill switch off', () => {
     expect(canTransition('PENDING_APPROVAL', 'SENT')).toBe(false);
-    expect(canTransition('APPROVED', 'SENT')).toBe(true);
+    expect(canTransition('PENDING_APPROVAL', 'SENDING')).toBe(false);
+    expect(canTransition('APPROVED', 'SENT')).toBe(false); // must claim first
+    expect(canTransition('APPROVED', 'SENDING')).toBe(true);
+    expect(canTransition('SENDING', 'SENT')).toBe(true);
+    expect(canTransition('SENDING', 'REJECTED')).toBe(false);
     expect(canTransition('SENT', 'APPROVED')).toBe(false);
     expect(canTransition('REJECTED', 'APPROVED')).toBe(false);
-    expect(canSend('APPROVED', false)).toBe(false);
-    expect(canSend('PENDING_APPROVAL', true)).toBe(false);
-    expect(canSend('APPROVED', true)).toBe(true);
+    expect(canClaim('APPROVED', false)).toBe(false);
+    expect(canClaim('PENDING_APPROVAL', true)).toBe(false);
+    expect(canClaim('SENDING', true)).toBe(false); // no double claim
+    expect(canClaim('APPROVED', true)).toBe(true);
+    expect(canSend).toBe(canClaim);
+    expect(canMarkSent('SENDING')).toBe(true);
+    expect(canMarkSent('APPROVED')).toBe(false);
+  });
+  it('each admin action is valid from exactly its source state', () => {
+    expect(decisionTarget('approve', 'PENDING_APPROVAL')).toBe('APPROVED');
+    expect(() => decisionTarget('approve', 'SENDING')).toThrow(TransitionError); // not a release
+    expect(decisionTarget('reject', 'PENDING_APPROVAL')).toBe('REJECTED');
+    expect(decisionTarget('reject', 'APPROVED')).toBe('REJECTED');
+    expect(() => decisionTarget('reject', 'SENDING')).toThrow(TransitionError);
+    expect(decisionTarget('release', 'SENDING')).toBe('APPROVED');
+    expect(() => decisionTarget('release', 'PENDING_APPROVAL')).toThrow(TransitionError);
+    expect(() => decisionTarget('release', 'SENT')).toThrow(TransitionError);
   });
   it('routes warm-path prospects away from cold sends', () => {
     expect(laneFor('Intro via Ana (board)')).toBe('WARM');
@@ -167,5 +226,49 @@ describe('allocation', () => {
     const out = apportion({ a: 0.7, b: 0.3 }, { a: 3, b: 100 }, 10);
     expect(out.a).toBe(3);
     expect((out.a ?? 0) + (out.b ?? 0)).toBe(10);
+  });
+
+  const sumOf = (o: Record<string, number>) => Object.values(o).reduce((s, x) => s + x, 0);
+
+  it('apportion fills the batch through a deep cap cascade (7 segments)', () => {
+    // Steeply skewed targets: each pass caps roughly one more segment and the
+    // freed capacity trickles down. The old fixed 5-pass loop placed only 33.
+    const targets = { a: 1, b: 0.1, c: 0.01, d: 0.001, e: 1e-4, f: 1e-5, g: 1e-6 };
+    const caps = { a: 2, b: 3, c: 4, d: 5, e: 6, f: 8, g: 20 }; // Σcaps = 48 ≥ 40
+    const out = apportion(targets, caps, 40);
+    expect(sumOf(out)).toBe(40);
+    for (const [k, cap] of Object.entries(caps)) {
+      expect(out[k]).toBeLessThanOrEqual(cap);
+    }
+    expect(out).toEqual({ a: 2, b: 3, c: 4, d: 5, e: 6, f: 8, g: 12 });
+  });
+
+  it('apportion places min(total, Σcaps) for many random cascades', () => {
+    let seed = 1;
+    const rand = () => {
+      seed = (seed * 16807) % 2147483647;
+      return seed / 2147483647;
+    };
+    for (let trial = 0; trial < 200; trial++) {
+      const targets: Record<string, number> = {};
+      const caps: Record<string, number> = {};
+      for (let i = 0; i < 7; i++) {
+        targets[`s${i}`] = rand() < 0.2 ? 0 : rand();
+        caps[`s${i}`] = Math.floor(rand() * 15);
+      }
+      const total = 1 + Math.floor(rand() * 60);
+      const out = apportion(targets, caps, total);
+      expect(sumOf(out)).toBe(Math.min(total, sumOf(caps)));
+      for (const k of Object.keys(caps)) expect(out[k]).toBeLessThanOrEqual(caps[k] ?? 0);
+    }
+  });
+
+  it('apportion spills onto zero-target segments only once positive ones are capped', () => {
+    expect(apportion({ a: 1, b: 0 }, { a: 10, b: 10 }, 5)).toEqual({ a: 5, b: 0 });
+    expect(apportion({ a: 1, b: 0, c: 0 }, { a: 2, b: 10, c: 10 }, 8)).toEqual({
+      a: 2,
+      b: 3,
+      c: 3,
+    });
   });
 });
