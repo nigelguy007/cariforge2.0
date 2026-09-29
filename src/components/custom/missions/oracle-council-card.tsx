@@ -80,9 +80,9 @@ export function OracleCouncilCard({ detail, onWritten }: OracleCouncilCardProps)
       </header>
 
       <p className="text-body text-muted-foreground">
-        Each gate is signed by a named human at the matching gate of The Oracles. Gates{' '}
-        <strong>0 (Need Discovery)</strong> and <strong>4 (Prototype build)</strong> require the
-        same named Elder Oracle to attest — no specialist or model can skip that signature. Every
+        The Oracles, the five-voice review council, argue each gate. A named human then signs it.
+        Gates <strong>0 (Need Discovery)</strong> and <strong>4 (Prototype build)</strong> require
+        the same named Elder Oracle to attest. No specialist or model can skip that signature. Every
         gate also requires at least one specialist attester on the handoff being decided.
       </p>
 

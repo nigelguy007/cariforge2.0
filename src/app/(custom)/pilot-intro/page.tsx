@@ -295,11 +295,12 @@ export default function PilotIntroPage() {
                 How a TAG pilot moves through the five gates.
               </h2>
               <p className="max-w-3xl text-body text-foreground/85">
-                Five named human gates — The Oracles. Each gate has a named specialist approver, and
-                the two bookends (Need Discovery and Prototype build) can only be signed by the
-                single named Elder Oracle. Every gate also requires at least one specialist attester
-                on the handoff being decided. No specialist or model can move the mission past a
-                gate without the named human in the right chair.
+                Five gates, each signed by a named human. Before each gate, The Oracles (the
+                five-voice review council inside the 7-agent engine) argue the case. Each gate has a
+                named specialist approver, and the two bookends (Need Discovery and Prototype build)
+                can only be signed by the single named Elder Oracle. Every gate also requires at
+                least one specialist attester on the handoff being decided. No specialist or model
+                can move the mission past a gate without the named human in the right chair.
               </p>
             </div>
             <ol className="flex flex-col gap-3">

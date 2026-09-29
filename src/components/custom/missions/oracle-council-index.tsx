@@ -47,8 +47,8 @@ export function OracleCouncilIndex() {
       <div className="glass-card rounded-2xl p-8 text-body">
         <h2 className="text-h3">No missions yet</h2>
         <p className="mt-2 text-muted-foreground">
-          Capture a plain-English need and the Forge will turn it into a governed, testable pilot
-          mission that moves through The Oracles.
+          Capture a plain-English need and CariForge will turn it into a governed pilot mission that
+          moves through five gated stages, each argued by The Oracles and signed by a named human.
         </p>
         <Button asChild className="glass-cta mt-4">
           <Link href="/missions/new">Start a mission</Link>

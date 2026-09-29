@@ -113,9 +113,9 @@ export default function HowItWorksPage() {
               The Oracles argue it. Five named humans gate it.
             </h1>
             <p className="max-w-xl text-body-lg text-muted-foreground">
-              {siteName} turns your requirements into an approved build spec — and never releases it
-              without a named human approving every stage. Read how below, or tell us what you want
-              to build on the right and see it start.
+              {siteName} turns your brief into a Decision Pack you own, including a working
+              prototype, and never releases it without a named human approving every stage. Read how
+              below, or tell us what you want to build on the right and see it start.
             </p>
             <GlassCta asChild tone="outline" size="md" className="self-start">
               <Link href="#council">
