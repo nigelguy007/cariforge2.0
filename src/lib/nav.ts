@@ -108,7 +108,9 @@ export const navItems: NavItem[] = [
   },
   { label: 'Compare', href: '/compare', group: 'footer', order: 0 },
   { label: 'Pricing', href: '/pricing', group: 'footer', order: 1 },
-  { label: 'Testimonials', href: '/testimonials', group: 'footer', order: 2 },
+  // Testimonials removed from site navigation (2026-09-29, raise-plan F18):
+  // no approved quotes exist yet, so the page is empty. The route is kept;
+  // re-add the link once real, approved quotes are published.
   {
     label: 'How the council works',
     href: '/how-the-council-works',
@@ -116,7 +118,7 @@ export const navItems: NavItem[] = [
     order: 3,
   },
   {
-    label: 'Why this is a scaffold',
+    label: 'What a pilot delivers',
     href: '/why-this-is-a-scaffold',
     group: 'footer',
     order: 4,

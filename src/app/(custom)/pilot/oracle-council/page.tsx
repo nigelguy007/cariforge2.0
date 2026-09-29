@@ -41,8 +41,9 @@ export default function PilotOracleCouncilPage() {
             <p className="text-eyebrow text-brand-700">TAG Caribbean pilot · Oracle Council</p>
             <h1 className="text-h1 text-foreground">Five named gates, one Elder Oracle.</h1>
             <p className="max-w-3xl text-body text-muted-foreground">
-              The Oracles visible. Every gate has a named human approver. Gates{' '}
-              <strong>0 (Need Discovery)</strong> and <strong>4 (Software Build)</strong> can only
+              The Oracles are the five-voice review council inside CariForge&rsquo;s 7-agent engine.
+              They argue each of the five gates before the named human signs. Gates{' '}
+              <strong>0 (Need Discovery)</strong> and <strong>4 (Prototype build)</strong> can only
               be approved by the appointed Elder Oracle — no specialist or model can skip that
               signature. Every gate also requires at least one specialist attester on the handoff
               before the decision can land.

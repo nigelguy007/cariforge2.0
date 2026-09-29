@@ -103,7 +103,7 @@ export type ObjectionResolution = (typeof OBJECTION_RESOLUTION_VALUES)[number];
 
 // === TAG Oracle Council (TAG Caribbean pilot) =================================
 // Five named human gates of The Oracles. One named human "Elder Oracle" must
-// sign gates 0 (Need Discovery) and 4 (Software Build); the other three gates
+// sign gates 0 (Need Discovery) and 4 (Prototype build); the other three gates
 // are signed by the named specialist for that stage. Specialist voice is one
 // of Risk / Demand / Growth / Competition / Money — the same five roles the
 // council already argues in.

@@ -18,7 +18,7 @@ export interface RoiInputs {
   hourlyCost: number;
   // 0-100: how much of that time this kind of workflow could plausibly
   // remove, per the visitor's own estimate — deliberately visitor-supplied
-  // rather than a fixed assumption, since CARI Forge has no basis to claim
+  // rather than a fixed assumption, since CariForge has no basis to claim
   // a universal automation percentage.
   estimatedTimeSavedPct: number;
 }

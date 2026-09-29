@@ -10,7 +10,7 @@ import { requireAdminOnPage } from '@/lib/admin-page-guard';
 export const metadata: Metadata = {
   title: 'Admin · Telemetry',
   description:
-    'CARI Forge autonomy ladder + per-company credit ledger + chat cost — the platform operating view.',
+    'CariForge autonomy ladder + per-company credit ledger + chat cost — the platform operating view.',
 };
 
 export default async function AdminTelemetryPage() {
@@ -21,7 +21,7 @@ export default async function AdminTelemetryPage() {
         <p className="app-caption text-[var(--app-text-muted)]">Admin</p>
         <h1 className="app-h1 mt-1 text-[var(--app-text)]">Telemetry &amp; cost</h1>
         <p className="app-body mt-2 text-[var(--app-text-muted)]">
-          Autonomy ladder, credit ledger rollup, and chat spend for every mission on the CARI Forge
+          Autonomy ladder, credit ledger rollup, and chat spend for every mission on the CariForge
           platform. Unknown cost is surfaced honestly — no estimates fabricated.
         </p>
       </header>

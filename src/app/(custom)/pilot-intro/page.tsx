@@ -45,32 +45,31 @@ const whatItIs = [
   {
     headline: 'Region — Caribbean (jurisdiction to be confirmed with the buyer).',
     detail:
-      'The pilot is sequenced inside the Caribbean regulatory perimeter. The specific country / regulator set is named in the case file at the Readiness Review gate, not in marketing prose here — that is the place a procurement reviewer should look to confirm jurisdiction.',
+      'The pilot is sequenced inside the Caribbean regulatory perimeter. The specific country and regulator set is named in the case file at the Readiness Review gate. A procurement reviewer should confirm jurisdiction there.',
   },
   {
     headline:
       'Buyer profile — one named regulated entity, one named human approver on the case file.',
     detail:
-      'A single regulated buyer carries the engagement end-to-end, with a named human approver at every stage gate (Need Discovery → Readiness Review → Workflow Design → Governance Check → Software Build). The pilot is not a multi-tenant smear — it is one pilot, one buyer, one typed approver chain.',
+      'A single regulated buyer carries the engagement end-to-end, with a named human approver at every stage gate (Need Discovery → Readiness Review → Workflow Design → Governance Check → Prototype build). One pilot, one buyer, one approver chain.',
   },
   {
     headline: 'Scope envelope — one tier, one stage-gate sweep.',
     detail:
-      'The pilot exercises a single CARI Forge tier across all five stage gates on a single brief. The brief itself is chosen so the workflow has a real regulator-shaped problem to argue about, not a synthetic demo. The tier to be exercised is to be confirmed with the buyer before pilot kick-off.',
+      'The pilot exercises a single CariForge tier across all five stage gates on a single brief. The brief itself is chosen so the workflow has a real regulated problem to argue about. The tier to be exercised is to be confirmed with the buyer before pilot kick-off.',
   },
   {
     headline: 'Timebox — bounded run, measured at hand-off.',
     detail:
-      'A fixed start and a fixed end. The pilot is measured at the hand-off of the runnable Software Build plus the named-human audit-trail bundle, not at any earlier "demo" milestone. The specific dates and the hand-off deliverable list are confirmed at Readiness Review, not invented here.',
+      'A fixed start and a fixed end. The pilot is measured at the hand-off of the runnable Prototype build plus the named-human audit-trail bundle, not at any earlier "demo" milestone. The specific dates and the hand-off deliverable list are confirmed at Readiness Review, not invented here.',
   },
 ] as const;
 
 const whyCaribbean = [
   {
-    headline:
-      'A regulator-shaped market that is small enough to govern and large enough to learn from.',
+    headline: 'A regulated market that is small enough to govern and large enough to learn from.',
     detail:
-      'The Caribbean regulators operate at a scale where a single named-human engagement produces a clean audit signal — the kind that teaches the council about jurisdiction-specific objection handling without the noise of a multi-tenant rollout. The market context goes into the case file at Need Discovery, not on a marketing page.',
+      'The Caribbean regulators operate at a scale where a single named-human engagement produces a clean audit signal — the kind that teaches the council about jurisdiction-specific objection handling without the noise of a multi-tenant rollout. The market context goes into the case file at Need Discovery.',
   },
   {
     headline:
@@ -81,25 +80,26 @@ const whyCaribbean = [
   {
     headline: 'A sequencing argument the council can defend in writing.',
     detail:
-      'The pilot is sequenced before other regions because the Caribbean perimeter produces the cleanest first audit trail — small enough to keep the human-approver chain legible, regulator-shaped enough to keep the governance mechanics honest. The reason is recorded at the Readiness Review gate, not invented on this page.',
+      'The pilot is sequenced before other regions because the Caribbean perimeter produces the cleanest first audit trail — small enough to keep the human-approver chain legible, and regulated enough to test the governance mechanics properly. The reason is recorded at the Readiness Review gate, not invented on this page.',
   },
 ] as const;
 
 const doesProve = [
   {
-    headline: 'The five-stage pipeline runs end-to-end on a regulator-shaped brief.',
+    headline: 'The five-stage pipeline runs end-to-end on a real regulated brief.',
     detail:
-      'Need Discovery → Readiness Review → Workflow Design → Governance Check → Software Build, all five gates cleared, with the named-human audit trail produced by the same run. Verifiable against the case file at hand-off.',
+      'Need Discovery → Readiness Review → Workflow Design → Governance Check → Prototype build, all five gates cleared, with the named-human audit trail produced by the same run. Verifiable against the case file at hand-off.',
   },
   {
-    headline: 'The five-agent council argues in writing, with dissent preserved on the case file.',
+    headline:
+      'The five-voice review council argues each gate in writing, with dissent kept on the case file.',
     detail:
       'Risk / Demand / Growth / Competition / Money each argued, at least two opposing voices ruled on by the chairman, and unresolved objections escalated to the named human rather than silently dropped. Verifiable against the case file at hand-off.',
   },
   {
     headline: 'The named human approver chain holds at every stage gate.',
     detail:
-      'A single named human, a typed reason attached at each gate, an audit-trail bundle delivered alongside the Software Build. No anonymous approvals, no auto-advancing, no gate run without a signed reason on file.',
+      'A single named human, a typed reason attached at each gate, an audit-trail bundle delivered alongside the Prototype build. No anonymous approvals, no auto-advancing, no gate run without a signed reason on file.',
   },
 ] as const;
 
@@ -107,7 +107,7 @@ const doesNotProve = [
   {
     headline: 'Production hosting, uptime SLA, or 24/7 support.',
     detail:
-      'The pilot delivers a runnable Software Build and a named-human audit-trail bundle. It does not deliver production hosting, an uptime SLA, or 24/7 support — those are outside the scaffold and are the buyer’s to operate downstream.',
+      'The pilot delivers a runnable Prototype build and a named-human audit-trail bundle. It does not deliver production hosting, an uptime SLA or 24/7 support. Those sit outside the pilot scope, and the client operates the prototype downstream.',
   },
   {
     headline: 'Multi-tenant rollout to additional Caribbean buyers.',
@@ -147,10 +147,10 @@ const howItMoves = [
       'Compliance, procurement, and audit obligations are checked. The Governance Oracle signs gate 3, again with a typed specialist attester on the handoff being decided.',
   },
   {
-    stage: 'Gate 4 — Software Build',
+    stage: 'Gate 4 — Prototype build',
     oracle: 'Build Oracle, signed by the named Elder Oracle',
     detail:
-      'The runnable Software Build is matched against the acceptance criteria. Gate 4 closes only with the named Elder Oracle’s signature — same human who signed gate 0, by design.',
+      'The runnable Prototype build is matched against the acceptance criteria. Gate 4 closes only with the named Elder Oracle’s signature — same human who signed gate 0, by design.',
   },
 ] as const;
 
@@ -163,7 +163,7 @@ export default function PilotIntroPage() {
           <GlassSectionHeader
             eyebrow="Pilot initiative · /pilot-intro is a positioning page for procurement and partners"
             title="The TAG Caribbean pilot, in plain language."
-            lede="Page for the regulated buyer, the partner, and the internal sponsor reading the same document. Three audiences, one prose posture. The page lays out what the pilot is in region / buyer / scope / timebox, why Caribbean comes first and not later, and the explicit GO/NO-GO list a procurement reviewer can read deterministically. The same promises made here are verifiable against the case file at hand-off, or they do not appear here."
+            lede="This page is for the regulated buyer, the partner and the internal sponsor. It lays out what the pilot is in region / buyer / scope / timebox, why Caribbean comes first and not later, and the explicit GO/NO-GO list a procurement reviewer can read deterministically. The same promises made here are verifiable against the case file at hand-off, or they do not appear here."
             as="h1"
           />
 
@@ -296,7 +296,7 @@ export default function PilotIntroPage() {
               </h2>
               <p className="max-w-3xl text-body text-foreground/85">
                 Five named human gates — The Oracles. Each gate has a named specialist approver, and
-                the two bookends (Need Discovery and Software Build) can only be signed by the
+                the two bookends (Need Discovery and Prototype build) can only be signed by the
                 single named Elder Oracle. Every gate also requires at least one specialist attester
                 on the handoff being decided. No specialist or model can move the mission past a
                 gate without the named human in the right chair.

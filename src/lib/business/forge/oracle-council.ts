@@ -7,9 +7,9 @@
 // Governance terms:
 //   - The Oracles: five named human approvers, one per gate. Their role
 //     names are the visible per-stage label callers see in the UI.
-//   - Elder Oracle: a separate, named human appointed by a CARI Forge
+//   - Elder Oracle: a separate, named human appointed by a CariForge
 //     admin per mission. The Elder is the ONLY legal approver of gate 0
-//     (Need Discovery) and gate 4 (Software Build). The decision with
+//     (Need Discovery) and gate 4 (Prototype build). The decision with
 //     approverUserId !== mission.elderOracleUserId at gates 0 or 4 throws
 //     FORGE_ATTRIBUTION_MISSING.
 //   - Specialists: per-handoff typed attesters (Risk / Demand / Growth /

@@ -75,8 +75,8 @@ const FIXTURE: { items: CoreAgent[] } = {
       role: 'AI Build',
       roleLong: 'AI Build agent',
       mandate:
-        'Runs Stage 5 (Software Build) of the pipeline and ships the runnable Next.js + TypeScript codebase.',
-      relatesToStage: 'Software Build',
+        'Runs Stage 5 (Prototype build) of the pipeline and ships the runnable Next.js + TypeScript codebase.',
+      relatesToStage: 'Prototype build',
       scope: 'Pipeline',
       boundary: MINIMAL_BOUNDARY,
     },
@@ -125,9 +125,9 @@ describe('agents contract — seven-agent core', () => {
     expect(new Set(ordinals).size).toBe(7);
   });
 
-  it('names Agent 5 as AI Build (not Software Build)', () => {
+  it('names Agent 5 as AI Build (not Prototype build)', () => {
     expect(items[4]?.role).toBe('AI Build');
-    expect(items[4]?.role).not.toBe('Software Build');
+    expect(items[4]?.role).not.toBe('Prototype build');
   });
 
   it('lists the canonical seven agent names in order', () => {
@@ -162,9 +162,9 @@ describe('agents contract — seven-agent core', () => {
     expect(items[3]?.relatesToStage).toBe('Governance');
   });
 
-  it('maps Agent 5 (AI Build) to the Software Build stage — distinct agent name from stage name', () => {
-    expect(items[4]?.relatesToStage).toBe('Software Build');
-    // The contract is unambiguous: the agent is "AI Build", the stage is "Software Build".
+  it('maps Agent 5 (AI Build) to the Prototype build stage — distinct agent name from stage name', () => {
+    expect(items[4]?.relatesToStage).toBe('Prototype build');
+    // The contract is unambiguous: the agent is "AI Build", the stage is "Prototype build".
     expect(items[4]?.role).not.toBe(items[4]?.relatesToStage);
   });
 
@@ -175,9 +175,9 @@ describe('agents contract — seven-agent core', () => {
     expect(items[6]?.scope).toBe('Wraparound');
   });
 
-  it('does not assign an Agent name equal to the literal stage name "Software Build"', () => {
+  it('does not assign an Agent name equal to the literal stage name "Prototype build"', () => {
     const names = items.map((a) => a.role);
-    expect(names).not.toContain('Software Build');
+    expect(names).not.toContain('Prototype build');
   });
 
   it('requires every agent to publish non-empty operational boundaries, when present', () => {

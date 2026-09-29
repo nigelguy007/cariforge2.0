@@ -1,11 +1,11 @@
 // @polsia:user-owned — static dataset for the seven-agent core model. Server-only:
 // imported by /api/agents/route.ts, which parses it through the shared
 // CoreAgents contract. Lists the canonical seven agents that operate the
-// CARI Forge pipeline and wraparound: 1 Discovery, 2 Readiness, 3 Workflow,
+// CariForge pipeline and wraparound: 1 Discovery, 2 Readiness, 3 Workflow,
 // 4 Governance, 5 AI Build, 6 Partner, 7 Impact. Agents 1..5 are the
 // pipeline runtime — Agent 1..5 operate Stage 1..5 of the 21-day delivery
 // pipeline respectively (notably Agent 5 = AI Build operates Stage 5, whose
-// stage name is "Software Build"). Agents 6..7 are wraparound: Partner engages
+// stage name is "Prototype build"). Agents 6..7 are wraparound: Partner engages
 // the buyer / integrator ecosystem post-delivery, Impact measures the change
 // in the world. No DB, no AI call — pure editorial catalog copy.
 
@@ -177,8 +177,8 @@ export const CORE_AGENTS: CoreAgents = {
       // deliberately left untouched. Reconciled here: the mandate now
       // matches those fields instead of contradicting them.
       mandate:
-        'Runs Stage 5 (Software Build) of the pipeline and produces a real, production-quality MVP codebase plus the approved Blueprint and Runbook spec, from the binding spec handed over by Governance. AI Build is the agent name; "Software Build" is the stage name it operates.',
-      relatesToStage: 'Software Build',
+        'Runs Stage 5 (Prototype build) of the pipeline and produces a real, production-quality MVP codebase plus the approved Blueprint and Runbook spec, from the binding spec handed over by Governance. AI Build is the agent name; "Prototype build" is the stage name it operates.',
+      relatesToStage: 'Prototype build',
       scope: 'Pipeline',
       boundary: {
         inputs: ['The binding governance spec from the Governance agent'],
@@ -195,10 +195,10 @@ export const CORE_AGENTS: CoreAgents = {
         ],
         prohibited: [
           'Cannot deviate from the binding governance spec without a new Governance gate approval',
-          'Cannot release or deploy without the Software Build gate’s final approval',
+          'Cannot release or deploy without the Prototype build gate’s final approval',
         ],
         humanApproval:
-          "A named buyer approver's final approve on the Software Build gate releases the build — approve, return, or refuse with a typed reason, the same as every other gate.",
+          "A named buyer approver's final approve on the Prototype build gate releases the build — approve, return, or refuse with a typed reason, the same as every other gate.",
         evidence: [
           'The generated repository',
           'Audit-trail records',
@@ -217,16 +217,16 @@ export const CORE_AGENTS: CoreAgents = {
       role: 'Partner',
       roleLong: 'Partner agent',
       // COPY ACCURACY (2026-09-03, rebuild-brief review, same evidence as
-      // 'ai-build' above): "the runnable software build lands on
+      // 'ai-build' above): "the runnable prototype build lands on
       // infrastructure" assumed a deployable artefact exists at this point,
-      // which contradicts what Software Build's own gate actually produces.
+      // which contradicts what Prototype build's own gate actually produces.
       mandate:
         'Wraps around delivery. Engages the buyer-side integrator / GA / cloud partner ecosystem to take the approved build spec to the buyer’s own infrastructure. Not a stage — a wraparound that turns an approved spec into an operated system.',
       relatesToStage: 'Wraparound',
       scope: 'Wraparound',
       boundary: {
         inputs: [
-          'The completed, gated Software Build',
+          'The completed, gated Prototype build',
           "The buyer's target infrastructure and environment",
         ],
         tools: [
@@ -238,7 +238,7 @@ export const CORE_AGENTS: CoreAgents = {
           'Operational handoff documentation',
         ],
         prohibited: [
-          'Cannot bypass the Software Build gate',
+          'Cannot bypass the Prototype build gate',
           'Cannot keep operating the build on CariForge-controlled infrastructure indefinitely — the point of this agent is a buyer-run system',
         ],
         humanApproval:

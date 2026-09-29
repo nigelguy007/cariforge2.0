@@ -50,9 +50,9 @@ export function CqHeader() {
 
   return (
     <header className="cq-header">
-      <Link href="/" aria-label="CARI Forge" className="cq-logo">
+      <Link href="/" aria-label="CariForge" className="cq-logo">
         <BrandMark size={26} className="shrink-0 rounded-md" />
-        <span>CARI Forge</span>
+        <span>CariForge</span>
       </Link>
 
       <nav id="site-nav" aria-label="Primary" className="cq-nav">

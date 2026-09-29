@@ -41,7 +41,7 @@ function stagePill(agent: Agent): { label: string; tone: 'brand' | 'outline' | '
   if (agent.relatesToStage === 'Wraparound') {
     return { label: 'Wraps delivery', tone: 'outline' };
   }
-  // Agent 5 (AI Build) operates the stage whose name is "Software Build".
+  // Agent 5 (AI Build) operates the stage whose name is "Prototype build".
   // Keep the stage name on the pill so the seven-agent core and the five-stage
   // pipeline stay unambiguously distinct.
   return { label: `Runs stage · ${agent.relatesToStage}`, tone: 'brand' };
@@ -153,13 +153,14 @@ function AgentSkeleton({ ordinal }: { ordinal: string }) {
 function SectionLede() {
   return (
     <>
-      The Oracles are the five-voice governance council that audits the brief before code. The
-      seven-agent core is the runtime that actually operates the 21-day delivery pipeline:{' '}
+      CariForge runs on a 7-agent engine that moves a brief through five gated stages in a 21-day
+      pilot. Inside that engine, the Oracles are the five-voice review council: they argue each gate
+      before the named human signs. The seven agents:{' '}
       <span className="font-semibold text-foreground">
         Discovery, Readiness, Workflow, Governance, AI Build
       </span>{' '}
       run the five pipeline stages (stage 5 is itself called{' '}
-      <span className="font-semibold text-foreground">Software Build</span>, operated by the AI
+      <span className="font-semibold text-foreground">Prototype build</span>, operated by the AI
       Build agent). <span className="font-semibold text-foreground">Partner and Impact</span> wrap
       around delivery — Partner lands the runnable build on the buyer&rsquo;s infrastructure; Impact
       measures the change in the world it was meant to make.
@@ -171,12 +172,12 @@ function FooterNote() {
   return (
     <p className="text-small text-card-foreground/85">
       <span className="font-semibold text-foreground">
-        How this maps back to the rest of CARI Forge.
+        How this maps back to the rest of CariForge.
       </span>{' '}
-      The seven-agent core is what actually runs a case. The Oracles are the five voices (Risk,
-      Demand, Growth, Competition, Money) that read the case file and rule before the pipeline
-      starts. The Elder Oracle is the chair that ties the rule back to a named human. Three distinct
-      governance concepts — one delivery runtime.
+      The seven agents run the case through five gated stages. The Oracles are the five-voice review
+      council inside the same engine (Risk, Demand, Growth, Competition and Money): they argue each
+      gate before the named human signs. The Elder Oracle chairs the council and hands unresolved
+      objections to that named human.
     </p>
   );
 }

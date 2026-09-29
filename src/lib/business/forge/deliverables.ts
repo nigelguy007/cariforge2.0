@@ -43,7 +43,7 @@ function asStringArray(v: unknown): readonly string[] {
 
 /** Reads the mission's active SoftwareBuild handoff payload into the shape
  *  this file needs, or null if that stage hasn't produced one — a mission
- *  that hasn't reached/cleared Software Build yet has nothing to show here,
+ *  that hasn't reached/cleared Prototype build yet has nothing to show here,
  *  which is a real, honest state, not an error. */
 export function readSoftwareBuildPayload(payload: unknown): SoftwareBuildPayload | null {
   if (!payload || typeof payload !== 'object') return null;

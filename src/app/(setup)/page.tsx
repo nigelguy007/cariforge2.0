@@ -304,7 +304,7 @@ export default function Home() {
         <section className="cq-section cq-container">
           <div className="cq-eyebrow">
             <GridIcon />
-            Why CARI Forge
+            Why CariForge
           </div>
           <div className="cq-rule" />
           <div className="cq-section-head">
@@ -345,7 +345,7 @@ export default function Home() {
         <section className="cq-section cq-container">
           <div className="cq-split">
             <p className="cq-statement">
-              Most AI tools ask you to trust the output. CARI Forge assumes you can&rsquo;t &mdash;
+              Most AI tools ask you to trust the output. CariForge assumes you can&rsquo;t &mdash;
               so it puts a named human in front of every stage, and keeps the record that proves it.
             </p>
             <div className="cq-orb-wrap">
@@ -379,7 +379,7 @@ export default function Home() {
               <div>
                 <h3 className="cq-row-title">Describe it, then draw it</h3>
                 <p className="cq-row-text">
-                  Write what you want in plain English and CARI Forge drafts the workflow for you.
+                  Write what you want in plain English and CariForge drafts the workflow for you.
                   From there it&rsquo;s a drag-and-drop canvas &mdash; add a step and it connects
                   itself to the one you had selected.
                 </p>
@@ -454,9 +454,9 @@ export default function Home() {
               <div>
                 <h3 className="cq-row-title">Argued in five voices</h3>
                 <p className="cq-row-text">
-                  Before a gate is put to a human, the council argues the case in five fixed voices
-                  &mdash; so the person signing sees the objections, not just a recommendation.
-                  Objections are recorded and have to be resolved, not dismissed.
+                  Inside the 7-agent engine, a five-voice review council argues each gate before the
+                  named human signs, so the approver sees the objections as well as the
+                  recommendation. Objections are recorded and have to be resolved.
                 </p>
                 <Link href="/pilot/oracle-council" className="cq-row-link">
                   Meet The Oracles <span>&rarr;</span>
@@ -592,7 +592,7 @@ export default function Home() {
           <div className="cq-split" style={{ marginTop: '2.75rem' }}>
             <div>
               <p className="cq-row-text" style={{ marginTop: 0 }}>
-                CARI Forge is built for buyers who will be asked to justify an automated decision
+                CariForge is built for buyers who will be asked to justify an automated decision
                 after the fact &mdash; procurement, public sector, regulated industries. That means
                 the audit trail can&rsquo;t be a log file bolted on afterwards; it has to be the
                 thing the workflow produces.
@@ -645,9 +645,9 @@ export default function Home() {
             <article className="cq-plan">
               <h3 className="cq-plan-name">Pilot</h3>
               <p className="cq-plan-text">
-                One one-line brief, one council ruling, one Software Build. Includes the audit-trail
-                bundle per run, persisted as a SHA-256 hash chain, with a 90-day retention minimum
-                on every artefact.
+                A 21-day pilot that ends in a Decision Pack you own: problem brief, readiness score,
+                workflow map, governance review, working prototype and full audit trail, persisted
+                as a SHA-256 hash chain.
               </p>
               <Link href="/pricing" className="cq-btn cq-btn-ghost">
                 See what&rsquo;s included
@@ -704,7 +704,7 @@ export default function Home() {
             The reference's other signature moment (2026-09-03 addition): a
             huge, glowing, semi-transparent brand wordmark sitting right
             above the footer. aria-hidden — it's decoration, the real
-            "CARI Forge" name is already in the header/footer text; a screen
+            "CariForge" name is already in the header/footer text; a screen
             reader doesn't need it announced a third time. */}
         <div className="cq-wordmark-wrap" aria-hidden="true">
           <span className="cq-wordmark">CARI FORGE</span>
@@ -716,7 +716,7 @@ export default function Home() {
             <div className="cq-footer-grid">
               <div>
                 <span className="cq-logo">
-                  <span>CARI Forge</span>
+                  <span>CariForge</span>
                 </span>
                 <p className="cq-footer-tagline">{siteDescription}</p>
               </div>

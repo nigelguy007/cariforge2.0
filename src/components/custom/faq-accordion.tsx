@@ -36,7 +36,7 @@ function FaqRow({ item }: { item: Item }) {
         {item.id === 'scaffold-vs-product' && (
           <p className="mt-3 text-small text-muted-foreground">
             <Link href="/why-this-is-a-scaffold" className="link-brand">
-              Learn more about what's included and what isn't →
+              What a 21-day pilot delivers, and what it doesn't →
             </Link>
           </p>
         )}

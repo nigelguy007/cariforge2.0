@@ -12,12 +12,12 @@ import { siteDescription, siteName, siteUrl } from '@/lib/site';
 export const metadata: Metadata = {
   title: { absolute: `FAQ — ${siteName}` },
   description:
-    'Five questions a regulated buyer asks first: the EU AI Act Articles 12 & 14 timeline, the shape of the audit trail, hallucination control, what CARI Forge does and does not deliver, and why a council is needed at all.',
+    'Five questions a regulated buyer asks first: the EU AI Act Articles 12 & 14 timeline, the shape of the audit trail, hallucination control, what CariForge does and does not deliver, and why a council is needed at all.',
   alternates: { canonical: '/faq' },
   openGraph: {
     title: `FAQ — ${siteName}`,
     description:
-      'Five questions a regulated buyer asks first: the EU AI Act Articles 12 & 14 timeline, the shape of the audit trail, hallucination control, what CARI Forge does and does not deliver, and why a council is needed at all.',
+      'Five questions a regulated buyer asks first: the EU AI Act Articles 12 & 14 timeline, the shape of the audit trail, hallucination control, what CariForge does and does not deliver, and why a council is needed at all.',
     images: ['/opengraph-image'],
   },
 };
@@ -41,7 +41,7 @@ export default function FaqPage() {
           <GlassSectionHeader
             eyebrow="Frequently asked — by the people who need to say yes"
             title="The five questions a regulated buyer asks first."
-            lede="CARI Forge is shaped for compliance officers. Below are the objections that come up in every regulated-buyer conversation, answered in the order they tend to be raised. Every claim here is produced by the system itself, not marketing copy."
+            lede="CariForge is shaped for compliance officers. Below are the objections that come up in every regulated-buyer conversation, answered in the order they tend to be raised. Each answer describes how the live platform works today."
           />
 
           <FaqAccordion />
@@ -49,10 +49,10 @@ export default function FaqPage() {
           <p className="text-small text-muted-foreground">
             Still want to talk to a named human before submitting?{' '}
             <a
-              href="mailto:cari-forge@polsia.app?subject=CARI%20Forge%20pilot%20enquiry"
+              href="mailto:nigelguy@iyansan.com?subject=CariForge%20pilot%20enquiry"
               className="link-brand"
             >
-              cari-forge@polsia.app
+              nigelguy@iyansan.com
             </a>
           </p>
         </div>

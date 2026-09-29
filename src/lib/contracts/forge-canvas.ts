@@ -200,7 +200,7 @@ export const BlueprintItem = z.object({
 export type BlueprintItemT = z.infer<typeof BlueprintItem>;
 
 // UX review C2: request body for POST /api/forge-canvas/blueprints/from-mission —
-// creates (or returns) the blueprint linked to a mission's Software Build gate.
+// creates (or returns) the blueprint linked to a mission's Prototype build gate.
 export const BlueprintFromMission = z.object({
   missionId: z.string().min(1).max(64),
 });

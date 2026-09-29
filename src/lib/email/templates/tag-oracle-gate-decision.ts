@@ -36,7 +36,7 @@ export function tagOracleGateDecisionEmail(input: TagOracleGateDecisionInput): E
           ? 'Workflow Design'
           : input.gateIndex === 3
             ? 'Governance Check'
-            : 'Software Build';
+            : 'Prototype build';
   const decisionLabel = DECISION_LABEL[input.decision];
   const { html, text } = renderEmail({
     heading: `Gate ${input.gateIndex} (${stage}) — ${decisionLabel}`,

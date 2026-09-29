@@ -19,7 +19,7 @@ export function formatBriefOwnerNotificationEmail(
   opts: FormatBriefOwnerNotificationOptions,
 ): EmailContent {
   const { leadId, capturedAtIso, brief, submitterEmail } = opts;
-  const subject = `New CARI Forge brief${submitterEmail ? ` — ${submitterEmail}` : ''}`;
+  const subject = `New CariForge brief${submitterEmail ? ` — ${submitterEmail}` : ''}`;
   const body = [
     'A regulated buyer just left a one-line brief on cariforge.com.',
     '',
@@ -31,7 +31,7 @@ export function formatBriefOwnerNotificationEmail(
     brief,
   ];
   const { html, text } = renderEmail({
-    heading: 'New CARI Forge brief',
+    heading: 'New CariForge brief',
     body,
     footer: 'See the leads table at /admin/leads for the full record.',
   });

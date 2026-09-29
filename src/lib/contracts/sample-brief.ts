@@ -85,12 +85,12 @@ export const SampleBrief = z.object({
   brief: Brief,
   council: z.array(AdvisorObjection).length(5),
   ruling: ChairmanRuling,
-  /** Five stages — Stages 1..5 (Discovery / Readiness / Workflow / Governance / Software Build),
+  /** Five stages — Stages 1..5 (Discovery / Readiness / Workflow / Governance / Prototype build),
    *  operated by the seven-agent core: Agents 1..7 (Discovery / Readiness / Workflow /
-   *  Governance / AI Build / Partner / Impact). Agent 5 is "AI Build", not "Software Build" —
-   *  "Software Build" is the name of Stage 5 that AI Build operates. */
+   *  Governance / AI Build / Partner / Impact). Agent 5 is "AI Build", not "Prototype build" —
+   *  "Prototype build" is the name of Stage 5 that AI Build operates. */
   stages: z.array(StageArtifact).length(5),
-  /** Agent 5 (AI Build) operates Stage 5 (Software Build) and ships the working solution as the
+  /** Agent 5 (AI Build) operates Stage 5 (Prototype build) and ships the working solution as the
    *  end of the pipeline. */
   solution: Solution,
   runMetadata: RunMetadata,

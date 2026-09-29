@@ -76,7 +76,7 @@ export function MissionDeliverablesPanel({ missionId }: { missionId: string }) {
     );
   }
   if (state.status === 'error') {
-    return null; // no Software Build output for this mission yet — not an error to show
+    return null; // no Prototype build output for this mission yet — not an error to show
   }
 
   const { data } = state;

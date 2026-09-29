@@ -4,7 +4,7 @@
 // This route is the read path: the active SoftwareBuild handoff's payload
 // (files + spec), plus the "MVP to Production" roadmap (generated once,
 // then cached — see business/forge/deliverables.ts). Returns 404 if the
-// mission hasn't reached/cleared Software Build yet — a real, honest
+// mission hasn't reached/cleared Prototype build yet — a real, honest
 // state, not an error.
 import 'server-only';
 import { NextResponse } from 'next/server';
@@ -30,7 +30,7 @@ export async function GET(req: Request, ctx: { params: Promise<{ id: string }> }
     const spec = handoff ? readSoftwareBuildPayload(handoff.payload) : null;
     if (!spec) {
       return NextResponse.json(
-        { error: 'This project has not produced a Software Build output yet.' },
+        { error: 'This project has not produced a Prototype build output yet.' },
         { status: 404 },
       );
     }

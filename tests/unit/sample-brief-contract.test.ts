@@ -83,7 +83,7 @@ describe('sample-brief contract', () => {
     ruling: {
       verdict: 'Build',
       reconciliation:
-        'The chair sides with Risk (named human-only assertion step wired into the workflow by structure) and with Growth (typed note to the buyer on the renewals + broker-onboarding reuse). The case advances to the Software Build with both items carried forward as binding constraints.',
+        'The chair sides with Risk (named human-only assertion step wired into the workflow by structure) and with Growth (typed note to the buyer on the renewals + broker-onboarding reuse). The case advances to the Prototype build with both items carried forward as binding constraints.',
       carriedDissent: [
         'Risk objection carried forward as a binding design constraint on the Workflow Design stage, re-read at the Governance Check stage.',
         'Growth qualification carried forward as a typed note to the buyer for a signed scope decision during workflow design.',
@@ -149,7 +149,7 @@ describe('sample-brief contract', () => {
         output:
           'A logging/oversight control matrix mapping every must-not-happen to a runtime check and an immutable hash chain.',
         downstreamHandoff:
-          'Control matrix handed to the Software Build stage as the binding audit-trail spec.',
+          'Control matrix handed to the Prototype build stage as the binding audit-trail spec.',
         supervisor: {
           name: 'E. Okwuosa',
           role: 'Group Chief Risk Officer',
@@ -167,7 +167,7 @@ describe('sample-brief contract', () => {
         output:
           'A per-claim review queue at /claims/queue with route handlers POST /api/claims/[id]/review and POST /api/claims/[id]/refer-siu, backed by the ClaimsAuditTrail prisma model.',
         downstreamHandoff:
-          'Runnable build delivered by Agent 5 (AI Build) operating Stage 5 (Software Build); audit-trail receipt attached.',
+          'Runnable build delivered by Agent 5 (AI Build) operating Stage 5 (Prototype build); audit-trail receipt attached.',
         supervisor: {
           name: 'J. Vargas',
           role: 'Group Chief Information Officer',
@@ -226,7 +226,7 @@ describe('sample-brief contract', () => {
     }
   });
 
-  it('Agent 5 (AI Build) operates Stage 5 (Software Build) and ships a route handler plus a prisma data model', () => {
+  it('Agent 5 (AI Build) operates Stage 5 (Prototype build) and ships a route handler plus a prisma data model', () => {
     const build = atOrFail(payload.stages, 4);
     const surfaceText = `${build.output} ${build.downstreamHandoff} ${payload.solution.dataPlane.join(' ')}`;
     expect(build.agentName).toBe('AI Build');
@@ -234,16 +234,16 @@ describe('sample-brief contract', () => {
     expect(surfaceText).toMatch(/ClaimsAuditTrail|claimsAuditTrail|prisma/);
   });
 
-  it('Agent 5 is named AI Build, not Software Build', () => {
+  it('Agent 5 is named AI Build, not Prototype build', () => {
     const build = atOrFail(payload.stages, 4);
     expect(build.agentName).toBe('AI Build');
-    expect(build.agentName).not.toBe('Software Build');
+    expect(build.agentName).not.toBe('Prototype build');
   });
 
-  it('Stage 5 of the 5-stage pipeline is still referenced by the stage name "Software Build"', () => {
+  it('Stage 5 of the 5-stage pipeline is still referenced by the stage name "Prototype build"', () => {
     const build = atOrFail(payload.stages, 4);
     const combined = `${build.output} ${build.downstreamHandoff} ${build.supervisor.typedReason}`;
-    expect(combined).toMatch(/Software Build|SoftwareBuild/);
+    expect(combined).toMatch(/Prototype build|SoftwareBuild/);
   });
 
   it('exactly five stages (one per Agent 1..5) and Agent 5 is the AI Build agent', () => {

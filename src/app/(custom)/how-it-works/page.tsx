@@ -37,7 +37,7 @@ import { siteName } from '@/lib/site';
 export const metadata: Metadata = {
   title: 'How it works',
   description:
-    'The Oracles who argue every brief, the seven-agent core that operates the pipeline, and the five named human gates a mission passes through.',
+    'The 7-agent engine that runs a 21-day pilot, the five-voice review council (the Oracles) that argues each gate, and the five named human gates a mission passes through.',
   alternates: { canonical: '/how-it-works' },
 };
 
@@ -241,7 +241,7 @@ export default function HowItWorksPage() {
                 Production Forge
               </h3>
               <p className="text-small text-card-foreground/80">
-                Starts only once a case has cleared the Software Build gate. Run by the two
+                Starts only once a case has cleared the Prototype build gate. Run by the two
                 wraparound agents — Partner and Impact — not part of the 21-day clock.
               </p>
               <ul className="mt-2 flex flex-col gap-1 text-small text-card-foreground/85">
@@ -271,8 +271,8 @@ export default function HowItWorksPage() {
         <div className="container-page flex flex-col gap-10">
           <GlassSectionHeader
             eyebrow="The Oracles"
-            title="The Oracles of CARI Forge — five voices, fixed remits, opposing defaults."
-            lede="The Oracles each argue from a single angle. They open objections by default, not by exception. If The Oracles cannot settle the case after one round of debate, the Elder Oracle stops the run and asks you, the human."
+            title="The Oracles of CariForge — five voices, fixed remits, opposing defaults."
+            lede="The Oracles are the five-voice review council inside the 7-agent engine. They argue each gate before the named human signs, each from a single angle. They open objections by default, not by exception. If The Oracles cannot settle the case after one round of debate, the Elder Oracle stops the run and asks you, the human."
           />
 
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
@@ -416,10 +416,10 @@ export default function HowItWorksPage() {
             <p className="mt-4 text-small text-muted-foreground">
               Need to reach a named human before submitting?{' '}
               <a
-                href="mailto:cari-forge@polsia.app?subject=CARI%20Forge%20pilot%20enquiry"
+                href="mailto:nigelguy@iyansan.com?subject=CariForge%20pilot%20enquiry"
                 className="link-brand"
               >
-                cari-forge@polsia.app
+                nigelguy@iyansan.com
               </a>{' '}
               or read{' '}
               <Link href="/faq" className="link-brand">

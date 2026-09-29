@@ -10,7 +10,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const { slug } = await params;
   return {
     title: `Runbook · ${slug}`,
-    description: `Runbook for mission ${slug} on the CARI Forge control plane.`,
+    description: `Runbook for mission ${slug} on the CariForge control plane.`,
   };
 }
 
