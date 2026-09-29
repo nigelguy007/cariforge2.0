@@ -1,4 +1,3 @@
-// @polsia:user-owned — the ROI/feasibility calculator (Priority-12 item
 // from the Aug 2026 enterprise-platform handoff doc). Pure client-side
 // arithmetic on numbers the visitor supplies (src/lib/business/roi-
 // calculator.ts) — no API call, no AI, nothing to degrade or fabricate.

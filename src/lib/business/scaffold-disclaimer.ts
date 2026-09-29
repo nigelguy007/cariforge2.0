@@ -1,4 +1,3 @@
-// @polsia:user-owned — single source of truth for the /why-this-is-a-scaffold
 // footnote disclaimer (also consumed by the /sample-brief audit-trail PDF
 // footer so they stay in sync). Server-only.
 

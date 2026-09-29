@@ -1,4 +1,3 @@
-// @polsia:user-owned — Playwright config for the authenticated e2e suite.
 //
 // Added 2026-09-04 (real user request: "QA the development after log in.
 // It can't just be me... find a skill to do this type of testing behind a

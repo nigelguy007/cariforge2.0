@@ -1,4 +1,3 @@
-// @polsia:user-owned — Submit next handoff client island.
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';

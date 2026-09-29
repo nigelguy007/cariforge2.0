@@ -1,4 +1,3 @@
-// @polsia:user-owned — GET /api/forge/missions/:id/deliverables. Real user
 // report (2026-09-06): a completed mission's generated files and technical
 // spec existed in the database all along, but no UI ever rendered them.
 // This route is the read path: the active SoftwareBuild handoff's payload

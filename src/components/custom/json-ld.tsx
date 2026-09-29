@@ -1,4 +1,3 @@
-// @polsia:user-owned — server-renderable JSON-LD renderer. Takes a schema.org
 // payload and emits the inline <script type="application/ld+json"> tag that
 // search engines read alongside the page HTML. Pure markup: no data fetch, no
 // client APIs, no server-only imports — safe to render in a Server Component

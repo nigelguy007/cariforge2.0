@@ -1,4 +1,3 @@
-// @polsia:user-owned — the single project workspace (brief, Step 4).
 //
 // One page, one job: show where the project is and the one thing that needs
 // the person now. Order is fixed by the brief — small header, five-step

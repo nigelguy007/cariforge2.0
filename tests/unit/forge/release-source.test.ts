@@ -1,4 +1,3 @@
-// @polsia:user-owned — release source attribution coverage.
 // The upsert itself is DB-backed (tested in the route-level smoke + via
 // derived-state contracts); this file pins the pure deriveReleaseActor /
 // Hybrid-on-human semantics the business helper relies on.

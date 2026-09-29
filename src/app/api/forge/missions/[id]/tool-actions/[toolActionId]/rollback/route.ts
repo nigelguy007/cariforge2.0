@@ -1,4 +1,3 @@
-// @polsia:user-owned — POST /api/forge/missions/:id/tool-actions/:toolActionId/rollback.
 
 import 'server-only';
 import { NextResponse } from 'next/server';

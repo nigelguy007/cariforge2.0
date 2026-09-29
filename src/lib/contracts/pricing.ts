@@ -1,4 +1,3 @@
-// @polsia:user-owned — shared zod contract for the pricing resource. One
 // source of truth shared between the GET /api/pricing handler (server) and
 // the <PricingTiers/> island (client). Keep client-importable: zod only,
 // no server-only imports.

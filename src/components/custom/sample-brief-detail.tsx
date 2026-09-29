@@ -1,4 +1,3 @@
-// @polsia:user-owned — /sample-brief client island. Loads one concrete
 // worked-example run (a regulated EU insurance claims-triage case) from
 // /api/sample-brief through apiFetch + the shared SampleBrief contract, then
 // renders it in six vertical sections: the brief as submitted, the council

@@ -1,4 +1,3 @@
-// @polsia:user-owned — the single custom React Flow node view for every
 // Forge Canvas node type. One component, styled by type, per the repo's
 // restrained light-first system (.impeccable.md: brand colour as accent,
 // not wash; status never conveyed by colour alone — each card carries its

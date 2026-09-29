@@ -1,4 +1,3 @@
-// @polsia:user-owned — the one view model behind the project workspace
 // (brief, Step 7). Fetches mission detail and the next action once, in
 // parallel, and adapts them into ProjectWorkspaceView so the page never
 // refetches per section. Everything shown on the page is derived here; the

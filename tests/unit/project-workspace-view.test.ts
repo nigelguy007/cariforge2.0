@@ -1,4 +1,3 @@
-// @polsia:user-owned — the single project view model must be derived only
 // from data already on the mission (never invented), keep step numbers
 // one-based, and never leak a raw reason code into the prepared summary.
 import { describe, expect, it } from 'vitest';

@@ -1,4 +1,3 @@
-// @polsia:user-owned — /pilot/oracle-council. Server Component shell that
 // exports metadata and mounts the OracleCouncilIndex client island. Pulls
 // the mission list through /api/forge/missions so the page stays RSC and
 // every datum crosses the data-plane seam.

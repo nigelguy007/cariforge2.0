@@ -1,4 +1,3 @@
-// @polsia:user-owned — /blog. Server Component that exports metadata. The
 // editor-cards live in a single client island (<BlogIndex/>) that GETs
 // /api/blog and renders a responsive grid of topic-tagged posts. Below the
 // index sits a second section hosting <NewsletterSignupForm/>, a low-friction

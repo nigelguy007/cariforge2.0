@@ -1,4 +1,3 @@
-// @polsia:user-owned — exhaustive enumeration of MissionStatus =>
 // generated NextActionView kind. Pinned by the brief.
 import { describe, expect, it } from 'vitest';
 import {

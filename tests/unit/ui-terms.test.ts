@@ -1,4 +1,3 @@
-// @polsia:user-owned — the presentation adapter must cover every enum value
 // in the contracts and never leak a raw code / zero-based gate number.
 import { describe, expect, it } from 'vitest';
 import {

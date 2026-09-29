@@ -1,4 +1,3 @@
-// @polsia:user-owned — PATCH /api/forge/missions/:id/work-items/:itemId.
 
 import 'server-only';
 import { NextResponse } from 'next/server';

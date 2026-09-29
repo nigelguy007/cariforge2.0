@@ -1,4 +1,3 @@
-// @polsia:user-owned — pure evidence-trail serialiser for /api/forge/*/export.
 // No DB. Produces a deterministic JSON envelope used by both the JSON and
 // the CSV response paths.
 

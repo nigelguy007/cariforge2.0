@@ -1,4 +1,3 @@
-// @polsia:user-owned — POST /api/forge/missions/:id/transitions/start.
 // Explicit advance from Draft -> InDiscovery. No-op after the first call so
 // the UI can be deterministic.
 

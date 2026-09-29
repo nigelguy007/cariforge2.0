@@ -1,4 +1,3 @@
-// @polsia:user-owned — shared zod contract for the /api/agents resource. One
 // source of truth shared between the GET /api/agents handler (server) and
 // the <CoreAgentsSection/> island (client). Catalogs the seven-agent core
 // model: 1 Discovery, 2 Readiness, 3 Workflow, 4 Governance, 5 AI Build,

@@ -1,4 +1,3 @@
-// @polsia:user-owned — the "Agent activity" checklist (brief, 2026-09-05
 // architecture doc): a visible, always-collapsed-parent list of what each
 // real step's agent has produced, built entirely from data that already
 // exists (a non-superseded handoff per stage, real specialist attesters on

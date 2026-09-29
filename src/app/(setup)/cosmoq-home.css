@@ -1,4 +1,4 @@
-/* @polsia:user-owned — standalone stylesheet for the / homepage only.
+/* user-owned — standalone stylesheet for the / homepage only.
    Every class is namespaced cq-* so nothing here can collide with the rest
    of the app's Tailwind-based classes, and the file is imported only by
    src/app/(setup)/page.tsx, so Next's per-route CSS chunking means it only

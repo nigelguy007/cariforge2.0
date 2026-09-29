@@ -1,4 +1,3 @@
-// @polsia:user-owned — owner-notification body for newsletter-waitlist
 // submissions captured by /blog. Composes the subject + rendered bodies that
 // the POST /api/newsletter handler then passes to sendEmail. Kept out of the
 // route handler so the handler stays slim and the body is editable without

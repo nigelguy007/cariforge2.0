@@ -1,4 +1,3 @@
-// @polsia:user-owned — real user report (2026-09-06): a completed mission's
 // generated code files and technical spec were sitting in StageHandoff.payload
 // all along, but no UI anywhere ever rendered them — "the build is complete
 // however i dont see the files and spec as expected." Confirmed live: the

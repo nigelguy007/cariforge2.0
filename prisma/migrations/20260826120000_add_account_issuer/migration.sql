@@ -1,4 +1,3 @@
--- @polsia:framework-owned - DO NOT EDIT. Code installed by polsia/modules/better-auth@0.3.0. Drift = commit rejected.
 -- Forward-only, idempotent (safe to re-run against a partially-applied DB,
 -- matching this repo's existing migration style).
 --

@@ -1,4 +1,3 @@
-// @polsia:user-owned — one small hook behind the Approvals nav badge and the
 // queue heading: how many decisions need the signed-in person right now.
 // Counts projects at AwaitingApproval OR sitting on a real open concern
 // (see the 2026-09-05 fix below), plus open canvas approval tasks — the

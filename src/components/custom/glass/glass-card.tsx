@@ -1,4 +1,3 @@
-// @polsia:user-owned — translucent Liquid Glass card surface. Composes the
 // .glass-card utility from custom-style.css with the existing shadcn
 // primitives in src/components/ui so the rest of the app keeps one
 // component vocabulary. Uses cva for tone/padding so callers reach for a

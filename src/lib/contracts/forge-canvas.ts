@@ -1,4 +1,3 @@
-// @polsia:user-owned — shared zod contracts for the Forge Canvas (Agent
 // Builder Release 1 vertical slice). One source of truth shared between
 // the /api/forge-canvas/* handlers (server) and the canvas/Approval Desk
 // client islands. Client-importable: zod only, no server-only imports.

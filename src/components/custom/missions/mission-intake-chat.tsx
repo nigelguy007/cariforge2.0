@@ -1,4 +1,3 @@
-// @polsia:user-owned — chat-based project intake. Replaces the static
 // MissionIntakeForm as the default "Start a project" flow: gathers the same
 // nine MissionIntakeStructure fields through natural conversation instead of
 // a big form, then submits the exact same MissionCreate payload the form

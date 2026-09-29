@@ -1,4 +1,3 @@
-// @polsia:user-owned — /api/forge-canvas/runs. POST starts a run of a
 // saved blueprint version in the safe test runtime (executes until the
 // first approval pause or a terminal state, persisting the node-by-node
 // trace). GET lists the caller's runs (admins see all).

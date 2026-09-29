@@ -1,4 +1,3 @@
-// @polsia:user-owned — buildEvidenceView must translate every internal enum
 // at the edge (no raw reason codes, no DB event names), never invent a
 // fact, and cap measures at three. evidenceViewToDocumentSpec must carry
 // the same content into the PDF export without a schema of its own.

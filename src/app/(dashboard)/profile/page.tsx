@@ -1,4 +1,3 @@
-// @polsia:user-owned — /profile: account details + sign out. Moved into the
 // (dashboard) route group (2026-09-05) from (auth), where it sat alongside
 // /login and /signup as a fully standalone page — its own full-page
 // background, no header, no nav — so every link into it (Settings, the

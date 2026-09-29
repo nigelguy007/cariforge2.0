@@ -1,4 +1,3 @@
-// @polsia:user-owned
 'use client';
 
 import { BookOpenText, LayoutDashboard, ListChecks } from 'lucide-react';

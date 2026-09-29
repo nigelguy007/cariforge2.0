@@ -1,4 +1,3 @@
-// @polsia:user-owned — Settings landing (nav restructure, 2026-09-05): links
 // out to whichever account/admin surfaces already exist (Profile, and the
 // admin pages when the signed-in user is one) rather than duplicating their
 // content. No fabricated toggles — if a real settings page doesn't exist

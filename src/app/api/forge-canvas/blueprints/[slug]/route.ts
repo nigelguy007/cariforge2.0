@@ -1,4 +1,3 @@
-// @polsia:user-owned — GET /api/forge-canvas/blueprints/[slug]. Loads the
 // latest version (or ?version=N) of one CARI Blueprint for the canvas.
 
 import 'server-only';

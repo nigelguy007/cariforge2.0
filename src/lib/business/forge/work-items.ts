@@ -1,4 +1,3 @@
-// @polsia:user-owned — pure work-item derivation + bounded transitions.
 // No DB. Drives /api/forge/missions/:id/work-items/* routes.
 
 import type { StageName, WorkItemStatusT } from '@/lib/contracts/forge';

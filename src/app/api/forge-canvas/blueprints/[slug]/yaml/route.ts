@@ -1,4 +1,3 @@
-// @polsia:user-owned — GET /api/forge-canvas/blueprints/[slug]/yaml (PR
 // A5). Exports the latest (or ?version=N) saved version of a CARI
 // Blueprint as YAML text — a projection of the canonical JSON definition,
 // generated on read, never stored separately.

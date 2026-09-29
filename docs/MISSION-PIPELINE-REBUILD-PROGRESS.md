@@ -208,8 +208,7 @@ what reaches the UI.
   This sits in front of a real governance decision; it must never be the
   reason a gate can't be decided. Reads the key directly from
   `process.env` rather than through `src/lib/env.ts` — that file is
-  `@polsia:shared/composed`, hand-edited only through its declared
-  module-contribution slots by the Polsia installer, and this is an
+  module-contribution slots by the Platform installer, and this is an
   optional feature, not required deploy-time config.
 - **Real version-conflict catch, not just typing noise:** the Anthropic
   SDK's `zodOutputFormat()` calls `zod/v4`'s `toJSONSchema()` internally —

@@ -1,4 +1,3 @@
-// @polsia:user-owned — POST + GET /api/forge/missions/:id/evidence.
 //
 // POST accepts two bodies: the original JSON body (EvidenceCreate — a
 // text/URL/etc. reference) and, when the request is multipart/form-data, a

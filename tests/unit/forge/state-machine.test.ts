@@ -1,4 +1,3 @@
-// @polsia:user-owned — pure transition-table coverage. Asserts every cell.
 import { describe, expect, it } from 'vitest';
 import {
   assertTransition,

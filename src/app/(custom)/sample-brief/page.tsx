@@ -1,4 +1,3 @@
-// @polsia:user-owned — /sample-brief. Server Component that exports metadata.
 // The five-section worked-example live in a single client island
 // (<SampleBriefDetail/>) that GETs /api/sample-brief and renders the buyer
 // brief, the council debate, the chairman's reconciled ruling, the

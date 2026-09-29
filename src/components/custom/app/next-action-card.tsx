@@ -1,4 +1,3 @@
-// @polsia:user-owned — the one visible next action (brief, Step 4).
 //
 // Maps the existing next-action view to a single sentence and at most one
 // solid button. A formal approval opens DecisionDialog; every other kind

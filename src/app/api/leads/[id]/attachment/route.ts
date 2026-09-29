@@ -1,4 +1,3 @@
-// @polsia:user-owned — POST /api/leads/[id]/attachment. Public (same trust
 // boundary as POST /api/leads itself — no auth on the front-door funnel),
 // multipart/form-data upload of one optional document for an existing lead.
 // Stored directly in Postgres (LeadAttachment.data, bytea) — no separate

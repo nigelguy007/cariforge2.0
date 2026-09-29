@@ -1,4 +1,3 @@
-// @polsia:user-owned — pure replay planner. Given a mission's current state
 // and a target fromStageIndex, returns the handoffs that must be marked
 // stale and what stage the mission must be knocked back to. No DB.
 

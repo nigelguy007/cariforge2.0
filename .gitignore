@@ -1,4 +1,4 @@
-# Polsia Next.js template — gitignore (Node + Next.js + tools)
+# Platform Next.js template — gitignore (Node + Next.js + tools)
 
 # Dependencies
 node_modules/
@@ -42,8 +42,8 @@ lerna-debug.log*
 # Vercel
 .vercel
 
-# Polsia upgrade reconcile sidecars (never commit)
-*.polsia-app-old
+# Platform upgrade reconcile sidecars (never commit)
+*.platform-app-old
 .claude/settings.local.json
 
 # Session handoff notes. NEVER commit: this repo is public, and HANDOFF.md

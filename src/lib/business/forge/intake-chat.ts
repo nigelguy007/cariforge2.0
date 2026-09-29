@@ -1,4 +1,3 @@
-// @polsia:user-owned — real AI conversation for the chat-based project
 // intake flow (replaces the static MissionIntakeForm as the default path for
 // starting a project). Same pattern as ai-draft.ts and its siblings
 // (configurator.ts, qa-review.ts, oracle-review.ts): reads

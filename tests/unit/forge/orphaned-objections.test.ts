@@ -1,4 +1,3 @@
-// @polsia:user-owned — real user reports, in order:
 // "it says there are 3 outstanding concerns unresolved .. yet the system
 // says they are resolved" (fixed by carryForwardStaleObjections running
 // at the moment a handoff goes stale), then "system says 2 unresolved

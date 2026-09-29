@@ -1,4 +1,3 @@
-// @polsia:user-owned — /faq client island. Loads the five regulated-buyer
 // objections from /api/faq through apiFetch + the shared FaqList contract,
 // then renders a Radix Accordion. Loading / empty / error guards match the
 // example page's pattern. Visual treatment mirrors the landing intake card.

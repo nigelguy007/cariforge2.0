@@ -1,4 +1,3 @@
-// @polsia:user-owned — walkthrough intake form (client island for
 // /request-walkthrough). POSTs to /api/leads with source='walkthrough',
 // renders an inline success card on 201, and surfaces server-side field
 // validation via applyServerErrors. No server-only imports — matches the

@@ -1,4 +1,3 @@
-// @polsia:user-owned — the one signed-in chrome (brief, Step 3 + 7).
 //
 // Replaces DashboardShell: a slim top bar (brand + avatar menu), a 220px
 // PrimaryNav column on desktop, a three-item bottom bar on mobile, and an

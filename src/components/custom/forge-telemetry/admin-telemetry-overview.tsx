@@ -1,4 +1,3 @@
-// @polsia:user-owned — Admin telemetry overview island. Aggregates:
 // autonomy ladder, per-company credit ledger, chat cost by day. Read-only.
 
 'use client';

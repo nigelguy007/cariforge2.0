@@ -1,4 +1,3 @@
-// @polsia:user-owned — pure semantic validation for a CARI Blueprint graph
 // (beyond zod syntax — handover §13 "Semantic validation beyond syntax").
 // No DB, no framework: takes a parsed definition (+ the known agent slugs)
 // and returns structured issues, each anchored to a node where possible so

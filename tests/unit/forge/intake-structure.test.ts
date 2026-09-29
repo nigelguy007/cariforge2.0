@@ -1,4 +1,3 @@
-// @polsia:user-owned — nine-field intake structure coverage.
 import { describe, expect, it } from 'vitest';
 import { MissionCreate, MissionIntakeStructure } from '@/lib/contracts/forge';
 

@@ -1,4 +1,3 @@
-// @polsia:user-owned — client-safe zod contract for the /sample-brief audit
 // trail PDF. One source of truth shared between the <DownloadAuditTrailButton/>
 // island (POST body) and the route handler (server-side validation). The shape
 // extends the standard PDF DocumentSpec with the five sections needed to

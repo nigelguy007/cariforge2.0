@@ -1,4 +1,3 @@
-// @polsia:user-owned — POST /api/forge-canvas/blueprints/[slug]/publish
 // (PR A6). Promotes the latest Draft version of a blueprint to Published —
 // a one-way, no-body request. Owner or admin only; 409 if the latest
 // version is already Published.

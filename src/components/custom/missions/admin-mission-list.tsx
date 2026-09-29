@@ -1,4 +1,3 @@
-// @polsia:user-owned — Admin mission list client island.
 
 'use client';
 

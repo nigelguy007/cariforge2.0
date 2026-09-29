@@ -1,4 +1,3 @@
-// @polsia:user-owned — shared zod contract for the /how-the-council-works
 // resource. One source of truth shared between the GET /api/council handler
 // (server) and the <CouncilDetail/> island (client). Static catalog copy for
 // the depth page covering three mechanics: the five advisor roles, the

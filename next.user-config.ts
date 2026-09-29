@@ -1,4 +1,3 @@
-// @polsia:user-owned — your Next.js customizations, merged into next.config.ts by the
 // framework. Edit freely (no slot markers). next.config.ts stays framework-owned: don't
 // put security headers / CSP / a full `images` block here.
 import type { NextConfig } from 'next';
@@ -69,7 +68,7 @@ export const userNextConfig: NextConfig = {
   // Confirmed as a real bug live 2026-09-06 on the /888 basePath deployment:
   // the framework-owned better-auth client (src/lib/auth-client.ts — DO NOT
   // EDIT) deliberately calls same-origin `/api/auth/*` with NO baseURL/
-  // basePath, by design, so ONE build works on every polsia tenant host. But
+  // basePath, by design, so ONE build works on every platform tenant host. But
   // a raw client-side fetch() is never auto-prefixed by Next's basePath
   // (unlike <Link>/router.push), so under this basePath deployment every
   // sign-in/sign-up/get-session call escaped to the bare, unprefixed path —

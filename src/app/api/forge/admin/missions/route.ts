@@ -1,4 +1,3 @@
-// @polsia:user-owned — GET /api/forge/admin/missions. Admin-only listing.
 
 import 'server-only';
 import { NextResponse } from 'next/server';

@@ -1,4 +1,3 @@
-// @polsia:user-owned — /blog client island. Loads the editor-cards from
 // /api/blog through apiFetch + the shared BlogList contract, then renders a
 // responsive grid (one card per post — topic Badge, title, one-line hook,
 // formatted date). Loading / empty / error guards mirror the

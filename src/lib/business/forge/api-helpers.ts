@@ -1,4 +1,3 @@
-// @polsia:user-owned — shared auth seam for /api/forge/* route handlers.
 // Returns either { user, isAdmin } or a pre-built Response (401/403) the
 // caller returns as its own response. Centralised so every forge route
 // extracts the same session shape.

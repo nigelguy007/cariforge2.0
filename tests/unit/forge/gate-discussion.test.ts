@@ -1,4 +1,3 @@
-// @polsia:user-owned — gate reason-code + attribution coverage.
 import { describe, expect, it } from 'vitest';
 import {
   assertAttribution,

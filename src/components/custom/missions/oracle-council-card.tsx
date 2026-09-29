@@ -1,4 +1,3 @@
-// @polsia:user-owned — TAG pilot Oracle council card. Renders the five gates
 // of The Oracles + the assigned Elder Oracle identity (or a CTA when none is
 // appointed yet). Pulls the existing mission-detail shape; the Elder
 // assignment + handoff attesters live alongside it.

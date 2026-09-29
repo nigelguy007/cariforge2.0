@@ -1,4 +1,3 @@
-// @polsia:user-owned — /compare client island. Loads the structured
 // procurement evaluation from /api/compare through apiFetch + the shared
 // Compare contract, then renders a disclaimer banner, a six-row × five-column
 // evaluation matrix with semantic evidence chips, a per-criterion explainer

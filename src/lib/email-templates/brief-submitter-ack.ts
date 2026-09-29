@@ -1,4 +1,3 @@
-// @polsia:user-owned — submitter-facing acknowledgement for the front-door
 // brief form (/how-it-works, source='home'). Composes the "we'll get back
 // to you" email a real submitter actually receives, so the promise the UI
 // already makes ("A real human will reply — within 48 hours during working

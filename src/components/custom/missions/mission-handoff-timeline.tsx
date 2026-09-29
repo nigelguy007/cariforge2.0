@@ -1,4 +1,3 @@
-// @polsia:user-owned — Handoff timeline client island.
 
 'use client';
 

@@ -1,4 +1,3 @@
-// @polsia:user-owned — header + floating pill nav for the / homepage.
 //
 // Client component for one reason only: the session check below. The rest of
 // this header is static. It replaces vesper-header.tsx, whose mobile burger

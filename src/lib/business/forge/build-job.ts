@@ -1,4 +1,3 @@
-// @polsia:user-owned — async, chunked SoftwareBuild generation (2026-09-06).
 // See prisma/schema/forge.prisma's SoftwareBuildJob model comment for the
 // full "why": this project's Vercel plan (Hobby) kills any serverless
 // function at 60s, but a real MVP's file/spec generation genuinely needs

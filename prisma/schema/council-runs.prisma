@@ -1,4 +1,3 @@
-// @polsia:user-owned — CouncilRun table backs the "council run status" column on
 // the admin leads dashboard. Each Lead may have many CouncilRuns (a kick, a
 // retry after returning with reason). FK is a SCALAR leadId (no @relation to
 // Lead) per the nextjs-prisma skill — Lead lives in the user-owned leads.prisma

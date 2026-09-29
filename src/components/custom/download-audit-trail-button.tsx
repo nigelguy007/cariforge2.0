@@ -1,4 +1,3 @@
-// @polsia:user-owned — /sample-brief 'Download audit trail (PDF)' button
 // (client island). On click: POSTs to /api/sample-brief/audit-pdf. The
 // route composes the document server-side from the same SAMPLE_BRIEF +
 // SCAFFOLD_DISCLAIMER constants the page renders, so the PDF is

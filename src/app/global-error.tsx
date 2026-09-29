@@ -1,4 +1,3 @@
-// @polsia:user-owned — root error boundary; REPLACES the layout, so it
 // renders its own <html>/<body> with inline styles (theme/providers/CSS
 // imports unavailable here). Restyled to match the white-emerald Liquid
 // Glass system — kept self-contained, no external assets: white-emerald

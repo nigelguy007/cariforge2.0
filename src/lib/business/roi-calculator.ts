@@ -1,4 +1,3 @@
-// @polsia:user-owned — pure calculation logic for the ROI/feasibility
 // calculator (Priority-12 item from the Aug 2026 enterprise-platform
 // handoff doc: "Estimate benefit, cost, delivery risk, time saved, and
 // scalability"). Deliberately NOT an AI feature and NOT server-side — this

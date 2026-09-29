@@ -1,4 +1,3 @@
-// @polsia:user-owned — Project workspace page (Server Component shell).
 import type { Metadata } from 'next';
 import { ProjectWorkspace } from '@/components/custom/app/project-workspace';
 

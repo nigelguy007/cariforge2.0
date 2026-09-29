@@ -1,4 +1,3 @@
-// @polsia:user-owned — Settings (nav restructure, 2026-09-05). See
 // settings-view.tsx for the actual content; this file only owns the route's
 // metadata (a Server Component can't sit inside the same 'use client' file
 // as the useIsAdmin hook SettingsView needs).

@@ -1,4 +1,3 @@
-// @polsia:user-owned — the CARI Forge logo mark, as an inline SVG component
 // so it renders crisply wherever it's used (nav bars, drawers) without an
 // extra image request. Same artwork as src/app/icon.svg (the favicon/PWA
 // icon) — kept in sync deliberately; if the mark changes, update both.

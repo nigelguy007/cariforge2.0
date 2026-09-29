@@ -1,4 +1,3 @@
-// @polsia:user-owned — GET /api/testimonials. Public read of approved
 // testimonials only. Filter is enforced server-side in
 // listPublishedTestimonials() — the UI is NOT the gate. The response parses
 // against the shared TestimonialList contract so client + server can't drift

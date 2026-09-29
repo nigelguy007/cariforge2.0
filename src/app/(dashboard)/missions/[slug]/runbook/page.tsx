@@ -1,4 +1,3 @@
-// @polsia:user-owned — Runbook page (Server Component shell).
 import type { Metadata } from 'next';
 import { MissionRunbookClient } from '@/components/custom/missions/mission-runbook-client';
 

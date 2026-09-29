@@ -1,4 +1,3 @@
-// @polsia:user-owned — admin moderation island for /testimonials. On mount,
 // fetches /api/admin/testimonials via apiFetch + the AdminTestimonialList
 // contract; renders one row per testimonial with a Switch that flips the
 // published flag (optimistically, then reconciled against the canonical row

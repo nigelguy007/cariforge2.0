@@ -5,7 +5,6 @@
 // intercept it, and the whole file fails to load. Matches the same fix
 // already used in tests/unit/example/contract.test.ts for the same reason.
 //
-// @polsia:user-owned — coverage for the auto-advance policy engine (the
 // core of this session's "AI actually does the work" architecture). Every
 // dependency (Oracle review/reconciliation, the AI drafter, the governance
 // service layer) is mocked so this exercises the ORCHESTRATION LOGIC only:

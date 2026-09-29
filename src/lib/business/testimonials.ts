@@ -1,4 +1,3 @@
-// @polsia:user-owned — server-side reads/writes for the Testimonial resource.
 // Called from /api/testimonials (public GET, published-only) and
 // /api/admin/testimonials (admin GET + PATCH publish toggle). Never imported
 // from a page or client component. `import 'server-only'` is enforced here so

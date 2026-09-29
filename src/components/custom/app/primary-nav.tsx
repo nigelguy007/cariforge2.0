@@ -1,4 +1,3 @@
-// @polsia:user-owned — the app's only global navigation: Home, Projects,
 // Templates, Settings (nav restructure, 2026-09-05). Home carries a count
 // badge — the same "something needs the user" signal Approvals used to show
 // here — since Approvals itself is reached from Home's own Needs-you section

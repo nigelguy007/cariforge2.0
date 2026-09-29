@@ -1,4 +1,3 @@
-// @polsia:user-owned — pure "next human action" derivation. No DB.
 // Powers the Mission Control "next action" panel.
 
 import type {

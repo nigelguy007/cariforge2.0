@@ -1,4 +1,3 @@
-// @polsia:user-owned — layered parallax aurora backdrop for the signed-in
 // product. Gives .glass-panel/.glass-card surfaces something real to blur
 // (the actual "liquid glass" reveal — a translucent surface over a flat
 // background is indistinguishable from a solid box), with two glow layers

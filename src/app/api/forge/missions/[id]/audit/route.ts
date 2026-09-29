@@ -1,4 +1,3 @@
-// @polsia:user-owned — GET /api/forge/missions/:id/audit. Owner-scoped read.
 
 import 'server-only';
 import { NextResponse } from 'next/server';

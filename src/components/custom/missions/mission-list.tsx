@@ -1,4 +1,3 @@
-// @polsia:user-owned — Mission list client island. Reads through the
 // /api/forge/missions route and renders each mission as a card.
 
 'use client';

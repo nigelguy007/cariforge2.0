@@ -1,4 +1,3 @@
-// @polsia:user-owned — GET /api/forge/missions/[id]/assurance-pack. Owner-
 // or-admin-scoped, same access rule as GET /api/forge/missions/[id]
 // (getMissionDetail throws FORGE_FORBIDDEN otherwise). Assembles the
 // Section-8 assurance pack from this mission's real, already-persisted

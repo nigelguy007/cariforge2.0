@@ -1,4 +1,3 @@
-// @polsia:user-owned — shared zod contract for the Lead resource. One source
 // of truth shared between the POST /api/leads handler (server) and the
 // <BriefIntakeForm/> island (client). Keep this module client-importable:
 // zod only, no server-only imports.

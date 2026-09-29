@@ -1,4 +1,3 @@
-// @polsia:user-owned — gap-list stability coverage. Asserts the strings are
 // present + stable so a future implementer can't silently remove a known gap.
 import { describe, expect, it } from 'vitest';
 import { FORGE_GAPS } from '@/lib/business/forge/gaps';

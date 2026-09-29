@@ -1,4 +1,3 @@
-// @polsia:user-owned — Audit timeline display.
 'use client';
 
 import type { MissionAuditItemT } from '@/lib/contracts/forge';

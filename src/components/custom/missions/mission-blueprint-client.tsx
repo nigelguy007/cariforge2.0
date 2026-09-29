@@ -1,4 +1,3 @@
-// @polsia:user-owned — Blueprint client island: resolves slug → id, renders
 // the derived blueprint payload. No server DB access.
 'use client';
 

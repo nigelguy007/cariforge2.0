@@ -1,4 +1,3 @@
-// @polsia:user-owned — reusable section header. The eyebrow / title / lede
 // triplet that the AI-Kit consistently uses. Composition is intentionally
 // small — pages can drop it in place of ad-hoc <div> wrappers around a
 // title.

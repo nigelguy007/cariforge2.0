@@ -1,4 +1,3 @@
-// @polsia:user-owned — GET /api/forge-canvas/tasks. The Approval Desk
 // inbox: open tasks first, then recently-decided, each carrying the
 // upstream evidence the approver must see before deciding (handover §17).
 

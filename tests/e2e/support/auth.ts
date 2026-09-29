@@ -1,4 +1,3 @@
-// @polsia:user-owned — programmatic auth helper for the e2e suite.
 //
 // Calls the app's own real better-auth endpoints (POST /api/auth/sign-in/email,
 // falling back to /api/auth/sign-up/email the first time an account doesn't

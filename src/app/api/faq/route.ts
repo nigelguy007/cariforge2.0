@@ -1,4 +1,3 @@
-// @polsia:user-owned — GET /api/faq. Static catalog of regulated-buyer
 // objections, served from an in-process constant (no DB). The PAGE goes through
 // this handler anyway because the project rule bans data-fetch in Server
 // Components, and a client `apiFetch('/api/faq')` keeps the contract shape

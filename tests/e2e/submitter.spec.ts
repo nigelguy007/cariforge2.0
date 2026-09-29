@@ -1,4 +1,3 @@
-// @polsia:user-owned — e2e specs for the plain "user" role (QA Submitter).
 // Uses the storageState global-setup wrote out — already signed in, no
 // login form touched by the test itself.
 

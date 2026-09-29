@@ -1,4 +1,3 @@
-// @polsia:user-owned — POST /api/forge/missions/:id/intake. Refine intake
 // while the mission is still Draft.
 
 import 'server-only';

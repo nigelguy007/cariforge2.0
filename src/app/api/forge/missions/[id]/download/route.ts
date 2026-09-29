@@ -1,4 +1,3 @@
-// @polsia:user-owned — GET /api/forge/missions/:id/download. Real user
 // request (2026-09-06): "create a download button where the files, spec
 // and everything else produced can be downloaded from the platform. make
 // sure the download remainds when the person logs in and out and

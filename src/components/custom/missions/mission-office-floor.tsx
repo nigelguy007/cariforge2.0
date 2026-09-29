@@ -1,4 +1,3 @@
-// @polsia:user-owned — the actual "Office" visualization for
 // mission-office-view.tsx, round 5 (2026-09-05). Full history: user asked
 // for "people in an office 3D looking" and pointed at
 // github.com/pixel-agents-hq/pixel-agents, then at the VS Code extension

@@ -1,4 +1,3 @@
-// @polsia:user-owned — requirements-intake form (client island for the home
 // page). POSTs to /api/leads, renders an inline success card on 201, and
 // surfaces server-side field validation via applyServerErrors. No
 // server-only imports.

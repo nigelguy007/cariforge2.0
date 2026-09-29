@@ -1,4 +1,3 @@
-// @polsia:user-owned — admin moderation gate for /testimonials.
 //   GET   — list every testimonial (published + unpublished), newest queue
 //           entry first, so the admin can flip switches from one place.
 //   PATCH — toggle the published flag on a single testimonial by id.

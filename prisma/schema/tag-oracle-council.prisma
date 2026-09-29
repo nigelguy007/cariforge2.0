@@ -1,4 +1,3 @@
-// @polsia:user-owned — TAG Caribbean pilot Oracle Council schema. Tracks the
 // named human Oracles and Elder Oracle appointments per mission, plus the
 // specialist attesters that must sign each handoff before a gate decision
 // lands. FKs are scalars (no @relation to User, which lives in the framework-

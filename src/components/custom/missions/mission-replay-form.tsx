@@ -1,4 +1,3 @@
-// @polsia:user-owned — Targeted replay form.
 'use client';
 
 import { useState } from 'react';

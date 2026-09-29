@@ -1,4 +1,3 @@
-// @polsia:user-owned — newsletter signup form (client island for /blog).
 // POSTs to /api/newsletter, writes a Lead tagged 'newsletter', renders an
 // inline thank-you card on 201 with a secondary CTA → /request-walkthrough
 // for readers who become procurement-ready. Field-level validation surfaces

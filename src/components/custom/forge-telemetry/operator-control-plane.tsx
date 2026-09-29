@@ -1,4 +1,3 @@
-// @polsia:user-owned — Operator Control Plane card for the admin missions
 // page. Pulls the admin telemetry overview + per-mission control-plane rows
 // and renders the Mission Control table with gate states, release-source
 // actors, and blended-cost cents per mission. Read-only island ('use

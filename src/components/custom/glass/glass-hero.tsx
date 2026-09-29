@@ -1,4 +1,3 @@
-// @polsia:user-owned — hero composition (eyebrow + headline + lede +
 // CTAs + form/panel) used by the home page. Grid is two columns at lg and
 // stacks on smaller breakpoints; the form shell uses a glass card so the
 // "leave a brief" surface reads as the highest-emphasis element.

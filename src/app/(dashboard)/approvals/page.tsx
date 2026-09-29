@@ -1,4 +1,3 @@
-// @polsia:user-owned — /approvals (brief, Step 5): one queue of everything
 // waiting on the signed-in person — projects at an approval step and paused
 // workflow runs. The heading is the count in words ("Two approvals need
 // you"); the empty state says so plainly. /forge/approvals redirects here.

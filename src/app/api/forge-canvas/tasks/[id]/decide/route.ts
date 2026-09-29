@@ -1,4 +1,3 @@
-// @polsia:user-owned — POST /api/forge-canvas/tasks/[id]/decide. Approve
 // or reject a paused approval task with a REQUIRED typed reason (same
 // governance rule as the mission gates: never an anonymous or reasonless
 // decision). Approval resumes the run in the safe test runtime until the

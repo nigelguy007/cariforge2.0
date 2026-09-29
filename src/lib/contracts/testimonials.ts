@@ -1,4 +1,3 @@
-// @polsia:user-owned — shared zod contract for the Testimonial resource. One
 // source of truth shared between the public GET /api/testimonials handler, the
 // admin GET/PATCH /api/admin/testimonials handler, the public
 // <TestimonialsList/> island, and the admin <AdminTestimonialsTable/> island.

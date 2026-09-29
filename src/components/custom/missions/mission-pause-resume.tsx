@@ -1,4 +1,3 @@
-// @polsia:user-owned — Pause / Resume controls.
 'use client';
 
 import { useState } from 'react';

@@ -1,4 +1,3 @@
--- @polsia:user-owned — TAG Caribbean pilot Oracle Council migration.
 -- Adds the OracleRole + SpecialistRole enums and the two governance tables
 -- (MissionOracleAssignment, StageHandoffSpecialistAttester) that round out
 -- the Elder-attestation rules. Forward-only: idempotent via the

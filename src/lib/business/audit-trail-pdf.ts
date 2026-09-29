@@ -1,4 +1,3 @@
-// @polsia:user-owned — server-only renderer for the /sample-brief audit-trail
 // PDF. Lays out a single A4 page with the worked-example mission from top to
 // bottom: title block (caseId + submitted/closed dates), §01 buyer brief with
 // the must-not-happen guard-rails, §02 council debate (5 advisor rows in a

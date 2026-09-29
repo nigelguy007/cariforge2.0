@@ -1,4 +1,3 @@
-// @polsia:user-owned — admin leads table client island. On mount (and
 // whenever the filter changes), fetches /api/admin/leads via apiFetch +
 // LeadList contract and renders the rows newest first. Three states
 // (loading / error / empty) + the populated table with a Type + Segment

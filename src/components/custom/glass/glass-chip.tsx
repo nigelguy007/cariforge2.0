@@ -1,4 +1,3 @@
-// @polsia:user-owned — translucent glass chip (pill, tag, badge) used for
 // stance labels, sector tags, eyebrows, rating chips. Composes the
 // .glass-chip utility from custom-style.css.
 

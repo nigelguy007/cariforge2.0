@@ -1,4 +1,3 @@
-// @polsia:user-owned — honest gap list. These strings are rendered on the
 // mission detail page AND asserted in tests/unit/forge/gaps.test.ts so a
 // future implementer can't silently remove a known gap.
 

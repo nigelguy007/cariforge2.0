@@ -1,4 +1,3 @@
-// @polsia:user-owned — the full front-door-to-Completed-mission journey, as
 // one continuous, re-runnable spec.
 //
 // Added 2026-09-04. Real user request: "explain the user journey process

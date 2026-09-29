@@ -1,4 +1,3 @@
-// @polsia:user-owned — coverage for the submitter-facing "we'll get back to
 // you" email (2026-09-04). Pins three things a regression could silently
 // break: the sign-up CTA is always present, the agent's read is inlined
 // when triage succeeded, and the email degrades sanely (still promises a

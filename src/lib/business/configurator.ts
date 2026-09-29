@@ -1,4 +1,3 @@
-// @polsia:user-owned — the workflow configurator's AI call. Same pattern as
 // forge/qa-review.ts: reads ANTHROPIC_API_KEY directly from process.env
 // (optional, gracefully-degrading feature, not a required deploy-time
 // value), never throws, degrades to 'unavailable' on any failure. Uses

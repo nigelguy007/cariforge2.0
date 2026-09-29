@@ -1,4 +1,3 @@
-// @polsia:user-owned — the one status badge for the simplified app (brief,
 // Step 7). Plain-language label from STATUS_UI, tone from STATUS_TONE, and an
 // icon per tone so state never rests on colour alone. Quiet by design: 1px
 // border, small radius, no pill, no uppercase.

@@ -1,4 +1,3 @@
-// @polsia:user-owned — Mission autonomy card. Read-only; reads
 // /api/forge/missions/[id]/telemetry and surfaces per-gate approve / edit /
 // reject counts, AI vs Human share, and the bucketised draft age.
 

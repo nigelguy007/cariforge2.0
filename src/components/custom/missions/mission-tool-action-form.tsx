@@ -1,4 +1,3 @@
-// @polsia:user-owned — Propose tool action.
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';

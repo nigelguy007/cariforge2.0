@@ -1,4 +1,3 @@
-// @polsia:user-owned — POST /api/forge/missions/:id/objections.
 
 import 'server-only';
 import { NextResponse } from 'next/server';

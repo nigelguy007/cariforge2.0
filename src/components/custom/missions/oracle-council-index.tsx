@@ -1,4 +1,3 @@
-// @polsia:user-owned — /pilot/oracle-council client island. Lists the user's
 // missions + the appointed Elder Oracle per mission; clicking one opens the
 // mission detail page where the gate panels & handoff attesters live.
 

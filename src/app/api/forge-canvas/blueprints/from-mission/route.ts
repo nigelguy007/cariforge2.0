@@ -1,4 +1,3 @@
-// @polsia:user-owned — POST /api/forge-canvas/blueprints/from-mission
 // (UX review C2, wireframe v2 screen 2d). Gate 5's handoff into the Forge:
 // creates the blueprint linked to a mission — seeded from the mission's
 // intake and authority boundary — or idempotently returns the one already

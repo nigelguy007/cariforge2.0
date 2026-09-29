@@ -1,4 +1,3 @@
-// @polsia:user-owned — the one mapping between the Configurator's seven
 // human-readable agent role names (contracts/configurator.ts,
 // CONFIGURATOR_AGENT_VALUES) and the Forge Crew's seeded registry slugs
 // (src/lib/seed.ts). Both Forge Guide (PR B, compiles a configurator

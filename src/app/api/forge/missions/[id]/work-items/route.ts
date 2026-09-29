@@ -1,4 +1,3 @@
-// @polsia:user-owned — GET/POST /api/forge/missions/:id/work-items.
 
 import 'server-only';
 import { NextResponse } from 'next/server';

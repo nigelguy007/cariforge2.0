@@ -1,4 +1,3 @@
-// @polsia:user-owned — shared zod contract for the Blog resource. Read-only
 // editor content surfaced on /blog — title, one-line hook, ISO date, topic
 // tag. One source of truth shared between the GET /api/blog handler (server)
 // and the <BlogIndex/> island (client). Keep client-importable: zod only,

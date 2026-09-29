@@ -1,4 +1,3 @@
-// @polsia:user-owned — pure handoff versioning helpers. No DB. Called from
 // /api/forge/missions/:id/handoffs and .../correction routes.
 
 import type { StageName } from '@/lib/contracts/forge';

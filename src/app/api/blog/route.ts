@@ -1,4 +1,3 @@
-// @polsia:user-owned — GET /api/blog. Static catalog of editor content
 // published for the regulated-buyer audience, served from an in-process
 // constant (no DB). The page goes through this handler anyway because the
 // project rule bans data-fetch in Server Components, and a client

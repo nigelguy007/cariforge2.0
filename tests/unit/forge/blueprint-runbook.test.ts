@@ -1,4 +1,3 @@
-// @polsia:user-owned — derived Blueprint + Runbook payloads parse back to zod.
 import { describe, expect, it } from 'vitest';
 import { blueprintFromHandoffs, runbookFromHandoffs } from '@/lib/business/forge/release';
 import { BlueprintRead, type HandoffItemT, RunbookRead } from '@/lib/contracts/forge';

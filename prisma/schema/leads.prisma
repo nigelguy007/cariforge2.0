@@ -1,4 +1,3 @@
-// @polsia:user-owned — Lead model for the cariforge.com front-door funnel.
 // One requirements submission per row from a regulated buyer landing on /.
 // Captures what they want to build, an optional reply-to email, when it
 // arrived, and whether the best-effort owner-email notification fired.

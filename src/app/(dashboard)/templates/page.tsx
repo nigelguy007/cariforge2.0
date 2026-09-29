@@ -1,4 +1,3 @@
-// @polsia:user-owned — Templates (nav restructure, 2026-09-05). No template
 // feature exists in this codebase yet — this is an honest placeholder, not
 // fabricated example data, with a clear path to the thing that does exist
 // today: describing a need in your own words on /missions/new.

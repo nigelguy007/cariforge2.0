@@ -1,4 +1,3 @@
-// @polsia:user-owned — section-level glass panel shell. Wraps a section's
 // content in a .glass-panel surface, with an optional aurora backdrop for
 // the higher-emphasis sections.
 

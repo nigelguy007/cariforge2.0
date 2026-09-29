@@ -1,4 +1,3 @@
-// @polsia:user-owned — POST /api/forge-canvas/blueprints/[slug]/validate.
 // Validates a blueprint definition (the in-editor draft, not necessarily a
 // saved version) against syntax + semantics + the live agent registry.
 // Never persists anything.

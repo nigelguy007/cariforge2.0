@@ -1,4 +1,3 @@
-// @polsia:user-owned — parity coverage: zod parses MissionDetail + every
 // sub-schema against a fixture; asserts cross-schema structural consistency.
 import { describe, expect, it } from 'vitest';
 import {

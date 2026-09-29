@@ -1,4 +1,3 @@
-// @polsia:user-owned — server-side forge service. Single seam every
 // /api/forge/* route handler calls into for DB reads / audit / status
 // transitions. Pure helpers live in src/lib/business/forge/index.ts — this
 // file threads them together with persistence.
@@ -24,7 +23,7 @@ import { prisma } from '@/lib/db';
 // 2026-09-04: switched from the framework's src/lib/email/send.ts to the
 // user-owned Resend-backed transport (identical interface) — see
 // send-resend.ts's header for why: the framework module's target
-// (POLSIA_EMAIL_PROXY_URL) is a confirmed-dead https://email-proxy.invalid
+// (PLATFORM_EMAIL_PROXY_URL) is a confirmed-dead https://email-proxy.invalid
 // placeholder, so gate-decision emails were silently never actually
 // sending (swallowed by this function's own catch below).
 import { sendEmail } from '@/lib/email/send-resend';
@@ -1116,9 +1115,9 @@ export async function decideGate(args: {
   // Best-effort decline notification to the pilot contact inbox. Email failure
   // must NOT roll back a ratified decision — the audit row is already written,
   // so we swallow proxy/transport errors. The TAG pilot contact inbox is the
-  // brief's declared `cari-forge@polsia.app` alias.
+  // brief's declared `nigelguy@iyansan.com` alias.
   try {
-    const recipient = process.env.POLSIA_COMPANY_EMAIL ?? 'cari-forge@polsia.app';
+    const recipient = process.env.COMPANY_EMAIL ?? 'nigelguy@iyansan.com';
     const message = tagOracleGateDecisionEmail({
       missionName: mission.name,
       gateIndex: args.gateIndex,

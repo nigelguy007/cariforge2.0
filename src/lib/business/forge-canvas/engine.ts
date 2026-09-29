@@ -1,4 +1,3 @@
-// @polsia:user-owned — pure execution engine for the Forge Canvas safe
 // test runtime (Release 1). No DB, no framework, no network: given a
 // validated blueprint, the agent registry snapshot and the accumulated run
 // state, it advances node-by-node until it reaches an approval (pause), an

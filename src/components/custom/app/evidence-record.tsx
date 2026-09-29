@@ -1,4 +1,3 @@
-// @polsia:user-owned — one project's Evidence record (brief, Step 5).
 // Three measures at most, then the five questions a buyer or auditor asks,
 // each its own collapsed <details> so the page opens quiet. Exports and
 // hash verification are retained from the existing assurance pack and

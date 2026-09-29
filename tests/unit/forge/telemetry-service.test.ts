@@ -1,4 +1,3 @@
-// @polsia:user-owned — derivation coverage for the autonomy + telemetry
 // helpers: gate decision counts, release actor, draft-age bucketisation,
 // admin overview scan.
 import { describe, expect, it } from 'vitest';

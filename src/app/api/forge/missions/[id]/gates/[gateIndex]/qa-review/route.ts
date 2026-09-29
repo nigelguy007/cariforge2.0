@@ -1,4 +1,3 @@
-// @polsia:user-owned — R7 (mission pipeline rebuild): GET
 // /api/forge/missions/:id/gates/:gateIndex/qa-review. Advisory-only QA
 // critique of the handoff currently sitting at this gate, computed fresh on
 // each call (no persistence in this lightweight pass — see

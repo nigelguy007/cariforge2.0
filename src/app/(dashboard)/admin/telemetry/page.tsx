@@ -1,4 +1,3 @@
-// @polsia:user-owned — Admin telemetry page (Server Component shell).
 // Server-only metadata + admin guard + island composition. No `await prisma`
 // in the render layer — the islands fetch via apiFetch.
 import type { Metadata } from 'next';

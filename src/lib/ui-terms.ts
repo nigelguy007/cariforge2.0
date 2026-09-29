@@ -1,4 +1,3 @@
-// @polsia:user-owned — presentation adapter for the simplified workspace.
 //
 // The DB enums, API contracts and governance rules in src/lib/contracts/forge.ts
 // are unchanged. Everything a first-time business user reads in the

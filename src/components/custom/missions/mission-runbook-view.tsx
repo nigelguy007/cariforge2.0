@@ -1,4 +1,3 @@
-// @polsia:user-owned — Runbook view client island.
 'use client';
 
 import * as React from 'react';

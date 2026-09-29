@@ -1,4 +1,3 @@
-// @polsia:user-owned — Replay deep-link page.
 import type { Metadata } from 'next';
 import Link from 'next/link';
 

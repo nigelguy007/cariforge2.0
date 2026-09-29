@@ -1,4 +1,3 @@
-// @polsia:user-owned — pure tool-action policy. Called from
 // /api/forge/missions/:id/tool-actions/* routes.
 
 import {

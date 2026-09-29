@@ -1,4 +1,3 @@
-// @polsia:user-owned — the compact approval dialog (brief, Step 4 + 7).
 //
 // Same governance contract as MissionGatePanel: POSTs the existing
 // GateDecide body {decision, controls?, reasonCode, reasonText, stageHandoffId}

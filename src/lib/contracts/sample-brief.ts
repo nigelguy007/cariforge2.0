@@ -1,4 +1,3 @@
-// @polsia:user-owned — shared zod contract for the /sample-brief resource.
 // One source of truth shared between the GET /api/sample-brief handler
 // (server) and the <SampleBriefDetail/> island (client). Models the editorial
 // worked-example payload: the buyer brief as submitted, the five advisor

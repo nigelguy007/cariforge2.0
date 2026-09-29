@@ -1,4 +1,3 @@
-// @polsia:user-owned — Blockers panel: outstanding objections + outstanding
 // tool decisions + paused state. Client island reads the same mission detail.
 
 'use client';
