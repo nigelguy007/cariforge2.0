@@ -114,4 +114,68 @@ export async function seed(): Promise<void> {
       update: { name: t.name, description: t.description, category: t.category },
     });
   }
+
+  await seedFundraiseLoop(prisma);
+}
+
+// Fundraise loop: the config singleton + the starting investor segments.
+// `update: {}` — create-only, so founder edits in /admin/fundraise (labels,
+// queries, universe estimates, pauses, the kill switch) are never overwritten
+// on redeploy. sendingEnabled defaults to OFF.
+async function seedFundraiseLoop(prisma: typeof import('@/lib/db')['prisma']): Promise<void> {
+  await prisma.fundraiseLoopConfig.upsert({
+    where: { id: 'default' },
+    create: { id: 'default' },
+    update: {},
+  });
+
+  const segments = [
+    {
+      key: 'caribbean-latam-seed',
+      label: 'Caribbean & LatAm pre-seed/seed VCs',
+      query:
+        'Pre-seed and seed VC partners investing in Caribbean or Latin American B2B software startups',
+      estUniverse: 150,
+      lagDays: 21,
+    },
+    {
+      key: 'emerging-markets-impact',
+      label: 'Emerging-market impact seed funds',
+      query: 'Seed-stage impact VCs backing B2B SaaS or applied AI in emerging markets',
+      estUniverse: 400,
+      lagDays: 21,
+    },
+    {
+      key: 'govtech-applied-ai-seed',
+      label: 'US/UK govtech & applied-AI seed VCs',
+      query:
+        'Seed VCs in the US or UK investing in govtech, public-sector software or applied AI for enterprises',
+      estUniverse: 600,
+      lagDays: 14,
+    },
+    {
+      key: 'development-finance',
+      label: 'Development finance & multilateral innovation funds',
+      query:
+        'Development finance institutions and multilateral innovation funds that make equity investments in Caribbean technology companies',
+      estUniverse: 60,
+      lagDays: 60,
+    },
+    {
+      key: 'diaspora-angels',
+      label: 'Caribbean diaspora angels & networks',
+      query:
+        'Angel investors and angel networks with Caribbean diaspora ties investing in early-stage software',
+      estUniverse: 200,
+      lagDays: 14,
+    },
+  ] as const;
+
+  for (const seg of segments) {
+    await prisma.fundraiseSegment.upsert({
+      where: { key: seg.key },
+      create: { ...seg, mode: 'vc', status: 'ACTIVE' },
+      update: {},
+    });
+  }
 }

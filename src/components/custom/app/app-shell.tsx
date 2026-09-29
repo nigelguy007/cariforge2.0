@@ -148,6 +148,9 @@ export function AppShell({ children }: AppShellProps) {
                     <DropdownMenuItem asChild>
                       <Link href="/admin/telemetry">Usage</Link>
                     </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link href="/admin/fundraise">Fundraise loop</Link>
+                    </DropdownMenuItem>
                   </>
                 ) : null}
                 <DropdownMenuSeparator />

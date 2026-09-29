@@ -24,6 +24,11 @@ const ADMIN_LINKS: readonly SettingsLink[] = [
   },
   { href: '/admin/missions', title: 'All projects', hint: 'Every project across every user.' },
   { href: '/admin/telemetry', title: 'Usage', hint: 'Platform usage and activity.' },
+  {
+    href: '/admin/fundraise',
+    title: 'Fundraise loop',
+    hint: 'Approve investor outreach batches and log outcomes.',
+  },
 ];
 
 function SettingsRow({ link }: { link: SettingsLink }) {
