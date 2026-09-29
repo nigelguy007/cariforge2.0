@@ -1,4 +1,3 @@
-// @polsia:user-owned — real AI drafting for a mission's step output. Same
 // pattern as business/configurator.ts and forge/qa-review.ts: reads
 // AI_GATEWAY_API_KEY (falling back to ANTHROPIC_API_KEY) from process.env,
 // routes through Vercel's AI Gateway, never throws, degrades to

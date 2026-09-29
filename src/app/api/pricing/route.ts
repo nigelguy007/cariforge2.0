@@ -1,4 +1,3 @@
-// @polsia:user-owned — GET /api/pricing. Static catalog of inquiry-only
 // engagement tiers, served from an in-process constant. The page goes
 // through this handler anyway because the project rule bans data-fetch in
 // Server Components, and a client `apiFetch('/api/pricing')` keeps the

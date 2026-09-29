@@ -1,4 +1,3 @@
-// @polsia:user-owned — R7 (mission pipeline rebuild): QA-review layer ahead
 // of the approval form. Reference: apps/web/components/QAReviewCard on the
 // real platform — an independent agent critiques the artefact before the
 // human sees Approve/Return/Refuse. Advisory only: this NEVER throws and
@@ -6,8 +5,7 @@
 // same as the reference platform's own "QA reviewer couldn't run" state.
 //
 // Reads ANTHROPIC_API_KEY directly from process.env rather than through
-// src/lib/env.ts — that file is @polsia:shared/composed, hand-edited only
-// through its declared module-contribution slots by the Polsia installer,
+// through its declared module-contribution slots by the Platform installer,
 // and this is an optional, gracefully-degrading feature rather than a
 // required deploy-time config value.
 

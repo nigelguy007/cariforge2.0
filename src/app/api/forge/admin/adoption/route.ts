@@ -1,4 +1,3 @@
-// @polsia:user-owned — GET /api/forge/admin/adoption. Admin-only adoption &
 // realised-value dashboard (Section 9 of the Aug 2026 enterprise-platform
 // handoff doc) — real aggregates over every Mission/Objection row, no
 // seeded or sample data. requireForgeAdmin returns 401 signed-out, 403

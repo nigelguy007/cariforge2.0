@@ -1,4 +1,3 @@
-// @polsia:user-owned — assembles the assurance pack (Section 8 of the Aug
 // 2026 enterprise-platform handoff doc: "Each build should generate a
 // standard assurance pack") from a mission's REAL, already-persisted data —
 // no server-only imports here on purpose: this is pure assembly + a real

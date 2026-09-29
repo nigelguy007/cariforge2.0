@@ -1,4 +1,3 @@
-// @polsia:user-owned — the five-step progress strip (brief, Step 4). This is
 // the one memorable element on the project page: a single continuous
 // segmented bar, one segment per step. A completed segment is fully filled
 // and can be revisited; the current segment gets a lighter in-progress fill

@@ -1,4 +1,3 @@
-// @polsia:user-owned — /how-it-works. Holds the Oracles council, the
 // seven-agent core (brief summary only), and the real brief-intake form —
 // everything that used to live on the homepage below the hero, before the
 // homepage became a single fixed-viewport hero (see src/app/(setup)/page.tsx
@@ -416,10 +415,10 @@ export default function HowItWorksPage() {
             <p className="mt-4 text-small text-muted-foreground">
               Need to reach a named human before submitting?{' '}
               <a
-                href="mailto:cari-forge@polsia.app?subject=CARI%20Forge%20pilot%20enquiry"
+                href="mailto:nigelguy@iyansan.com?subject=CARI%20Forge%20pilot%20enquiry"
                 className="link-brand"
               >
-                cari-forge@polsia.app
+                nigelguy@iyansan.com
               </a>{' '}
               or read{' '}
               <Link href="/faq" className="link-brand">

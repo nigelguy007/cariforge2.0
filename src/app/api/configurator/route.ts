@@ -1,4 +1,3 @@
-// @polsia:user-owned — POST /api/configurator. Public, unauthenticated —
 // this is a pre-sales tool a prospect uses before they've submitted
 // anything real, same trust tier as POST /api/leads. Computed fresh on
 // each call, nothing persisted (this is explicitly indicative and

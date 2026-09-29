@@ -1,4 +1,3 @@
-// @polsia:user-owned — real AI review of a freshly-drafted step output,
 // one verdict per specialist role. Same AI Gateway pattern as ai-draft.ts/
 // configurator.ts/qa-review.ts: never throws, degrades to 'unavailable' on
 // any failure (a review outage must never block a human from deciding the

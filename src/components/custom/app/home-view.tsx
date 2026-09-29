@@ -1,4 +1,3 @@
-// @polsia:user-owned — Home (nav restructure, 2026-09-05, Kore.ai-Artemis
 // comparison brief): the new default landing page after sign-in. A goal
 // input hands straight off to the existing chat intake flow (?intake= into
 // /missions/new, unchanged); a compact list shows the 3-5 most recently

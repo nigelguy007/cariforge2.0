@@ -1,4 +1,3 @@
-// @polsia:user-owned — Single objection card.
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';

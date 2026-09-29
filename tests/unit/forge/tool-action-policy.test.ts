@@ -1,4 +1,3 @@
-// @polsia:user-owned — tool-action policy coverage. Pure logic only.
 import { describe, expect, it } from 'vitest';
 import {
   assertExternalApproved,

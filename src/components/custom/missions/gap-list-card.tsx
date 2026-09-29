@@ -1,4 +1,3 @@
-// @polsia:user-owned — Gap list card island.
 'use client';
 
 import { FORGE_GAPS } from '@/lib/business/forge/gaps';

@@ -1,4 +1,3 @@
-// @polsia:user-owned — Release 1 vertical slice of the CARI Forge Agent
 // Builder (docs/HANDOVER: CARI_Forge_Agent_Builder_Reverse_Engineering —
 // Forge Canvas + Agent registry + CARI Blueprint + safe test runtime +
 // Approval Desk pause/resume + run trace). Deliberately minimal: only the

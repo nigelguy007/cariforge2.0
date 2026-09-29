@@ -1,4 +1,3 @@
-// @polsia:user-owned — the single collapsed "Supporting detail" region
 // (brief, Step 4 + 7). Closed, it is one row that summarises concerns,
 // evidence and the decision record. Open, it lists only what a submitter
 // (or, for admin-only groups, an admin) has something to do or read about:

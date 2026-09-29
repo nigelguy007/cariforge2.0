@@ -1,14 +1,13 @@
-// @polsia:user-owned — real email transport via Resend's API, standing in
 // for the framework's src/lib/email/send.ts.
 //
 // WHY THIS FILE EXISTS (2026-09-04): the framework module's transport POSTs
-// to `POLSIA_EMAIL_PROXY_URL`, which in this deploy is literally
+// to `PLATFORM_EMAIL_PROXY_URL`, which in this deploy is literally
 // `https://email-proxy.invalid` — `.invalid` is an RFC 2606 reserved suffix
 // guaranteed to never resolve. That was confirmed by inspecting the actual
-// Vercel env var value directly, not inferred — the Polsia email
+// Vercel env var value directly, not inferred — the Platform email
 // integration for this project was never really configured; it's a
 // scaffold-time placeholder. So no amount of finding the "right"
-// POLSIA_API_KEY would have fixed sending; there was nothing real behind
+// PLATFORM_API_KEY would have fixed sending; there was nothing real behind
 // the proxy to authenticate against. This transport talks to Resend
 // directly instead, using a RESEND_API_KEY the user has since added to
 // Vercel. src/lib/email/send.ts is framework-owned (its own header: "DO NOT
@@ -29,7 +28,7 @@ export interface SendEmailInput {
   text?: string;
   /** Accepted for interface compatibility with the framework module; no
    *  caller currently sets it, and Resend's reply-threading model doesn't
-   *  map onto Polsia's proxy-specific message-id scheme, so it's a no-op
+   *  map onto Platform's proxy-specific message-id scheme, so it's a no-op
    *  here rather than a partial, unverifiable reimplementation. */
   replyToEmailId?: string;
 }

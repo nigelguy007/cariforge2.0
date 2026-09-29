@@ -1,4 +1,3 @@
-// @polsia:user-owned — owner-notification body for the front-door brief
 // form (/how-it-works, source='home'). Mirrors
 // walkthrough-owner-notification.ts's pattern (kept out of the route
 // handler so it stays slim, uses the shared renderEmail shell), which the

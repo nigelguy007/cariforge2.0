@@ -1,4 +1,3 @@
-// @polsia:user-owned — POST /api/forge/intake-chat. One turn of the
 // chat-based project-intake flow: takes the conversation so far, returns
 // CariForge's next reply plus whatever structured intake fields it has
 // extracted. No mission exists yet at this point — any signed-in user may

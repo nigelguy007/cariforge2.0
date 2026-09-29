@@ -1,4 +1,3 @@
-// @polsia:user-owned — DB service for the Forge Canvas slice. Wraps the
 // pure engine (engine.ts) and validator (validate.ts) with Prisma
 // persistence, following the same conventions as business/forge/service.ts:
 // FORGE_*-style thrown error codes mapped by the route layer, ownership

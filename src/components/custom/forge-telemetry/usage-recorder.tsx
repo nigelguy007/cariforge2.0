@@ -1,4 +1,3 @@
-// @polsia:user-owned — Dev / operator helper: POST a model+chat usage
 // payload through the cost-attribution pipeline so a tester can confirm the
 // UI surfaces an HONEST `unknown` badge when the model is missing from
 // COST_TABLE. Read from existing patterns (MissionHandoffForm).

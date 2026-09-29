@@ -1,4 +1,3 @@
-// @polsia:user-owned — one project's evidence record (Server Component
 // shell).
 import type { Metadata } from 'next';
 import { EvidenceRecord } from '@/components/custom/app/evidence-record';

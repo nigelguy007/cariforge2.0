@@ -1,4 +1,3 @@
-// @polsia:user-owned — GET /api/admin/leads/[id]/attachment. Admin-only
 // download of a lead's attached document (LeadAttachment.data, stored
 // directly in Postgres). Same auth gate as /api/admin/leads: 401 signed-out,
 // 403 non-admin. Streams the file back with its real content-type and a

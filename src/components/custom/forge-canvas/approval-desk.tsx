@@ -1,4 +1,3 @@
-// @polsia:user-owned — Approval Desk (handover §17, Release 1 scope):
 // open approval tasks first, each showing the upstream evidence before
 // the decision controls; a typed reason is REQUIRED either way, matching
 // the mission gates' governance rule. Deciding resumes (or terminates)

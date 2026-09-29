@@ -1,4 +1,3 @@
-// @polsia:user-owned — static dataset for the /sample-brief worked-example
 // page. Server-only: imported by /api/sample-brief/route.ts, which parses it
 // through the shared SampleBrief contract. Holds the editorial narrative of
 // one complete CARI Forge run — a regulated European insurer's claims-triage

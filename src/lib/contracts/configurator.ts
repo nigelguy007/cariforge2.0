@@ -1,4 +1,3 @@
-// @polsia:user-owned — shared zod contract for the workflow configurator
 // (Priority-11 item from the Aug 2026 enterprise-platform handoff doc:
 // "Allow prospects to describe a workflow and receive an indicative
 // readiness profile and agent workflow"). Same shape convention as

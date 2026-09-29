@@ -1,4 +1,3 @@
-// @polsia:user-owned — shared zod contract for the newsletter waitlist form
 // rendered on /blog. One source of truth shared between the POST
 // /api/newsletter handler (server) and the <NewsletterSignupForm/> island
 // (client). Keep this module client-importable: zod only, no server-only

@@ -1,4 +1,3 @@
-// @polsia:user-owned — the compact Projects list (brief, Step 5). One row
 // per project: name, plain-language step, one status badge, last update and
 // a single open arrow. No cards, no tag chips, no confidence percentages —
 // those live inside the project. Reads the same /api/forge/missions route

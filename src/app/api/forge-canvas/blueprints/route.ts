@@ -1,4 +1,3 @@
-// @polsia:user-owned — /api/forge-canvas/blueprints. GET lists the latest
 // version of every saved CARI Blueprint; POST validates and saves a NEW
 // immutable version (never mutates a prior one). Semantic validation
 // failures come back as a 422 carrying the node-anchored issue list so the

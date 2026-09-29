@@ -1,4 +1,3 @@
-// @polsia:user-owned — Admin mission dashboard: a Server Component gating
 // with requireAdminOnPage and rendering a 'use client' island.
 
 import type { Metadata } from 'next';

@@ -1,4 +1,3 @@
-// @polsia:user-owned — the bridge from the public front door into the
 // Projects list. When the signed-in user's email matches a brief that no
 // project has converted yet, this card surfaces it above the list. "Start a
 // project" opens /missions/new with the brief text pre-filled and the lead

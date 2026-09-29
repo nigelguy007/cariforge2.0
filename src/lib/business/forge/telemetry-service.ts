@@ -1,4 +1,3 @@
-// @polsia:user-owned — pure derived views for the autonomy + telemetry slice:
 // gate decision counts per specialist/gate, release actor derivation from
 // ApprovalActorTag rows, draft-age bucketisation, and admin overview scan.
 // No DB; called from /api/forge/missions/[id]/telemetry and

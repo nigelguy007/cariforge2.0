@@ -1,4 +1,3 @@
-// @polsia:user-owned — shared zod contract for the chat-based project-intake
 // flow. Client-importable: zod only, no server-only imports (same rule as
 // contracts/forge.ts). This is a thin front end for MissionCreate — the chat
 // gathers the same MissionIntakeStructure fields conversationally instead of

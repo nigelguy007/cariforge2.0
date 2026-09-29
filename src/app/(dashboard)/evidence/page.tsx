@@ -1,4 +1,3 @@
-// @polsia:user-owned — Evidence index page (brief, Step 5). One row per
 // project, leading to its evidence record.
 import type { Metadata } from 'next';
 import { EvidenceIndex } from '@/components/custom/app/evidence-index';

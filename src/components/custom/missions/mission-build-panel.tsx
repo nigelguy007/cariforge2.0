@@ -1,4 +1,3 @@
-// @polsia:user-owned — UX review C2 (wireframe v2, screen 2d): Gate 5's
 // handoff into the Forge. Renders only once the mission has reached the
 // Software Build gate (Governance approved → currentStageIndex 4). If a
 // blueprint is already linked to this mission it deep-links into the

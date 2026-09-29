@@ -1,4 +1,3 @@
-// @polsia:user-owned — the Evidence index (brief, Step 5). One row per
 // project: name, status, the plain-language line for where it stands, and
 // an open arrow to /evidence/[slug]. Reads the same /api/forge/missions
 // route as the Projects list; nothing about the data changed.

@@ -1,4 +1,3 @@
-// @polsia:user-owned — pure derived views: release status, blueprint, runbook.
 // No DB. Called from /api/forge/missions/:id/release, /blueprint, /runbook.
 
 import type {

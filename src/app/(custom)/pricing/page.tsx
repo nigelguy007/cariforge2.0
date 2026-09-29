@@ -1,4 +1,3 @@
-// @polsia:user-owned — /pricing. Server Component that exports metadata.
 // The three inquiry-only tiers live in a single client island
 // (<PricingTiers/>) that GETs /api/pricing and renders three styled cards.
 // No data-fetch in the page body — server work is the static metadata

@@ -1,4 +1,3 @@
-// @polsia:user-owned — shared zod contract for POST /api/forge-canvas/guide
 // (PR B, Forge Guide). Same graceful-degradation shape as
 // contracts/configurator.ts: the client never special-cases a thrown
 // error — even 'unavailable' still carries a compiled, valid, runnable

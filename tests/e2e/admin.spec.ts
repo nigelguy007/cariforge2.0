@@ -1,4 +1,3 @@
-// @polsia:user-owned — e2e specs for the admin role (QA Admin, promoted via
 // a one-time Supabase SQL update after real sign-up — see tests/e2e/README.md).
 
 import { expect, test } from '@playwright/test';

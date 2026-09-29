@@ -1,4 +1,3 @@
-// @polsia:user-owned — GET /api/forge/admin/telemetry.
 // Admin-only overview: autonomy ladder + per-company credit ledger
 // + chat cost by day. requireForgeAdmin returns 401 signed-out, 403
 // non-admin.

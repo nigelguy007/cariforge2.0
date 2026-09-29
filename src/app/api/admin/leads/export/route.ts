@@ -1,4 +1,3 @@
-// @polsia:user-owned — GET /api/admin/leads/export. Admin-only CSV download.
 // Same session/role gate as the JSON listing; the link in the admin table hits
 // this endpoint as a same-origin browser GET so the auth cookie rides along and
 // the browser handles the attachment.

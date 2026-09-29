@@ -1,4 +1,3 @@
-// @polsia:user-owned — Forge Canvas builder (Agent Builder Release 1).
 // Kore.ai-inspired layout, original implementation: left node palette,
 // centre zoomable canvas, right configuration inspector, top toolbar
 // (name, validate, save, run), bottom validation panel. The canvas is a

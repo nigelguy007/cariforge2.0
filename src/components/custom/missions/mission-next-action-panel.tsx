@@ -1,4 +1,3 @@
-// @polsia:user-owned — Mission Control "next human action" panel.
 'use client';
 
 import * as React from 'react';

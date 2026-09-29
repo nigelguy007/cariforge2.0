@@ -1,4 +1,3 @@
-// @polsia:user-owned — which URL prefixes belong to the signed-in
 // application (rendered inside AppShell with its own four-item PrimaryNav)
 // versus the public marketing site (rendered with SiteNav/SiteFooter).
 // Read by site-nav.tsx so the marketing chrome steps aside on app routes,

@@ -1,4 +1,3 @@
-// @polsia:user-owned — POST /api/forge/missions/:id/elder-oracle.
 // Admin-only assignment of the named Elder Oracle for a mission. Upsert on
 // (missionId, 'ElderOracle'). Records an audit row.
 

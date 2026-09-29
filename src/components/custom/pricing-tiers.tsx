@@ -1,4 +1,3 @@
-// @polsia:user-owned — /pricing client island. Loads the three inquiry-only
 // tiers from /api/pricing through apiFetch + the shared PricingTiers
 // contract, then renders a Card per tier with a bullet list of inclusions and
 // an inquiry CTA that anchors to the home page's brief intake form. Loading

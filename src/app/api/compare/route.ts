@@ -1,4 +1,3 @@
-// @polsia:user-owned — GET /api/compare. Static catalog copy for the
 // /compare procurement evaluation page: six vendors (CARI Forge plus five
 // AI-build platforms named in the brief) × five criteria named in the
 // brief. Served from an in-process `as const` constant with no DB read and

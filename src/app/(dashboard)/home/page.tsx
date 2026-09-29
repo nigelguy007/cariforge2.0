@@ -1,4 +1,3 @@
-// @polsia:user-owned — Home (nav restructure, 2026-09-05): the new default
 // landing page after sign-in. See home-view.tsx for the actual content;
 // this file only owns the route's metadata (a Server Component can't sit
 // inside the same 'use client' file as the hooks HomeView needs).

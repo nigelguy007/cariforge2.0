@@ -2,7 +2,6 @@
 // see tests/unit/forge/ai-draft.test.ts's header comment for why jsdom (the
 // suite default) can't run this without it.
 //
-// @polsia:user-owned — mirrors ai-draft.test.ts's exact pattern. The
 // behavioural guarantee that matters most: a missing/unusable AI Gateway key
 // must degrade to { status: 'unavailable' } and never throw, because a chat
 // outage must never be the reason a project can't be started (the static

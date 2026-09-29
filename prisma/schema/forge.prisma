@@ -1,4 +1,3 @@
-// @polsia:user-owned — CARI Forge control plane schema. Tracks typed
 // structured handoffs across 5 lifecycle stages (Discovery → Readiness →
 // Workflow → Governance → SoftwareBuild) with attribution, gates, evidence
 // trail, objections, bounded external tool actions, and an append-only audit

@@ -1,4 +1,3 @@
-// @polsia:user-owned — POST /api/newsletter. The blog-waitlist write path:
 // captures a single work email into the existing Lead table tagged
 // `source = 'newsletter'` so the admin leads view (and CSV export) keep these
 // distinct from front-door briefs and procurement walkthroughs. Persists the
@@ -29,7 +28,7 @@ function fieldErrorBody(error: z.ZodError): { errors: Record<string, string> } {
 }
 
 function ownerEmailAddress(): string | undefined {
-  return process.env.POLSIA_COMPANY_EMAIL ?? process.env.POLSIA_OWNER_EMAIL;
+  return process.env.COMPANY_EMAIL ?? 'nigelguy@iyansan.com';
 }
 
 export async function POST(req: Request) {

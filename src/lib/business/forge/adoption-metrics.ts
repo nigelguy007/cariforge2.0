@@ -1,4 +1,3 @@
-// @polsia:user-owned — pure derived views for the "adoption & realised
 // value" measurement dashboard (Section 9 of the Aug 2026 enterprise-
 // platform handoff doc). Sibling to telemetry-service.ts, same convention:
 // no DB here, called from service.ts's getAdoptionMetrics with real rows.

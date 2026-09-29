@@ -1,4 +1,3 @@
-// @polsia:user-owned — /testimonials. Server Component that exports per-page
 // metadata (title, description, canonical, OG), emits Organization +
 // BreadcrumbList JSON-LD via <JsonLd/>, and mounts a single client island
 // (<TestimonialsList/>) that GETs /api/testimonials and renders the approved

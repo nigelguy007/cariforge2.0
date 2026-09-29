@@ -1,4 +1,3 @@
-// @polsia:user-owned — the auto-advance policy engine. User instruction
 // (2026-09-05, quoting their own architecture doc verbatim): "The
 // Supervisor should auto-advance when all of these are true: required
 // evidence is present AND confidence >= configured threshold AND no

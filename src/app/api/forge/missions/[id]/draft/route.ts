@@ -1,4 +1,3 @@
-// @polsia:user-owned — POST /api/forge/missions/:id/draft. Drafts the
 // project's current step output with real AI and submits it via the
 // existing submitHandoff() write path — same authorization submitHandoff
 // already enforces (the mission's own owner, or an admin; anyone else gets

@@ -1,4 +1,3 @@
-// @polsia:user-owned — at most three facts CariForge has already prepared
 // for the current step (brief, Step 4). Labelled so the reader knows who
 // wrote it; rendered as a plain definition list, not a card grid.
 

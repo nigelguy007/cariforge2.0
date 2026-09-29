@@ -1,4 +1,3 @@
-// @polsia:user-owned — TAG Oracle Council governance coverage. Pure:
 // asserts the five names, the Elder requirements (gates 0 + 4), and the
 // specialist-attester precondition. Called from decideGate so any drift
 // surfaces here before a gate decision lands.

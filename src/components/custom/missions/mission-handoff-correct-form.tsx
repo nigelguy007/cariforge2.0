@@ -1,4 +1,3 @@
-// @polsia:user-owned — Correct a handoff (supersede with new version).
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';

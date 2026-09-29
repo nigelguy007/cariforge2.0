@@ -1,4 +1,3 @@
-// @polsia:user-owned — Forge Guide (PR B): deterministic TypeScript that
 // turns a workflow-configurator result into a starter CARI Blueprint. This
 // is NOT a second Claude persona and does not make its own model call —
 // it reuses whatever getConfiguratorResult(description) already returned

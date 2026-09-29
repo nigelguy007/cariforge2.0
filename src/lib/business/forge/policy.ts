@@ -1,4 +1,3 @@
-// @polsia:user-owned — pure attestation + reason-code policy. Called from
 // /api/forge/missions/:id/gates/:gateIndex/decide and approved handlers.
 
 import {

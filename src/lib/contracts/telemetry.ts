@@ -1,4 +1,3 @@
-// @polsia:user-owned — shared zod contract for the telemetry surface.
 // Single source of truth for /api/forge/missions/:id/telemetry,
 // /api/forge/admin/telemetry, and the islands that consume them. No
 // server-only imports (safe for the client bundle).

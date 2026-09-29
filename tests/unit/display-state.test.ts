@@ -1,4 +1,3 @@
-// @polsia:user-owned — Home's compact four-state badge must cover every real
 // MissionStatus and, critically, must fail safe (never toward "done") for
 // any status it hasn't been explicitly taught. See displayStateFor in
 // ui-terms.ts.

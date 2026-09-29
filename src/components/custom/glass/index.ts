@@ -1,4 +1,3 @@
-// @polsia:user-owned — barrel for the Liquid Glass primitives.
 
 export {
   GlassCard,

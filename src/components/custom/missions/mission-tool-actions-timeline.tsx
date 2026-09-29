@@ -1,4 +1,3 @@
-// @polsia:user-owned — Tool action timeline.
 'use client';
 
 import { useState } from 'react';

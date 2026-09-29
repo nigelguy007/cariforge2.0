@@ -1,4 +1,3 @@
-// @polsia:user-owned — GET /api/admin/leads. Admin-only listing of every Lead.
 // Gates the read by role-`admin` at the top of the handler (returns 401 when
 // the visitor is unauthenticated, 403 when they're signed in but not an admin)
 // so the client island's error state surfaces a useful message instead of a

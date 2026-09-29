@@ -1,4 +1,3 @@
-// @polsia:user-owned — typography choices for CARI Forge.
 //
 // We deliberately use Google Fonts via a CSS @import in custom-style.css
 // rather than next/font, because src/app/layout.tsx is framework-owned and

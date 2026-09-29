@@ -1,4 +1,3 @@
-// @polsia:user-owned — release derivation tests.
 import { describe, expect, it } from 'vitest';
 import {
   blueprintFromHandoffs,

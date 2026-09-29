@@ -1,4 +1,3 @@
-// @polsia:user-owned — centralized schema.org JSON-LD payloads. Single source
 // of truth so the home, pricing, and blog pages don't drift apart on
 // name/url/logo. Server-renderable anywhere; no `server-only`, no DB, no
 // `next/headers` — the existing <JsonLd/> component handles rendering.

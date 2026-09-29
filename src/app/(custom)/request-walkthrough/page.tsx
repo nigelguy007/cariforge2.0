@@ -1,4 +1,3 @@
-// @polsia:user-owned — /request-walkthrough. Deeper-intent form for
 // procurement-grade buyers who have moved past the front-door one-line
 // brief and want a pre-procurement engagement. Server Component that
 // exports metadata only; the <WalkthroughForm/> client island lives just
@@ -78,7 +77,7 @@ export default function RequestWalkthroughPage() {
                     2
                   </span>
                   <span>
-                    An email fires through the Polsia email proxy to the operator with the full
+                    An email fires through the Platform email proxy to the operator with the full
                     payload — full name, work email, organisation, role, segment, and your
                     two-or-three-sentence problem statement.
                   </span>

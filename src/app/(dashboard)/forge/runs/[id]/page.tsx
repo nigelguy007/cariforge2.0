@@ -1,4 +1,3 @@
-// @polsia:user-owned — /forge/runs/[id]: node-by-node run trace.
 'use client';
 
 import { use } from 'react';

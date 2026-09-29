@@ -1,4 +1,3 @@
-// @polsia:user-owned — Blueprint page (Server Component shell).
 import type { Metadata } from 'next';
 import { MissionBlueprintClient } from '@/components/custom/missions/mission-blueprint-client';
 

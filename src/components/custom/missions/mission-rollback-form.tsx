@@ -1,4 +1,3 @@
-// @polsia:user-owned — Rollback form (target handoff).
 'use client';
 
 import { useState } from 'react';

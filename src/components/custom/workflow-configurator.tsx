@@ -1,4 +1,3 @@
-// @polsia:user-owned — the workflow configurator (Priority-11 item from the
 // Aug 2026 enterprise-platform handoff doc). A prospect describes what they
 // want to build in free text; POSTs to /api/configurator; renders the
 // indicative fit read-out inline. Modeled on brief-intake-form.tsx's shape

@@ -1,4 +1,3 @@
-// @polsia:user-owned — TAG Caribbean pilot governance layer. Pure: no DB.
 // Defines the five named human gates of The Oracles and the Elder Oracle
 // pre-conditions that gate decisions must satisfy before the existing
 // decideGate logic is allowed to run. Called from /api/forge/* auth seam

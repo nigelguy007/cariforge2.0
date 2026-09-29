@@ -1,4 +1,3 @@
-// @polsia:user-owned — POST /api/forge/missions/[id]/telemetry/usage.
 // Records a ModelUsageRecord (per-mission) or a ChatUsageRecord (mission-scope).
 // Owner-scoped. Unknown model returns { unknownCost: true, costCents: 0 }.
 import 'server-only';

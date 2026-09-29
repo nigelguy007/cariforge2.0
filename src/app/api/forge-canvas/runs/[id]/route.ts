@@ -1,4 +1,3 @@
-// @polsia:user-owned — GET /api/forge-canvas/runs/[id]. Full run trace:
 // node-by-node execution evidence + the open approval task if paused.
 // Owner-only (admins may read any run).
 

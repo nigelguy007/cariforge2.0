@@ -1,4 +1,3 @@
-// @polsia:user-owned — GET /api/forge/missions/[id]. Owner-scoped detail.
 
 import 'server-only';
 import { headers } from 'next/headers';

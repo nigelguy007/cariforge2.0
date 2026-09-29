@@ -1,4 +1,3 @@
-// @polsia:user-owned — Admin adoption & realised-value dashboard island
 // (Section 9 of the Aug 2026 enterprise-platform handoff doc). Sibling to
 // AdminTelemetryOverview, same fetch/render pattern. Real aggregates over
 // every Mission/Objection row — a small pilot with few real missions will

@@ -1,4 +1,3 @@
-// @polsia:user-owned — POST /api/forge/missions/:id/handoffs/:handoffId/attesters.
 // Any authed user may add themselves as a typed specialist attester on a
 // handoff. Records an audit row. Idempotent on (handoffId, userId).
 

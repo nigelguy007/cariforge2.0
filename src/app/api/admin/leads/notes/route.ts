@@ -1,4 +1,3 @@
-// @polsia:user-owned — PATCH /api/admin/leads/notes. Admin-only write that
 // persists an operator note on a single Lead row.
 //
 // Same role-`admin` JSON gate as the other /api/admin/leads/* handlers — no

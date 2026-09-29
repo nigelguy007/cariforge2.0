@@ -1,4 +1,3 @@
-// @polsia:user-owned — Replay button: re-runs a model/chat usage payload
 // through the cost-attribution logic so a tester can preview the HONEST
 // marker without mutating database state. Pure derivation preview.
 

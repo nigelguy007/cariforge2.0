@@ -1,4 +1,3 @@
-// @polsia:user-owned — POST /api/forge/missions/:id/handoffs.
 
 import 'server-only';
 import { NextResponse } from 'next/server';

@@ -1,4 +1,3 @@
-// @polsia:user-owned — POST /api/forge-canvas/guide (PR B, Forge Guide).
 // Reuses the existing workflow configurator (getConfiguratorResult — no
 // second Claude persona, no extra model call) and compiles its result into
 // a starter CARI Blueprint with deterministic TypeScript (guide.ts). Never

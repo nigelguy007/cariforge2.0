@@ -1,4 +1,3 @@
-// @polsia:user-owned — POST /api/forge/missions/[id]/telemetry/release-source.
 // Explicit re-stamp of the mission's ReleaseSource row. Idempotent on
 // missionId @unique. Owner-scoped (admin can re-stamp any mission).
 import 'server-only';

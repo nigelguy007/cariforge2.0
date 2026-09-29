@@ -1,4 +1,3 @@
-// @polsia:user-owned — apiErrorMessage extracts the real server message from
 // an apiFetch failure. Two response shapes exist across /api/forge/* routes:
 // `{ error: string }` (a curated message, e.g. forgeErrorResponse) and
 // `{ errors: Record<string,string> }` (a 400 field-validation failure, every

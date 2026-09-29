@@ -1,4 +1,3 @@
-// @polsia:user-owned — POST /api/leads. The single funnel's write path for
 // BOTH the front-door home-page brief intake (source='home', default) and the
 // procurement-grade /request-walkthrough form (source='walkthrough'). Persists
 // the lead FIRST (mandatory), then best-effort fires the owner-email
@@ -16,7 +15,7 @@ import { WalkthroughAck, WalkthroughCreate } from '@/lib/contracts/walkthrough';
 import { prisma } from '@/lib/db';
 // 2026-09-04: switched from the framework's src/lib/email/send.ts to the
 // user-owned Resend-backed transport — the framework module's target
-// (POLSIA_EMAIL_PROXY_URL) is a confirmed-dead https://email-proxy.invalid
+// (PLATFORM_EMAIL_PROXY_URL) is a confirmed-dead https://email-proxy.invalid
 // placeholder, never a real endpoint. See send-resend.ts's own header for
 // the full story. Identical SendEmailInput/SendEmailResult interface, so
 // nothing else in this file needed to change.
@@ -38,7 +37,7 @@ function fieldErrorBody(error: z.ZodError): { errors: Record<string, string> } {
 }
 
 function ownerEmailAddress(): string | undefined {
-  return process.env.POLSIA_COMPANY_EMAIL ?? process.env.POLSIA_OWNER_EMAIL;
+  return process.env.COMPANY_EMAIL ?? 'nigelguy@iyansan.com';
 }
 
 export async function POST(req: Request) {

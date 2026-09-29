@@ -1,4 +1,3 @@
-// @polsia:user-owned — Mission status badge.
 'use client';
 
 import type { MissionStatus } from '@/lib/contracts/forge';

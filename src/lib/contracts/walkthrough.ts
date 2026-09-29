@@ -1,4 +1,3 @@
-// @polsia:user-owned — shared zod contract for the procurement-grade
 // /request-walkthrough form. One source of truth shared between the POST
 // /api/leads route handler (server) and the <WalkthroughForm/> island
 // (client). Keep this module client-importable: zod only, no server-only or

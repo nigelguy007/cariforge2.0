@@ -1,4 +1,3 @@
-// @polsia:user-owned — a handful of download/export links across the app
 // render a plain <a href="/api/..."> rather than going through apiFetch (a
 // real HTTP download, not a fetch+JSON call), which meant they silently
 // escaped the app's basePath under a subpath deployment. Confirmed as a real

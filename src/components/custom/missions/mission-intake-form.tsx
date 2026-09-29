@@ -1,4 +1,3 @@
-// @polsia:user-owned — Mission intake form: captures the nine attribution
 // fields required by the brief (need, intended outcome, constraints,
 // authority boundary, data classification, retention, acceptance criteria,
 // explicit non-goals) plus optional missing-information capture.

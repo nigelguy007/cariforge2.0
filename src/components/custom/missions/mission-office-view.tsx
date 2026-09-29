@@ -1,4 +1,3 @@
-// @polsia:user-owned — the "Office" view (Phase 1 of the Agent Command
 // Centre handoff, scoped down after user confirmation on 2026-09-05: use
 // the real 5-stage pipeline — Discovery/Readiness/Workflow/Governance/
 // SoftwareBuild — not the handoff document's own fictional 7-agent model,

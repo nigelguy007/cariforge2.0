@@ -1,4 +1,3 @@
-// @polsia:user-owned — shared zod contract for GET
 // /api/forge/missions/[id]/assurance-pack. Mirrors the shape assembled by
 // business/forge/assurance-pack.ts. Client-importable: zod only.
 

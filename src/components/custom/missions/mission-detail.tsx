@@ -1,4 +1,3 @@
-// @polsia:user-owned — Mission detail client island. Tabs surface the
 // entire forge control plane: overview / handoffs / gates / objections /
 // evidence / tool actions / audit / export. Pulls from /api/forge/missions/[id].
 

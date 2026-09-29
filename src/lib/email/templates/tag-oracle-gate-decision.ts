@@ -1,4 +1,3 @@
-// @polsia:user-owned — Email template for the TAG Caribbean pilot gate
 // decision notification. Sent via the platform email proxy on every gate
 // decision so the buyer, sponsor, and the named Elder Oracle can read the
 // ratification in plain language without logging in.

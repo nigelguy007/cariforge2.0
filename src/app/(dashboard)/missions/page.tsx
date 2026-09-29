@@ -1,4 +1,3 @@
-// @polsia:user-owned — Projects list page (Server Component shell). The URL
 // stays /missions so nothing bookmarked breaks; the page reads "Projects".
 import type { Metadata } from 'next';
 import Link from 'next/link';

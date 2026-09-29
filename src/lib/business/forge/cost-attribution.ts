@@ -1,4 +1,3 @@
-// @polsia:user-owned — Static cost lookup + per-record attribution helpers.
 // All costs are integer cents. Unknown model = { cents: 0, unknownCost: true }.
 // No inference — when the model is missing from COST_TABLE the UI surfaces an
 // HONEST unknown marker rather than a fabricated estimate. Pure (no DB).

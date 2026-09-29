@@ -1,4 +1,3 @@
-// @polsia:user-owned — real user report (2026-09-06): "the build is
 // complete however i dont see the files and spec as expected." The data
 // (generated files + technical spec) was already in the database; this
 // panel is the missing read path — every file, the full technical

@@ -1,4 +1,3 @@
-// @polsia:user-owned — /compare. Server Component that exports metadata.
 // The procurement evaluation matrix lives in a single client island
 // (<CompareMatrix/>) that GETs /api/compare and renders the disclaimer banner,
 // the six-vendor × five-criterion matrix, the criterion explainers, and the

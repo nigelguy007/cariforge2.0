@@ -1,4 +1,3 @@
-// @polsia:user-owned — /faq. Server Component that exports metadata. The five
 // Q&A live in a single client island (<FaqAccordion/>) that GETs /api/faq and
 // renders a Radix accordion. No data-fetch in the page body — server work is
 // the static metadata export only.
@@ -49,10 +48,10 @@ export default function FaqPage() {
           <p className="text-small text-muted-foreground">
             Still want to talk to a named human before submitting?{' '}
             <a
-              href="mailto:cari-forge@polsia.app?subject=CARI%20Forge%20pilot%20enquiry"
+              href="mailto:nigelguy@iyansan.com?subject=CARI%20Forge%20pilot%20enquiry"
               className="link-brand"
             >
-              cari-forge@polsia.app
+              nigelguy@iyansan.com
             </a>
           </p>
         </div>

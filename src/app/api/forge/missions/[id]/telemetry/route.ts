@@ -1,4 +1,3 @@
-// @polsia:user-owned — GET /api/forge/missions/[id]/telemetry.
 // Per-mission autonomy + cost read. Owner-scoped via requireForgeAuth +
 // service-layer owner check (mirrors getMissionDetail).
 import 'server-only';

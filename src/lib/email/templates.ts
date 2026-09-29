@@ -1,4 +1,3 @@
-// @polsia:user-owned — your email templates. Edit, add, or delete freely.
 // Each template returns { subject, html, text }; send it via the framework transport:
 //   import { sendEmail } from '@/lib/email/send';
 //   import { welcomeEmail } from '@/lib/email/templates';

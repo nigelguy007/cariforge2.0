@@ -2,7 +2,6 @@
 // see tests/unit/forge/auto-advance.test.ts's header comment for why jsdom
 // (the suite default) can't run this without it.
 //
-// @polsia:user-owned — the one behavioural guarantee that matters most for
 // this file: a missing/unusable AI Gateway key must degrade to
 // { status: 'unavailable' } and never throw, because a drafting outage
 // must never be the reason a project gets stuck (the admin fallback form

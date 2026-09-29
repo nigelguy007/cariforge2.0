@@ -1,4 +1,3 @@
-// @polsia:user-owned — /how-the-council-works client island. Loads three
 // sections of static catalog copy (advisors, chairmanship, tiebreak) from
 // /api/council through apiFetch + the shared CouncilDetail contract, then
 // renders them in three vertical sections. Loading / empty / error guards

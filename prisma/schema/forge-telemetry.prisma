@@ -1,4 +1,3 @@
-// @polsia:user-owned — Telemetry surface for the CARI Forge autonomy ladder
 // + cost attribution slice. Append-only. FKs are scalars (no @relation to
 // User, which lives in framework-owned auth.prisma); the join lives in app
 // code under /api/forge/admin/telemetry. Datasource + generator live in

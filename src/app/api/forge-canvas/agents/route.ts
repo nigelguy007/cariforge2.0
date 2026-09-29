@@ -1,4 +1,3 @@
-// @polsia:user-owned — GET /api/forge-canvas/agents. The Agent Foundry
 // registry read for the canvas palette. Auth-gated like every other
 // /api/forge* route.
 

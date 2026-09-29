@@ -1,4 +1,3 @@
-// @polsia:user-owned — R7 (mission pipeline rebuild): QA-review card, shown
 // directly above MissionGatePanel. Reference: apps/web/components/QAReviewCard
 // — "the agent-checks-agent critique... shown next to the approval form, so
 // the approver reads an independent second opinion before deciding.

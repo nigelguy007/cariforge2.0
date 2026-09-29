@@ -1,4 +1,3 @@
-// @polsia:user-owned — Assurance pack card island. Fetches and renders the
 // Section-8 assurance pack (business/forge/assurance-pack.ts) for one
 // mission — a curated, governance-audience summary, distinct from the raw
 // JSON/CSV evidence-trail export above it on the same tab (that dumps every

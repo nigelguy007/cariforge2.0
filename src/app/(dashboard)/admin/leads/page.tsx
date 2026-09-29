@@ -1,4 +1,3 @@
-// @polsia:user-owned — /admin/leads. Server Component that gates the page
 // itself (redirects unauthenticated / non-admin visitors at request time).
 // The page is purely a composition layer — no data fetch, no inner-await. The
 // client island <AdminLeadsTable/> fetches via /api/admin/leads on mount, and

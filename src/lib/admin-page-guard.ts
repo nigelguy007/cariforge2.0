@@ -1,4 +1,3 @@
-// @polsia:user-owned — page-level admin guard. biome's noRestrictedImports
 // disallows importing @/lib/auth + next/headers from a `page.tsx` (the
 // exemptions cover /api route handlers + src/lib, but not page files), so
 // we expose the same guard here, in src/lib, where the page can import it

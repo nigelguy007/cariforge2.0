@@ -1,4 +1,3 @@
-// @polsia:user-owned — work-items bounded transitions + completion.
 import { describe, expect, it } from 'vitest';
 import {
   isTerminalWorkItemStatus,

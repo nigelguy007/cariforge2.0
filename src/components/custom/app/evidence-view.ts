@@ -1,4 +1,3 @@
-// @polsia:user-owned — the Evidence view model (brief, Step 5). Turns one
 // project's real records into the five questions a buyer or auditor asks,
 // plus at most three measures. Pure: no fetch, no React, unit-testable.
 // Every fact here traces to a row the API already returns; nothing is

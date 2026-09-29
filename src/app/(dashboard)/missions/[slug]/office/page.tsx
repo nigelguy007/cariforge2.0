@@ -1,4 +1,3 @@
-// @polsia:user-owned — /missions/[slug]/office: the live "Office" view
 // (Phase 1 of the Agent Command Centre handoff, scoped to the real
 // 5-agent pipeline — see mission-office-view.tsx's own header comment).
 

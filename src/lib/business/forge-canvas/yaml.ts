@@ -1,4 +1,3 @@
-// @polsia:user-owned — YAML projection of the canonical CARI Blueprint (PR
 // A5). YAML is a projection, never a second source of truth: yamlToBlueprint
 // re-validates every parse through CariBlueprintDefinition.parse exactly as
 // a JSON body would at any API boundary — there is no YAML-specific

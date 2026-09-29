@@ -1,4 +1,3 @@
-// @polsia:user-owned — /dashboard/pipeline. Signed-in-only detail view.
 //
 // Real user feedback (2026-09-04): "this type of information should only be
 // visible if you create a profile... this is giving away the app

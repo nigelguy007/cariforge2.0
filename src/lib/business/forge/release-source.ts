@@ -1,4 +1,3 @@
-// @polsia:user-owned — additive ReleaseSource upsert side-effect. Called
 // from POST /api/forge/missions/[id]/release AFTER recordRelease() succeeds.
 // Idempotent (upsert on missionId @unique), tolerant of failure (logs +
 // continues — never breaks the visible contract).

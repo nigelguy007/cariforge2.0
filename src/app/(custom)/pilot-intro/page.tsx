@@ -1,4 +1,3 @@
-// @polsia:user-owned — /pilot-intro. Server Component that exports metadata. A
 // static positioning page for the TAG Caribbean pilot initiative: who the
 // audience is (regulatory, partner, internal sponsor), what the pilot covers
 // in region / buyer / scope / timebox, and the explicit GO/NO-GO claims a

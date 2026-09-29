@@ -1,4 +1,3 @@
-// @polsia:user-owned — extracts the real error message from an apiFetch
 // failure. apiFetch (framework-owned, src/lib/api-client.ts) always throws
 // `new Error(\`apiFetch <path> failed (<status>)\`, { cause: body })` — the
 // server's own curated message (every /api/forge/* route responds

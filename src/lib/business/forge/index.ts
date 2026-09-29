@@ -1,4 +1,3 @@
-// @polsia:user-owned — barrel export for the pure forge business modules.
 
 export * from './export';
 export * from './gaps';

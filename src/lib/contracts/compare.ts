@@ -1,4 +1,3 @@
-// @polsia:user-owned — shared zod contract for the /compare resource. One
 // source of truth shared between the GET /api/compare handler (server) and the
 // <CompareMatrix/> island (client). Static catalog copy for the procurement
 // evaluation page: six vendors (CARI Forge plus five AI-build platforms named

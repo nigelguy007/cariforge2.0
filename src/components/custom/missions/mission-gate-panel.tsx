@@ -1,4 +1,3 @@
-// @polsia:user-owned — Single gate panel rendering.
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';

@@ -1,5 +1,4 @@
-// @polsia:framework-owned — DO NOT EDIT.
-// Code installed by polsia/template-next. Server-only PrismaClient singleton.
+// Code installed by platform/template-next. Server-only PrismaClient singleton.
 import 'server-only';
 import { PrismaClient } from '@prisma/client';
 

@@ -1,4 +1,3 @@
-// @polsia:user-owned — Start a project (intake) page.
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { MissionIntakeChat } from '@/components/custom/missions/mission-intake-chat';

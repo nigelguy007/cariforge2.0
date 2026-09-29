@@ -1,4 +1,3 @@
-// @polsia:user-owned — POST /api/forge/missions/:id/gates/:gateIndex/decide.
 
 import 'server-only';
 import { NextResponse } from 'next/server';

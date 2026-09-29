@@ -1,4 +1,3 @@
-// @polsia:user-owned — evidence-trail build + CSV cell escape coverage.
 import { describe, expect, it } from 'vitest';
 import { buildEvidenceTrail, evidenceTrailToCsv } from '@/lib/business/forge/export';
 import type { MissionDetailT } from '@/lib/contracts/forge';

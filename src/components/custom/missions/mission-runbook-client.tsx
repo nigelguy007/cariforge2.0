@@ -1,4 +1,3 @@
-// @polsia:user-owned — Runbook client island: resolves slug → id, renders
 // the derived runbook payload. No server DB access.
 'use client';
 

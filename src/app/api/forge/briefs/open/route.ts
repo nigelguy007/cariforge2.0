@@ -1,4 +1,3 @@
-// @polsia:user-owned — GET /api/forge/briefs/open (UX review C1, wireframe
 // v2). The signed-in user's own submitted briefs that no mission has
 // converted yet, matched strictly by the session email. This is what powers
 // the dashboard's "Your brief · CF-XXXX → Convert to mission" card — the

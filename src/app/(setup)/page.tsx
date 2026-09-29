@@ -1,4 +1,3 @@
-// @polsia:user-owned — landing page served at /.
 //
 // DESIGN DIRECTION (2026-09-03, explicit user request): "change the design of
 // the website to look like https://cosmoq.framer.website ... and retain the

@@ -1,4 +1,3 @@
-// @polsia:user-owned — Bounded work-items panel: list, transition, attach
 // test evidence. Client island.
 
 'use client';

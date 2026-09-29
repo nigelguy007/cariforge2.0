@@ -1,4 +1,3 @@
-// @polsia:user-owned — shared zod contract for the FAQ resource. Read-only
 // registry of regulated-buyer questions surfaced on /faq. One source of truth
 // shared between the GET /api/faq handler (server) and the <FaqAccordion/>
 // island (client). Keep client-importable: zod only, no server-only imports.

@@ -1,4 +1,3 @@
-// @polsia:user-owned — real user report (2026-09-05): "it says the
 // project is completed but i dont see any build or solution .. just a
 // plan, nothing at all". The SoftwareBuild step now actually generates
 // real files (see ai-draft.ts's draftSoftwareBuildFiles) — this renders

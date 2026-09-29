@@ -1,4 +1,3 @@
-// @polsia:user-owned — real user report (2026-09-05, live screenshots):
 // "it says there are 3 outstanding concerns unresolved .. yet the system
 // says they are resolved". The Concerns list used to render every
 // objection ever raised on the mission — across every past draft version

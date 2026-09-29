@@ -1,4 +1,4 @@
-/* @polsia:shared scaffold — the agent's ONLY authority here is the SEED inside
+/* shared scaffold — the agent's ONLY authority here is the SEED inside
  * the `brand_tokens` slot. Everything else (the @theme namespaces, the
  * framework-DERIVED color block, @layer base/components, @custom-variant dark)
  * is FRAMEWORK STRUCTURE — do not edit it.
@@ -17,7 +17,7 @@
 
 @import "tailwindcss";
 @import "tw-animate-css";
-/* @polsia:user-owned entrypoint — agents add custom global CSS in custom-style.css, not here. */
+/* user-owned entrypoint — agents add custom global CSS in custom-style.css, not here. */
 @import "./custom-style.css";
 
 @custom-variant dark (&:is(.dark *));
@@ -118,7 +118,7 @@
   --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
-/* === BEGIN polsia-slot:brand_tokens === */
+/* === BEGIN platform-slot:brand_tokens === */
 /* THE SEED — the agent's only styling authority on this file.
    Set the brand HUE (and optionally chroma/lightness), the radius, and the
    fonts. The framework derives the full --brand ramp + every surface/text/
@@ -147,7 +147,7 @@
   --glass-shadow: oklch(var(--brand-l) calc(var(--brand-c) * 0.7) var(--brand-h) / 0.18);
   --glass-blur: 16px;
 }
-/* === END polsia-slot:brand_tokens === */
+/* === END platform-slot:brand_tokens === */
 
 /* FRAMEWORK-DERIVED — NOT agent-editable (outside the slot). The full ramp,
    every semantic role, and dark mode are computed from the seed above. Neutrals

@@ -1,4 +1,3 @@
-// @polsia:user-owned — Specialist attester panel. Lists the typed specialist
 // attesters on a single handoff and offers any authed user the option to add
 // themselves as one. Drives the ATTESTER precondition of decideGate.
 

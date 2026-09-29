@@ -1,4 +1,3 @@
-// @polsia:user-owned — replay plan coverage: pure plan generation.
 import { describe, expect, it } from 'vitest';
 import { replayPlan } from '@/lib/business/forge/replay';
 

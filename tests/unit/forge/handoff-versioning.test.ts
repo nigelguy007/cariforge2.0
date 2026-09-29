@@ -1,4 +1,3 @@
-// @polsia:user-owned — handoff versioning, parent linkage, correction,
 // downstream invalidation.
 import { describe, expect, it } from 'vitest';
 import {

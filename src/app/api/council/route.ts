@@ -1,4 +1,3 @@
-// @polsia:user-owned — GET /api/council. Static catalog copy for the
 // /how-the-council-works depth page: the five advisor roles, the chairman's
 // three-ruling logic, and the tie-back-to-human rule. Served from in-process
 // `as const` constants with no DB. The route parses through the shared

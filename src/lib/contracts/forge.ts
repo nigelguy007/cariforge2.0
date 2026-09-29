@@ -1,4 +1,3 @@
-// @polsia:user-owned — shared zod contract for the Forge control plane.
 // Single source of truth shared between /api/forge/* handlers (server) and
 // every client island under src/components/custom/missions/*. Keep this file
 // client-importable: zod only, no server-only imports.

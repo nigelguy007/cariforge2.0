@@ -1,4 +1,3 @@
-// @polsia:user-owned — cost attribution coverage. Unknown model returns an
 // HONEST { cents: 0, unknownCost: true } shape; blended carry propagates the
 // unknown flag through the rollup.
 import { describe, expect, it } from 'vitest';

@@ -1,4 +1,3 @@
-// @polsia:user-owned — POST /api/forge/missions/:id/build-job. Advances
 // (creating if needed) the SoftwareBuild stage's async generation job by
 // exactly one bounded step and returns its new state — see
 // business/forge/build-job.ts's own header for the full "why" (this

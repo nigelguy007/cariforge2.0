@@ -1,4 +1,3 @@
-// @polsia:user-owned — /why-this-is-a-scaffold. Server Component that exports
 // metadata. A purely static honesty page for procurement and compliance
 // reviewers: the disallowed list (what the deliverable is NOT) and the actual
 // promise (what it IS), without invented guarantees. No data-fetch in the page

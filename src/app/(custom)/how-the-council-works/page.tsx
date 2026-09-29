@@ -1,4 +1,3 @@
-// @polsia:user-owned — /how-the-council-works. Server Component that exports
 // metadata. The three mechanics live in a single client island
 // (<CouncilSections/>) that GETs /api/council. No data-fetch in the page body —
 // server work is the static metadata export only. Mirrors /faq and /pricing.

@@ -1,4 +1,3 @@
-// @polsia:user-owned — client island. Loads the seven-agent core model
 // (1 Discovery, 2 Readiness, 3 Workflow, 4 Governance, 5 AI Build, 6 Partner,
 // 7 Impact) from /api/agents through apiFetch + the shared CoreAgents
 // contract, then renders it as a 4-3 grid (or 7-grid on lg) of <GlassCard>

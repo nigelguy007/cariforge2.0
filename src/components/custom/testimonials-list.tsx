@@ -1,4 +1,3 @@
-// @polsia:user-owned — /testimonials client island. Loads approved quotes
 // from /api/testimonials through apiFetch + the shared TestimonialList
 // contract, then renders them grouped by sector tag. When the moderation
 // queue is empty we render an honest paragraph (not a 500); when the fetch

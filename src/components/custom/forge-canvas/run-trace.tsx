@@ -1,4 +1,3 @@
-// @polsia:user-owned — node-by-node run trace (Mission Control seed view
 // for the Release 1 slice). Shows each executed node's status, input and
 // output as inspectable evidence, plus a jump to the Approval Desk when
 // the run is paused on a human gate.

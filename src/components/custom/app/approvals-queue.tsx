@@ -1,4 +1,3 @@
-// @polsia:user-owned — the Approvals queue (brief, Step 5). One list of
 // everything waiting on the signed-in person: projects sitting at an
 // approval step, and workflow runs paused at a human-approval node. A
 // project row opens the project workspace, where the one next-action card

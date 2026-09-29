@@ -2,7 +2,6 @@
 // directly; see tests/unit/forge/auto-advance.test.ts's header comment for
 // why jsdom (the suite default) can't run this without it.
 //
-// @polsia:user-owned — same guarantee as ai-draft.test.ts, for the two
 // functions auto-advance.ts depends on directly: an unusable AI Gateway
 // key (reviewStepDraft) or nothing to reconcile (reconcileConcerns) must
 // degrade to 'unavailable' and never throw — a review or reconciliation

@@ -1,4 +1,3 @@
-// @polsia:user-owned — R7 (mission pipeline rebuild): shared zod contract for
 // the QA-review layer. Reference: apps/web/components/QAReviewCard/QAReviewCard.tsx
 // on the real platform — an independent agent critiques every artefact before
 // the human sees the approval form. Advisory only: "it never gates anything;

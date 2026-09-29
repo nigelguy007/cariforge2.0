@@ -1,4 +1,3 @@
-// @polsia:user-owned — server-side reads/csv for the admin leads dashboard.
 // Called from /api/admin/leads and /api/admin/leads/export — never from a page
 // or client component. `import 'server-only'` is enforced by the file's import
 // below; callers in the public (client) layer would otherwise break the build.

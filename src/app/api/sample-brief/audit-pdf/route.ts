@@ -1,4 +1,3 @@
-// @polsia:user-owned — POST /api/sample-brief/audit-pdf. Renders the
 // /sample-brief worked example as a single-page audit-trail PDF: brief,
 // council debate, chair ruling, supervisor sign-off, and scaffold
 // disclaimer. Server-side composition from the same SAMPLE_BRIEF +

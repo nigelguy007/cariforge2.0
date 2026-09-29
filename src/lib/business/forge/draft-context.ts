@@ -1,4 +1,3 @@
-// @polsia:user-owned — extracted from /api/forge/missions/[id]/draft's own
 // POST handler (2026-09-06), so the new async SoftwareBuild job route
 // (build-job/route.ts) can resolve which gate to draft, with the exact
 // same governance guards, instead of a second copy of this logic that

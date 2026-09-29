@@ -1,4 +1,3 @@
-// @polsia:user-owned — Mission cost card. Read-only; pulls blended model +
 // chat cost cents, surfaces hasUnknownCost HONESTLY (a yellow badge, never
 // a silent estimate).
 

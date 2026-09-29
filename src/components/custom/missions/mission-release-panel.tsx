@@ -1,4 +1,3 @@
-// @polsia:user-owned — Release status panel (read) + release readout (post).
 'use client';
 
 import * as React from 'react';

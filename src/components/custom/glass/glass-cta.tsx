@@ -1,4 +1,3 @@
-// @polsia:user-owned — primary CTA composition with CVA for tone. Use for
 // the largest, highest-intent call to action on a page (e.g. hero primary,
 // row primary). Composes the Button primitive variants but visually
 // pre-tunes them to the Liquid Glass brand treatment.

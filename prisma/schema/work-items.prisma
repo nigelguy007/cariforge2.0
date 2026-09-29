@@ -1,4 +1,3 @@
-// @polsia:user-owned — bounded work items derived from an approved Workflow
 // gate (stage 2). Lives beneath the SoftwareBuild lifecycle. Created when
 // gate 2 Approves; bounded by parent StageHandoffId; run through the same
 // Oracles challenge + test/rework loop. FKs are scalars.

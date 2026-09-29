@@ -1,4 +1,3 @@
-// @polsia:user-owned — static dataset for the seven-agent core model. Server-only:
 // imported by /api/agents/route.ts, which parses it through the shared
 // CoreAgents contract. Lists the canonical seven agents that operate the
 // CARI Forge pipeline and wraparound: 1 Discovery, 2 Readiness, 3 Workflow,

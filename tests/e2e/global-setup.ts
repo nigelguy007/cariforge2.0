@@ -1,4 +1,3 @@
-// @polsia:user-owned — runs once before the e2e suite. Authenticates both
 // QA accounts programmatically (see support/auth.ts) and writes each
 // session out as Playwright storageState, so individual specs start already
 // signed in instead of re-authenticating every test.

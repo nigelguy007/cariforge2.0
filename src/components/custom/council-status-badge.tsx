@@ -1,4 +1,3 @@
-// @polsia:user-owned — Council run status badge. Maps a CouncilRun.status
 // (+ optional verdict + the lead's notified bit) onto a <Badge/> with a
 // human label. Kept as its own client island so the table stays scannable.
 

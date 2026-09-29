@@ -1,4 +1,3 @@
-// @polsia:user-owned — /admin/testimonials. Server Component that gates the
 // page itself (requireAdminOnPage() redirects unauthenticated visitors to
 // /login and signed-in non-admin visitors back to /) and renders the
 // <AdminTestimonialsTable/> client island, which fetches via apiFetch +

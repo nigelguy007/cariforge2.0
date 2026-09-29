@@ -1,4 +1,3 @@
-// @polsia:user-owned — delivery matrix pinning. The brief requires every
 // capability line to be delivered. This test asserts each is wired.
 import { describe, expect, it } from 'vitest';
 import { modelUsageCostCents } from '@/lib/business/forge/cost-attribution';
