@@ -332,9 +332,9 @@ function SolutionCard({ solution }: { solution: Solution }) {
 
 function ProductionDisclaimerBanner({ text }: { text: string }) {
   return (
-    <GlassPanel tone="surface" padding="lg" backdrop="soft" aria-label="Production disclaimer">
+    <GlassPanel tone="surface" padding="lg" backdrop="soft" aria-label="About this example">
       <p className="text-[10px] font-semibold uppercase tracking-[0.1em] text-brand-700">
-        Production disclaimer
+        About this example
       </p>
       <p className="text-small leading-relaxed text-card-foreground/90">{text}</p>
     </GlassPanel>

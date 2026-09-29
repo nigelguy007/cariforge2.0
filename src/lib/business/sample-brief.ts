@@ -16,7 +16,7 @@ import type { SampleBrief } from '@/lib/contracts/sample-brief';
 
 export const SAMPLE_BRIEF: SampleBrief = {
   productionDisclaimer:
-    'Editorial worked example. Nothing here runs in production. The CouncilRun, audit-trail model, and claims/queue route handlers are described — they are not deployed for this URL. The hand-off is the case file at the bottom.',
+    'Illustrative worked example: the insurer, people and case are fictional. The council, named-human gates and audit trail it walks through are the same engine that runs live at cariforge.com/888; this page itself does not start a run. The hand-off is the case file at the bottom.',
   brief: {
     industry:
       'Insurance — non-life property claims, EU regulated. Buyer operates across IE, FR, DE under EIOPA supervision; GDPR + Solvency II reporting in scope.',
