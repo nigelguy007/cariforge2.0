@@ -27,6 +27,7 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { apiFetch } from '@/lib/api-client';
 import { apiErrorMessage } from '@/lib/api-error-message';
+import { withBasePath } from '@/lib/api-href';
 import { MissionCreate, MissionDetail } from '@/lib/contracts/forge';
 import {
   type IntakeChatMessageT,
@@ -41,7 +42,7 @@ async function uploadEvidenceFile(missionId: string, file: File): Promise<boolea
   const body = new FormData();
   body.append('file', file);
   try {
-    const res = await fetch(`/api/forge/missions/${missionId}/evidence`, {
+    const res = await fetch(withBasePath(`/api/forge/missions/${missionId}/evidence`), {
       method: 'POST',
       body,
     });

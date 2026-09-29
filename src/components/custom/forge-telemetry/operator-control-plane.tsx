@@ -9,6 +9,7 @@
 import * as React from 'react';
 import { z } from 'zod';
 import { apiFetch } from '@/lib/api-client';
+import { withBasePath } from '@/lib/api-href';
 import {
   AdminTelemetryOverview,
   type AdminTelemetryOverviewT,
@@ -205,7 +206,7 @@ export function OperatorControlPlane() {
               {rows.map((r) => (
                 <tr key={r.missionId} className="border-t border-border/50">
                   <td className="py-2">
-                    <a href={`/missions/${r.missionSlug}`} className="link-brand">
+                    <a href={withBasePath(`/missions/${r.missionSlug}`)} className="link-brand">
                       {r.missionName}
                     </a>
                     {r.hasUnknownCost ? (

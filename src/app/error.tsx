@@ -6,6 +6,7 @@
 
 import { GlassCard, GlassChip } from '@/components/custom/glass';
 import { Button } from '@/components/ui/button';
+import { withBasePath } from '@/lib/api-href';
 
 export default function RouteError({
   reset,
@@ -37,7 +38,7 @@ export default function RouteError({
             Try again
           </Button>
           <Button asChild type="button" variant="outline" size="lg">
-            <a href="/">Back to home</a>
+            <a href={withBasePath('/')}>Back to home</a>
           </Button>
         </div>
       </GlassCard>

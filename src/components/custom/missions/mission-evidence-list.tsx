@@ -2,6 +2,7 @@
 'use client';
 
 import { CheckCircle2 } from 'lucide-react';
+import { withBasePath } from '@/lib/api-href';
 import type { MissionDetailT } from '@/lib/contracts/forge';
 import { humanise } from '@/lib/ui-terms';
 
@@ -31,7 +32,7 @@ export function MissionEvidenceList({ detail }: { detail: MissionDetailT }) {
           </div>
           <a
             className="link-brand truncate text-caption"
-            href={e.ref}
+            href={e.ref.startsWith('/') ? withBasePath(e.ref) : e.ref}
             target="_blank"
             rel="noreferrer"
             title={e.ref}
