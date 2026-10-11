@@ -117,7 +117,7 @@ const TIEBREAK = [
     whatTheyAttach:
       'A typed reason, recorded verbatim alongside the stage advance. The ruling — approve, return, or refuse — is filed with the reason attached, before any next stage begins.',
     appliesTo:
-      'The five stage gates of the 21-day delivery pipeline — Stage 1: Discovery, Stage 2: Readiness, Stage 3: Workflow, Stage 4: Governance, Stage 5: Software Build — not just the chair’s tie-break block. Every stage advance requires the same named-human approval with a typed reason attached. The seven-agent core (Agents 1..7: Discovery, Readiness, Workflow, Governance, AI Build, Partner, Impact) operates these stages — Agent 5 (AI Build) runs Stage 5 (Software Build); Agents 6 (Partner) and 7 (Impact) wrap around delivery. The named-human gate is per stage, not per agent.',
+      'The five stage gates of the 21-day delivery pipeline — Stage 1: Discovery, Stage 2: Readiness, Stage 3: Workflow, Stage 4: Governance, Stage 5: Software Build — not just the chair’s tie-break block. Every stage advance requires the same named-human approval with a typed reason attached. Five specialist agents (Discovery, Readiness, Workflow, Governance, AI Build) operate these stages — AI Build runs Stage 5 (Software Build); Partner and Impact run on demand at any stage. The named-human gate is per stage, not per agent.',
   },
   {
     id: 'no-silent-drop',

@@ -37,7 +37,7 @@ import { siteName } from '@/lib/site';
 export const metadata: Metadata = {
   title: 'How it works',
   description:
-    'The Oracles who argue every brief, the seven-agent core that operates the pipeline, and the five named human gates a mission passes through.',
+    'The Oracles who argue every brief, the five specialist agents that operate the pipeline (with Partner and Impact on demand), and the five named human gates a mission passes through.',
   alternates: { canonical: '/how-it-works' },
 };
 

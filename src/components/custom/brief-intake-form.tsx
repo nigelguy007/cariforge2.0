@@ -177,7 +177,7 @@ function DiscoveryTriageCard({ result }: { result: ConfiguratorResultT }) {
       {result.agentFocus.length > 0 ? (
         <div className="flex flex-col gap-1">
           <p className="text-caption font-medium uppercase tracking-wide text-muted-foreground">
-            Where the seven agents would focus
+            Where the agents would focus
           </p>
           <ul className="flex flex-col gap-1 text-small text-card-foreground/80">
             {result.agentFocus.map((f) => (
