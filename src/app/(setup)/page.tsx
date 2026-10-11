@@ -292,7 +292,7 @@ export default function Home() {
             <div className="cq-stat">
               <div className="cq-stat-value">5</div>
               <div className="cq-stat-label">
-                specialist agents run the pipeline &mdash; Partner and Impact join on demand
+                specialist agents run the pipeline &mdash; Partner and Impact work alongside
               </div>
             </div>
             <div className="cq-stat">

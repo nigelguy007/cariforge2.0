@@ -160,8 +160,8 @@ function SectionLede() {
       </span>{' '}
       run the five pipeline stages (stage 5 is itself called{' '}
       <span className="font-semibold text-foreground">Software Build</span>, operated by the AI
-      Build agent). <span className="font-semibold text-foreground">Partner and Impact</span> run on
-      demand at any stage — Partner lands the runnable build on the buyer&rsquo;s infrastructure; Impact
+      Build agent). <span className="font-semibold text-foreground">Partner and Impact</span> work
+      alongside delivery — Partner lands the runnable build on the buyer&rsquo;s infrastructure; Impact
       measures the change in the world it was meant to make.
     </>
   );
@@ -173,7 +173,7 @@ function FooterNote() {
       <span className="font-semibold text-foreground">
         How this maps back to the rest of CARI Forge.
       </span>{' '}
-      The five specialist agents, with Partner and Impact on demand, are what actually run a case. The Oracles are the five voices (Risk,
+      The five specialist agents, with Partner and Impact alongside, are what actually run a case. The Oracles are the five voices (Risk,
       Demand, Growth, Competition, Money) that read the case file and rule before the pipeline
       starts. The Elder Oracle is the chair that ties the rule back to a named human. Three distinct
       governance concepts — one delivery runtime.
@@ -211,7 +211,7 @@ export function CoreAgentsSection() {
       <div className="container-page flex flex-col gap-10">
         <GlassSectionHeader
           eyebrow="Core agents"
-          title="Five specialist agents operate the pipeline, with Partner and Impact on demand — distinct from The Oracles."
+          title="Five specialist agents operate the pipeline, with Partner and Impact alongside — distinct from The Oracles."
           lede={<SectionLede />}
         />
 
@@ -302,7 +302,7 @@ export function CoreAgentsSummary() {
       <div className="container-page flex flex-col gap-10">
         <GlassSectionHeader
           eyebrow="Core agents"
-          title="Five specialist agents operate the pipeline, with Partner and Impact on demand — distinct from The Oracles."
+          title="Five specialist agents operate the pipeline, with Partner and Impact alongside — distinct from The Oracles."
           lede={<SectionLede />}
         />
 

@@ -498,7 +498,7 @@ function SampleBriefDetailLoading() {
         <GlassSectionHeader
           eyebrow="§ 04 · The pipeline"
           title="Five named approvals, no hidden steps — operated by five specialist agents."
-          lede="Each stage advance (1..5; stage 5 = Software Build) requires a human approval by name, with a typed reason attached verbatim. Five specialist agents — Discovery, Readiness, Workflow, Governance, AI Build — operate the pipeline, with Partner and Impact on demand at any stage; AI Build (Agent 5) runs the Software Build stage (Stage 5). Returns are cheap; stops are free. Nothing jumps a gate."
+          lede="Each stage advance (1..5; stage 5 = Software Build) requires a human approval by name, with a typed reason attached verbatim. Five specialist agents — Discovery, Readiness, Workflow, Governance, AI Build — operate the pipeline, with Partner handing the approved build to the buyer and Impact measuring the outcome; AI Build (Agent 5) runs the Software Build stage (Stage 5). Returns are cheap; stops are free. Nothing jumps a gate."
         />
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-5">
           {['01', '02', '03', '04', '05'].map((k) => (
@@ -587,7 +587,7 @@ function SampleBriefDetailLoaded({ data }: { data: SampleBriefType }) {
         <GlassSectionHeader
           eyebrow="§ 04 · The pipeline"
           title="Five named approvals, no hidden steps — operated by five specialist agents."
-          lede="Each stage advance (1..5; stage 5 = Software Build) requires a human approval by name, with a typed reason attached verbatim. Five specialist agents — Discovery, Readiness, Workflow, Governance, AI Build — operate the pipeline, with Partner and Impact on demand at any stage; AI Build (Agent 5) runs the Software Build stage (Stage 5). Returns are cheap; stops are free. Nothing jumps a gate."
+          lede="Each stage advance (1..5; stage 5 = Software Build) requires a human approval by name, with a typed reason attached verbatim. Five specialist agents — Discovery, Readiness, Workflow, Governance, AI Build — operate the pipeline, with Partner handing the approved build to the buyer and Impact measuring the outcome; AI Build (Agent 5) runs the Software Build stage (Stage 5). Returns are cheap; stops are free. Nothing jumps a gate."
         />
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-5">
           {data.stages.map((stage, idx) => (
